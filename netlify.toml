@@ -1,10 +1,11 @@
-# Publish directory: leave UNSET in Netlify UI (Site settings → Build & deploy →
-# Continuous deployment → Build settings). Do not use "." or the repo root — the
-# Next.js runtime plugin sets the correct output. Setting publish = base causes:
-# "Your publish directory cannot be the same as the base directory of your site."
+# Publish must NOT be the repo root (@netlify/plugin-nextjs rejects publish === base).
+# This path is produced when the plugin runs after `next build` (OpenNext output).
+# In Netlify UI, either leave Publish directory blank or set it to .netlify/output/public
+# so it matches this file.
 
 [build]
   command = "npm run build"
+  publish = ".netlify/output/public"
 
 [build.environment]
   NODE_VERSION = "20"
