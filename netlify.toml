@@ -1,5 +1,9 @@
+# Publish directory: leave UNSET in Netlify UI (Site settings → Build & deploy →
+# Continuous deployment → Build settings). Do not use "." or the repo root — the
+# Next.js runtime plugin sets the correct output. Setting publish = base causes:
+# "Your publish directory cannot be the same as the base directory of your site."
+
 [build]
-  base = "."
   command = "npm run build"
 
 [build.environment]
