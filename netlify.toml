@@ -1,11 +1,11 @@
-# Publish must NOT be the repo root (@netlify/plugin-nextjs rejects publish === base).
-# This path is produced when the plugin runs after `next build` (OpenNext output).
-# In Netlify UI, either leave Publish directory blank or set it to .netlify/output/public
-# so it matches this file.
+# Publish directory must be ".next" (Next.js build output). @netlify/plugin-nextjs reads from
+# here and copies/server-bundles into .netlify/* — not ".netlify/output/public" (that path is
+# internal). Do not set Publish to the repo root in the Netlify UI.
+# Ref: plugin-context.js DEFAULT_PUBLISH_DIR = ".next"
 
 [build]
   command = "npm run build"
-  publish = ".netlify/output/public"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
