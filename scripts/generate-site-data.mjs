@@ -775,6 +775,11 @@ export const siteStats = ${JSON.stringify(data.siteStats, null, 2)};
 if (!fs.existsSync(mirrorDir)) {
   throw new Error(`Missing mirrored content at ${mirrorDir}`);
 }
+if (!fs.statSync(mirrorDir).isDirectory()) {
+  throw new Error(
+    `${mirrorDir} is not a directory (delete the file/symlink and use the real mirror folder, or rely on committed content/generated/site-data.generated.js).`
+  );
+}
 
 const assetManifest = readAssetManifest();
 const assetRecords = buildAssetRecords(assetManifest);

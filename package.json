@@ -13,8 +13,9 @@
     "db:sync:member-pages": "node scripts/db-sync-member-pages.mjs",
     "db:prepare": "npm run db:init && npm run db:sync:news-events",
     "predev": "node scripts/predev.mjs",
-    "prebuild": "npm run generate:content && npm run db:prepare",
+    "prebuild": "node scripts/prebuild-site.mjs",
     "dev": "next dev",
+    "dev:turbo": "next dev --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
