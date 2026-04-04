@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xml:base="https://nashvillemusicians.org"  xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+ <title>Nashville Musicians Association - Classical</title>
+ <link>https://nashvillemusicians.org/musical-styles/classical</link>
+ <description></description>
+ <language>en</language>
+<item>
+ <title>Clayton Hamilton</title>
+ <link>https://nashvillemusicians.org/clayton-hamilton</link>
+ <description>&lt;div class=&quot;field field-name-field-picture field-type-imagefield-crop field-label-above&quot;&gt;&lt;div class=&quot;field-label&quot;&gt;Picture:&amp;nbsp;&lt;/div&gt;&lt;div class=&quot;field-items&quot;&gt;&lt;div class=&quot;field-item even&quot;&gt;&lt;img typeof=&quot;foaf:Image&quot; src=&quot;https://nashvillemusicians.org/sites/default/files/Bio_Picture_1.jpg&quot; width=&quot;200&quot; height=&quot;150&quot; alt=&quot;&quot; /&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;field field-name-field-contact-information field-type-text-long field-label-above&quot;&gt;&lt;div class=&quot;field-label&quot;&gt;Contact Information:&amp;nbsp;&lt;/div&gt;&lt;div class=&quot;field-items&quot;&gt;&lt;div class=&quot;field-item even&quot;&gt;Email: mr.claytonhamilton@gmail.com&lt;br /&gt;
+Phone: 978-289-2429&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;field field-name-field-personnel-instrumentation field-type-text-long field-label-above&quot;&gt;&lt;div class=&quot;field-label&quot;&gt;Personnel/Instrumentation:&amp;nbsp;&lt;/div&gt;&lt;div class=&quot;field-items&quot;&gt;&lt;div class=&quot;field-item even&quot;&gt;Clayton Hamilton - Saxophone, Flute, Clarinet&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;field field-name-field-musical-style-s- field-type-taxonomy-term-reference field-label-above&quot;&gt;&lt;div class=&quot;field-label&quot;&gt;Musical Style(s):&amp;nbsp;&lt;/div&gt;&lt;div class=&quot;field-items&quot;&gt;&lt;div class=&quot;field-item even&quot;&gt;&lt;a href=&quot;/musical-styles/cover-tunes&quot; typeof=&quot;skos:Concept&quot; property=&quot;rdfs:label skos:prefLabel&quot; datatype=&quot;&quot;&gt;Cover Tunes&lt;/a&gt;&lt;/div&gt;&lt;div class=&quot;field-item odd&quot;&gt;&lt;a href=&quot;/musical-styles/classical&quot; typeof=&quot;skos:Concept&quot; property=&quot;rdfs:label skos:prefLabel&quot; datatype=&quot;&quot;&gt;Classical&lt;/a&gt;&lt;/div&gt;&lt;div class=&quot;field-item even&quot;&gt;&lt;a href=&quot;/musical-styles/dance-music&quot; typeof=&quot;skos:Concept&quot; property=&quot;rdfs:label skos:prefLabel&quot; datatype=&quot;&quot;&gt;Dance Music&lt;/a&gt;&lt;/div&gt;&lt;div class=&quot;field-item odd&quot;&gt;&lt;a href=&quot;/musical-styles/jazz&quot; typeof=&quot;skos:Concept&quot; property=&quot;rdfs:label skos:prefLabel&quot; datatype=&quot;&quot;&gt;Jazz&lt;/a&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;</description>
+ <pubDate>Mon, 25 Sep 2023 16:02:40 +0000</pubDate>
+ <dc:creator>mr.claytonhamilton@gmail.com</dc:creator>
+ <guid isPermaLink="false">892 at https://nashvillemusicians.org</guid>
+ <comments>https://nashvillemusicians.org/clayton-hamilton#comments</comments>
+</item>
+</channel>
+</rss>
