@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { Footer } from "../../components/footer";
-import { SiteHeader } from "../../components/site-header";
+import { PageHeaderWithCallout } from "../../components/page-header-with-callout";
 import { authOptions } from "../../lib/auth-options";
+import { INTERNAL_PAGE_DESCRIPTION } from "../../lib/internal-page-description.js";
 
 export const metadata = {
   title: "Account",
@@ -16,21 +16,13 @@ export default async function AccountPage() {
   }
 
   return (
-    <main className="page-shell">
-      <SiteHeader />
-      <article className="page-frame">
-        <header className="page-header">
-          <p className="page-kicker">Member Account</p>
-          <h2 className="page-title">Welcome Back</h2>
-          <p className="page-summary">You are signed in as {session.user.email}.</p>
-        </header>
-        <section className="page-content">
-          <h3>Account Overview</h3>
-          <p>Signed in user: {session.user.name || session.user.email}</p>
-          <p>User ID: {session.user.id}</p>
-        </section>
-      </article>
-      <Footer />
-    </main>
+    <article className="page-frame">
+      <PageHeaderWithCallout title="Welcome Back" description={INTERNAL_PAGE_DESCRIPTION.ACCOUNT} />
+      <section className="page-content">
+        <h3>Account Overview</h3>
+        <p>Signed in as {session.user.email}</p>
+        <p>User ID: {session.user.id}</p>
+      </section>
+    </article>
   );
 }

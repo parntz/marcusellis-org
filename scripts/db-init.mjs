@@ -67,11 +67,73 @@ const ddl = `
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS site_callouts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    cta_label TEXT NOT NULL,
+    cta_href TEXT NOT NULL,
+    location TEXT NOT NULL DEFAULT 'header',
+    is_active INTEGER NOT NULL DEFAULT 1,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS site_config (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS sidebar_box_sets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    family_key TEXT NOT NULL,
+    page_route TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_sidebar_box_sets_family
+    ON sidebar_box_sets(family_key);
+
+  CREATE TABLE IF NOT EXISTS sidebar_boxes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    set_id INTEGER NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    kind TEXT NOT NULL,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    FOREIGN KEY (set_id) REFERENCES sidebar_box_sets(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_sidebar_boxes_set_order
+    ON sidebar_boxes(set_id, sort_order ASC);
+
+  CREATE TABLE IF NOT EXISTS mirror_page_content (
+    route TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    summary TEXT NOT NULL DEFAULT '',
+    meta_description TEXT NOT NULL DEFAULT '',
+    body_html TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS gigs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    start_at TEXT NOT NULL,
+    end_at TEXT NOT NULL DEFAULT '',
+    location_name TEXT NOT NULL,
+    location_address TEXT NOT NULL DEFAULT '',
+    google_place_id TEXT NOT NULL DEFAULT '',
+    artists_json TEXT NOT NULL DEFAULT '[]',
+    notes TEXT NOT NULL DEFAULT '',
+    image_url TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_gigs_start_at
+    ON gigs(start_at ASC);
 `;
 
 await client.executeMultiple(ddl);
@@ -80,6 +142,7 @@ const defaultHeroPayload = JSON.stringify({
   images: DEFAULT_HERO_IMAGES,
   delaySeconds: 6,
   transitionSeconds: 0.8,
+  growSlider: 50,
 });
 await client.execute({
   sql: `INSERT OR IGNORE INTO site_config (key, value, updated_at) VALUES (?, ?, datetime('now'))`,

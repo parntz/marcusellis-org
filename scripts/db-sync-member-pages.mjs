@@ -4,7 +4,11 @@ import path from "path";
 import { closeDb, dbPath, getClient } from "../lib/sqlite.mjs";
 
 const ROOT = process.cwd();
-const DOWNLOAD_ROOT = path.join(ROOT, "public", "_downloaded");
+const DEFAULT_SOURCE = path.join(ROOT, "out", "_downloaded");
+const FALLBACK_SOURCE = "/Users/paularntz/Desktop/afm2_bkup/HTML-version";
+const SOURCE_ROOT =
+  process.env.MEMBER_PAGES_SOURCE_DIR ||
+  (fs.existsSync(DEFAULT_SOURCE) && fs.readdirSync(DEFAULT_SOURCE).length ? DEFAULT_SOURCE : FALLBACK_SOURCE);
 const MEMBER_FIELD_MARKER = "field-name-field-contact-information";
 
 const client = getClient();
@@ -102,7 +106,7 @@ function normalizeSlug(filePath) {
   return path.basename(filePath).replace(/--asset$/, "");
 }
 
-const files = walkAssets(DOWNLOAD_ROOT);
+const files = walkAssets(SOURCE_ROOT);
 
 let processed = 0;
 let kept = 0;
@@ -110,9 +114,6 @@ let kept = 0;
 for (const file of files) {
   processed += 1;
   const html = fs.readFileSync(file, "utf8");
-  if (!html.includes(MEMBER_FIELD_MARKER)) {
-    continue;
-  }
 
   const slug = normalizeSlug(file);
   const title = extractTitle(html) || slug;

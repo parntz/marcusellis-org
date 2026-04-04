@@ -1,10 +1,16 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
 import { AssetGallery } from "./asset-gallery";
-import { Footer } from "./footer";
 import { HomepageExperience } from "./homepage-experience";
 import { NewsEventsFeed } from "./news-events-feed";
-import { SiteHeader } from "./site-header";
+import { PageHeaderWithCallout } from "./page-header-with-callout";
+import { computeMirrorPageDescription } from "../lib/internal-page-description.js";
+import { RecordingSidebarEditor } from "./recording-sidebar-editor";
+import { RecordingSidebarPanel } from "./recording-sidebar-panel";
 import { RecordingVideo } from "./recording-video";
+import { ScalesMasterDetail } from "./scales-master-detail";
+import { authOptions } from "../lib/auth-options";
+import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
 import { pageMap, pages, primaryNav, siteMeta, siteStats, utilityNav } from "../lib/site-data";
 import { listNewsEventsItems } from "../lib/news-events-items";
 
@@ -51,8 +57,71 @@ function cleanDrupalHtml(html) {
   cleaned = cleaned.replace(/<h2>\s*(?:&nbsp;|\s)*<\/h2>/gi, "");
   cleaned = cleaned.replace(/<a><\/a>/g, "");
   cleaned = cleaned.replace(/<div[^>]*>Media Folder:[\s\S]*?<\/div>\s*<\/div>/gi, "");
+  cleaned = cleaned.replace(
+    /<label[^>]*for="edit-url"[^>]*>[\s\S]*?<input[^>]*name="url"[^>]*>[\s\S]*?<\/div>/gi,
+    ""
+  );
   cleaned = cleaned.replace(/(\s*\n){3,}/g, "\n");
   return cleaned;
+}
+
+/** Curated main copy + sidebar CTAs for /live-music (main uses newspaper columns like signatory). */
+const LIVE_MUSIC_PAGE_MAIN_HTML = `
+<div class="live-music-article">
+  <div class="live-music-hub__lead live-music-preface">
+    <p>
+      Nashville is home to some of the greatest live music on earth. Our members &ldquo;play out&rdquo;
+      every night of the week, and this is the place to find them, whether you are a local looking for
+      something new or a tourist looking for that &ldquo;Nashville Moment&rdquo; and everything in
+      between.
+    </p>
+  </div>
+  <div class="live-music-newspaper">
+    <p>
+      On any given night, stages across Middle Tennessee light up with <strong>hundreds of bands and
+      solo artists</strong>—union professionals, house bands, pick-up groups, and touring acts passing
+      through. From early sets to last call, downtown corridors, neighborhood clubs, listening rooms,
+      churches, festivals, and private rooms keep the city humming with drums, steel, horns, and
+      voices that have traveled here from every corner of the map.
+    </p>
+    <p>
+      The scene is <strong>dense, diverse, and relentless in the best way</strong>: country and
+      Americana are part of the story the world knows, but rock, soul, jazz, gospel, funk, bluegrass,
+      Latin music, and songwriter nights share the calendar night after night. Local 257 members are on
+      the posters, in the pit orchestras, on Broadway, in East Nashville rooms, and on the festival
+      fields that draw fans from around the globe.
+    </p>
+    <p>
+      That energy is what makes Nashville more than a postcard—it is a <strong>working music town</strong>
+      where audiences expect craft, show after show. Whether you are mapping a weekend of venues,
+      chasing a new favorite artist, or hiring the right group for your room, you are stepping into one
+      of the deepest live-music ecosystems anywhere.
+    </p>
+    <p>
+      <strong>Explore what is playing.</strong> Use the listings and resources on this site to follow
+      calendars, discover acts, and connect with members who make their living on stage—because in
+      Nashville, the show is almost always already going on, and there is another room worth walking
+      into tonight.
+    </p>
+  </div>
+</div>
+`.trim();
+
+function extractLiveMusicHubParts() {
+  const sidebarHtml = `<div class="live-music-hub__ctas" role="group" aria-label="Quick links">
+    <a class="live-music-hub__cta" href="/find-an-artist-or-band">
+      <span class="live-music-hub__cta-kicker">Hire talent</span>
+      <span class="live-music-hub__cta-title">Find an artist or band</span>
+      <p class="live-music-hub__cta-desc">Search our member listings to book musicians and bands for your venue or event.</p>
+    </a>
+    <a class="live-music-hub__cta" href="/live-scales-contracts-pension">
+      <span class="live-music-hub__cta-kicker">Live engagements</span>
+      <span class="live-music-hub__cta-title">Scales, contracts &amp; pension</span>
+      <p class="live-music-hub__cta-desc">Live AFM rates, agreements, and pension resources for covered work.</p>
+    </a>
+  </div>`;
+
+  return { mainHtml: LIVE_MUSIC_PAGE_MAIN_HTML, sidebarHtml };
 }
 
 function getRouteBodyHtml(route, bodyHtml) {
@@ -67,19 +136,214 @@ function getRouteBodyHtml(route, bodyHtml) {
   return cleanDrupalHtml(bodyHtml);
 }
 
+/** Curated intro: clearer tone; no “below/next to” layout assumptions (responsive grid). */
+const NEW_USE_REUSE_INTRO_HTML = `
+<div class="new-use-intro-copy">
+  <p>
+    Use this page to report <strong>new use</strong> and <strong>reuse</strong>—any use, anywhere—of
+    your recorded work. Local 257 often learns about unpaid use of union recordings because members
+    speak up; your report helps the union follow up.
+  </p>
+  <p>
+    <strong>New use</strong> is when music recorded for one medium shows up in another medium, for a
+    different purpose. If your name is on the union contract, that can mean an additional wage
+    payment. For example, a track cut for CD that later appears in a film soundtrack is a new use.
+  </p>
+  <p>
+    <strong>Reuse</strong> refers to continued use of your recorded music under many electronic-media
+    agreements—extra payments when the same recording keeps airing or circulating. Examples include
+    TV programs and commercial jingles.
+  </p>
+</div>
+`.trim();
+
+function extractNewUseReuseSections(bodyHtml) {
+  if (!bodyHtml) {
+    return { copyHtml: "", formHtml: "" };
+  }
+
+  const copyMatch = bodyHtml.match(
+    /<div><div><div\s+property="content:encoded">([\s\S]*?)<\/div><\/div><\/div>/i
+  );
+  const formMatch = bodyHtml.match(/<form[\s\S]*?<\/form>/i);
+
+  return {
+    copyHtml: copyMatch?.[1] ? NEW_USE_REUSE_INTRO_HTML : "",
+    formHtml: enhanceNewUseReuseFormHtml(formMatch?.[0] || ""),
+  };
+}
+
+function extractContentEncodedHtml(bodyHtml) {
+  if (!bodyHtml) return "";
+
+  const match = bodyHtml.match(
+    /<div><div><div\s+property="content:encoded">([\s\S]*?)<\/div><\/div><\/div>/i
+  );
+
+  return cleanDrupalHtml(match?.[1] || bodyHtml);
+}
+
+/**
+ * Drupal signatory export wraps almost everything in nested <strong>, <em>, <font>, <span>.
+ * Strip those so body copy uses normal .page-content weight; keep p, headings, lists, links, tables.
+ */
+function normalizeSignatoryBodyHtml(html) {
+  if (!html) return "";
+  let out = html;
+
+  out = out.replace(/<\/?strong\b[^>]*>/gi, "");
+  out = out.replace(/<\/?b\b[^>]*>/gi, "");
+  out = out.replace(/<\/?em\b[^>]*>/gi, "");
+  out = out.replace(/<\/?i\b[^>]*>/gi, "");
+  out = out.replace(/<\/?u\b[^>]*>/gi, "");
+
+  while (/<span\b/i.test(out)) {
+    out = out.replace(/<span\b[^>]*>([\s\S]*?)<\/span>/gi, "$1");
+  }
+  while (/<font\b/i.test(out)) {
+    out = out.replace(/<font\b[^>]*>([\s\S]*?)<\/font>/gi, "$1");
+  }
+
+  out = out.replace(/\s*style="[^"]*"/gi, "");
+  out = out.replace(/\salign="[^"]*"/gi, "");
+
+  return out;
+}
+
+/** Full-width intro + “What does Signatory mean?” heading; following copy flows in newspaper columns. */
+function enhanceSignatoryArticleHtml(html) {
+  const trimmed = normalizeSignatoryBodyHtml((html || "").trim());
+  if (!trimmed) return "";
+
+  const headingRe = /<h3\b[^>]*>[\s\S]*?what\s+does[\s\S]*?signatory[\s\S]*?<\/h3>/i;
+  const m = trimmed.match(headingRe);
+  if (!m || m.index === undefined) {
+    return `<div class="signatory-article"><div class="signatory-newspaper signatory-newspaper--full">${trimmed}</div></div>`;
+  }
+
+  const end = m.index + m[0].length;
+  const preface = trimmed.slice(0, end);
+  const newspaper = trimmed.slice(end).replace(/^\s+/, "");
+
+  if (!newspaper) {
+    return `<div class="signatory-article"><div class="signatory-preface">${preface}</div></div>`;
+  }
+
+  return `<div class="signatory-article"><div class="signatory-preface">${preface}</div><div class="signatory-newspaper">${newspaper}</div></div>`;
+}
+
+function enhanceNewUseReuseFormHtml(formHtml) {
+  if (!formHtml) return "";
+
+  let enhanced = formHtml.replace(
+    /<form\b[^>]*>/i,
+    '<form class="new-use-form-layout" action="/api/forms/new-use-reuse" method="post">'
+  );
+
+  const fieldClasses = [
+    ["edit-submitted-name", "new-use-field new-use-field--song"],
+    ["edit-submitted-artist", "new-use-field new-use-field--artist"],
+    ["edit-submitted-label", "new-use-field new-use-field--label"],
+    [
+      "edit-submitted-date-of-recording",
+      "new-use-field new-use-field--recording-date new-use-field--date",
+    ],
+    ["edit-submitted-session-leader-and-other-musicians-if-known-", "new-use-field new-use-field--session"],
+    [
+      "edit-submitted-broadcast-date",
+      "new-use-field new-use-field--broadcast-date new-use-field--date",
+    ],
+    [
+      "edit-submitted-date-seen-if-different-from-original-broadcast-date",
+      "new-use-field new-use-field--seen-date new-use-field--date",
+    ],
+    ["edit-submitted-type-of-new-use", "new-use-field new-use-field--use-type"],
+    ["edit-submitted-your-name", "new-use-field new-use-field--contact-name"],
+    ["edit-submitted-e-mail-address", "new-use-field new-use-field--email"],
+    ["edit-submitted-phone-number", "new-use-field new-use-field--phone"],
+    ["edit-submitted-any-additional-information", "new-use-field new-use-field--notes"],
+  ];
+
+  for (const [fieldId, className] of fieldClasses) {
+    const pattern = new RegExp(`<div>(\\s*<label\\s+for="${fieldId}"[^>]*>)`, "i");
+    enhanced = enhanced.replace(pattern, `<div class="${className}">$1`);
+  }
+
+  enhanced = enhanced.replace(
+    /<label(\s+for="edit-submitted-date-seen-if-different-from-original-broadcast-date"[^>]*)>([\s\S]*?)<\/label>/gi,
+    (_, attrs, inner) => {
+      const spanMatch = inner.match(/<span\b[^>]*>[\s\S]*?<\/span>/i);
+      return `<label${attrs}>Date seen${spanMatch ? ` ${spanMatch[0]}` : ""}</label>`;
+    }
+  );
+
+  enhanced = enhanced.replace(
+    /<div><input type="hidden" name="captcha_sid"/i,
+    '<div class="new-use-field new-use-field--captcha"><input type="hidden" name="captcha_sid"'
+  );
+  enhanced = enhanced.replace(
+    /<div><input type="submit"/i,
+    '<div class="new-use-field new-use-field--actions"><input type="submit"'
+  );
+  enhanced = enhanced.replace(/<input type="hidden" name="details\[[^\]]+\]"[^>]*>\n?/gi, "");
+  enhanced = enhanced.replace(/<input type="hidden" name="form_build_id"[^>]*>\n?/gi, "");
+  enhanced = enhanced.replace(/<input type="hidden" name="form_id"[^>]*>\n?/gi, "");
+  enhanced = enhanced.replace(/<input type="hidden" name="honeypot_time"[^>]*>\n?/gi, "");
+  /* Visible honeypot: "Leave this field blank" + name="url" (API rejects non-empty url). */
+  enhanced = enhanced.replace(
+    /<div>\s*<div>\s*<label[^>]*\bfor="edit-url"[^>]*>[\s\S]*?<\/label>\s*<input[^>]*\bname="url"[^>]*>\s*<\/div>\s*<\/div>\s*/gi,
+    ""
+  );
+  enhanced = enhanced.replace(/<input type="hidden" name="captcha_sid"[^>]*>\n?/gi, "");
+  enhanced = enhanced.replace(/<input type="hidden" name="captcha_token"[^>]*>\n?/gi, "");
+  enhanced = enhanced.replace(/<input type="hidden" name="captcha_response"[^>]*>\n?/gi, "");
+  enhanced = enhanced.replace(/<div data-sitekey="[^"]*"[\s\S]*?<\/div>\s*<\/div>/i, "");
+  enhanced = enhanced.replace(/<div class="new-use-field new-use-field--captcha">\s*<\/div>/i, "");
+
+  /* Avoid whitespace text nodes between label and control (breaks display:contents grid rows). */
+  enhanced = enhanced.replace(/<\/label>\s+(?=<)/gi, "</label>");
+
+  return enhanced;
+}
+
+/** Drop opening tags left hanging when we cut before “Call the Local…”. */
+function trimIncompleteContactLead(html) {
+  let s = html;
+  let prev;
+  do {
+    prev = s;
+    s = s.replace(/\s*(?:<div\b[^>]*>|<strong>|<em>|<u>|<b>)\s*$/gi, "").trimEnd();
+  } while (s !== prev);
+  return s;
+}
+
+function cutRecordingHtmlBeforeContact(html) {
+  const markers = ["Call the Local 257", "Call the Local 257 recording"];
+  let cut = -1;
+  for (const m of markers) {
+    const i = html.indexOf(m);
+    if (i >= 0 && (cut < 0 || i < cut)) cut = i;
+  }
+  if (cut < 0) return html;
+  return trimIncompleteContactLead(html.slice(0, cut));
+}
+
 function extractRecordingContent(bodyHtml) {
-  let main = bodyHtml;
+  let main = bodyHtml || "";
 
   main = main.replace(/\s+style="[^"]*"/gi, "");
   main = main.replace(/<ul>[\s\S]*?scales-forms-agreements[\s\S]*?<\/ul>/i, "");
-  main = main.replace(/<h1>\s*Recording\s*<\/h1>/i, "");
+  main = main.replace(/<h1[^>]*>\s*Recording\s*<\/h1>/i, "");
   main = main.replace(/<h3[^>]*>\s*(?:&nbsp;|\s)*<\/h3>/gi, "");
 
   let videoEmbedSrc = "";
-  const iframeMatch = main.match(/<iframe[\s\S]*?src="([^"]*)"[\s\S]*?<\/iframe>/i);
+  const iframeMatch =
+    main.match(/<iframe[\s\S]*?src="([^"]*)"[\s\S]*?<\/iframe>/i) ||
+    main.match(/<iframe[\s\S]*?src='([^']*)'[\s\S]*?<\/iframe>/i);
   if (iframeMatch) {
     videoEmbedSrc = iframeMatch[1];
     main = main.replace(/<p>\s*<iframe[\s\S]*?<\/iframe>\s*<\/p>/i, "");
+    main = main.replace(/<iframe[\s\S]*?<\/iframe>/i, "");
   }
 
   let rateUpdateText = "";
@@ -91,25 +355,31 @@ function extractRecordingContent(bodyHtml) {
     return /Click/i.test(match) ? "" : match;
   });
 
-  const callIdx = main.indexOf("Call the Local 257");
-  if (callIdx > -1) {
-    const before = main.substring(0, callIdx);
-    const lastDiv = before.lastIndexOf("<div");
-    if (lastDiv > -1) main = main.substring(0, lastDiv);
-  }
+  /*
+   * Never use lastIndexOf("<div") before the callout: if “Call…” is not inside
+   * a leading <div>, that index can point at content:encoded / Page 1 and wipe
+   * all body copy under the video.
+   */
+  main = cutRecordingHtmlBeforeContact(main);
 
-  main = main.replace(/<a><\/a>/g, "");
-  main = main.replace(/<\/?div[^>]*>/gi, "");
-  main = main.replace(/<p[^>]*>/gi, "<p>");
-  main = main.replace(/<(?!\/?p>)[^>]+>/g, "");
-  main = main.replace(/(?:^|\s)(?:Click|click)[^<]*(?=<|$)/g, "");
-  main = main.replace(/(\s*\n){3,}/g, "\n");
-  main = main.replace(/<p>\s*Please Note:[\s\S]*?<\/p>/i, "");
+  /* Main column copy under the video: keep links/formatting for .recording-flow columns */
+  let flowBody = main.replace(/<a><\/a>/g, "");
+  flowBody = flowBody.replace(/<h3\b[^>]*>[\s\S]*?\bClick\b[\s\S]*?<\/h3>/gi, "");
+  flowBody = flowBody.replace(/\s+style="[^"]*"/gi, "");
+  flowBody = flowBody.replace(/<\/?div[^>]*>/gi, "");
+  flowBody = flowBody.replace(/<p[^>]*>/gi, "<p>");
+  flowBody = flowBody.replace(/(\s*\n){3,}/g, "\n");
+  flowBody = flowBody.replace(/<p>\s*Please Note:[\s\S]*?<\/p>/i, "");
+  flowBody = flowBody.trim();
+
+  const flowHtml = flowBody
+    ? `<div class="recording-flow">${flowBody}</div>`
+    : "";
 
   return {
     videoEmbedSrc,
     rateUpdateText,
-    flowHtml: `<div class="recording-flow">${main}</div>`,
+    flowHtml,
   };
 }
 
@@ -160,7 +430,10 @@ function transformScalesFormsContent(bodyHtml) {
   return { introHtml: intro, sections };
 }
 
-export async function MirroredPage({ page, heroHomeConfig = null }) {
+export async function MirroredPage({ page, heroHomeConfig = null, searchParams = {} }) {
+  const session = await getServerSession(authOptions);
+  const isAdmin = Boolean(session?.user);
+
   const uniquePages = Array.from(
     new Map((pages || []).map((item) => [item.route, item])).values()
   );
@@ -262,6 +535,9 @@ export async function MirroredPage({ page, heroHomeConfig = null }) {
     (page.route.startsWith("/recording") || recordingFamilyRoutes.includes(page.route));
   const isMainRecordingPage = page.kind === "mirror-page" && page.route === "/recording";
   const scalesFormsPage = page.kind === "mirror-page" && page.route === "/scales-forms-agreements";
+  const newUseReusePage = page.kind === "mirror-page" && page.route === "/new-use-reuse";
+  const signatoryPage = page.kind === "mirror-page" && page.route === "/signatory-information";
+  const liveMusicPage = page.kind === "mirror-page" && page.route === "/live-music";
   const recordingNavChildren =
     primaryNav.find((item) => item.href === "/recording")?.children || [];
   const hideHeaderSummary =
@@ -297,10 +573,18 @@ export async function MirroredPage({ page, heroHomeConfig = null }) {
   const newsEventItems = newsEventsRoute
     ? await listNewsEventsItems(1000, "/news-and-events")
     : [];
+  const recordingSidebarBoxes = isMainRecordingPage ? await resolveSidebarBoxes("/recording") : null;
+  const newsSidebarBoxes = newsEventsRoute ? await resolveSidebarBoxes("/news-and-events") : null;
+  const signatorySidebarBoxes = signatoryPage
+    ? await resolveSidebarBoxes("/signatory-information", "/news-and-events")
+    : null;
   const recordingContent = isMainRecordingPage
     ? extractRecordingContent(page.bodyHtml || "")
     : null;
   const scalesContent = scalesFormsPage ? transformScalesFormsContent(page.bodyHtml || "") : null;
+  const signatoryContentHtml = signatoryPage
+    ? enhanceSignatoryArticleHtml(extractContentEncodedHtml(page.bodyHtml || ""))
+    : "";
   const rateUpdateText = (() => {
     if (recordingContent?.rateUpdateText) return recordingContent.rateUpdateText;
     if (!scalesFormsPage) return "";
@@ -309,13 +593,25 @@ export async function MirroredPage({ page, heroHomeConfig = null }) {
     const m = recPage.bodyHtml.match(/<h3[^>]*>([^<]|<(?!\/h3>))*SRLA([^<]|<(?!\/h3>))*<\/h3>/i);
     return m ? m[0].replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").trim() : "";
   })();
+  const liveMusicParts = liveMusicPage ? extractLiveMusicHubParts() : null;
+
   const bodyHtml =
-    isMainRecordingPage || scalesFormsPage ? "" : getRouteBodyHtml(page.route, page.bodyHtml || "");
+    isMainRecordingPage || scalesFormsPage || newUseReusePage || signatoryPage || liveMusicPage
+      ? ""
+      : getRouteBodyHtml(page.route, page.bodyHtml || "");
+
+  const newUseReuseSections = newUseReusePage
+    ? extractNewUseReuseSections(page.bodyHtml || "")
+    : null;
+  const newUseStatus =
+    newUseReusePage && searchParams?.submitted === "1"
+      ? { tone: "success", message: "Your submission was sent." }
+      : newUseReusePage && searchParams?.error
+        ? { tone: "error", message: "Your submission could not be sent. Please try again." }
+        : null;
 
   return (
-    <main className="page-shell">
-      <SiteHeader />
-      <article className={`page-frame ${memberPagesRoute ? "member-pages-shell" : ""} ${pageTypeClass}`}>
+    <article className={`page-frame ${memberPagesRoute ? "member-pages-shell" : ""} ${pageTypeClass}`}>
         {homeRoute ? (
           <HomepageExperience
             siteMeta={siteMeta}
@@ -330,24 +626,18 @@ export async function MirroredPage({ page, heroHomeConfig = null }) {
             heroHomeConfig={heroHomeConfig}
           />
         ) : (
-          <header className="page-header">
-            <h2 className="page-title">{page.title}</h2>
-            {(() => {
-              if (scalesFormsPage || hideHeaderSummary) return null;
-              let summaryText = page.summary || "";
-              const isBogus = /^Instrument Insurance/i.test(summaryText) || /^AFM-EP Fund/i.test(summaryText) || /finest recording/i.test(summaryText);
-              if (isBogus || !summaryText) {
-                summaryText = page.metaDescription && !/^Instrument|finest recording/i.test(page.metaDescription)
-                  ? page.metaDescription : "";
-              }
-              if (!summaryText) return null;
-              return <p className="page-summary">{summaryText}</p>;
-            })()}
-          </header>
+          <PageHeaderWithCallout
+            title={page.title}
+            description={computeMirrorPageDescription(page, {
+              scalesFormsPage,
+              hideHeaderSummary,
+              isMainRecordingPage,
+            })}
+          />
         )}
 
         {page.kind === "mirror-page" && !homeRoute && isMainRecordingPage ? (
-          <div className="recording-page">
+          <div className="recording-page recording-sidebar-layout">
             <div className="recording-body-grid">
               <div className="recording-video-area">
                 {recordingContent?.videoEmbedSrc ? (
@@ -355,56 +645,10 @@ export async function MirroredPage({ page, heroHomeConfig = null }) {
                 ) : null}
               </div>
               <aside className="recording-sidebar">
-                <div className="recording-contact-box">
-                  <h3 className="recording-sidebar-heading">Recording Department</h3>
-                  <a href="tel:+16152449514" className="recording-phone">
-                    615-244-9514
-                  </a>
-                  <p className="recording-contact-cta">Call for more information</p>
-                  <div className="recording-staff">
-                    <div className="recording-staff-member">
-                      <a href="mailto:billy@nashvillemusicians.org">Billy Lynn</a>
-                      <span>Director of Recording</span>
-                    </div>
-                    <div className="recording-staff-member">
-                      <a href="mailto:william@nashvillemusicians.org">William Sansbury</a>
-                    </div>
-                    <div className="recording-staff-member">
-                      <a href="mailto:paige@nashvillemusicians.org">Paige Conners</a>
-                    </div>
-                  </div>
-                </div>
-                {rateUpdateText ? (
-                  <div className="recording-callout recording-rate-callout">
-                    <h3 className="recording-sidebar-heading">Rate Update</h3>
-                    <p>{rateUpdateText}</p>
-                  </div>
+                <RecordingSidebarPanel boxes={recordingSidebarBoxes} />
+                {isAdmin ? (
+                  <RecordingSidebarEditor pageRoute="/recording" initialBoxes={recordingSidebarBoxes} />
                 ) : null}
-                <Link href="/scales-forms-agreements" className="recording-callout recording-bforms-callout">
-                  <h3 className="recording-bforms-title">B Forms</h3>
-                  <p>
-                    Blank AFM recording contracts available online. B-4 covers most
-                    SRLA categories, B-5 for Demo sessions, B-9 for Limited Pressing.
-                  </p>
-                  <span className="recording-callout-link">
-                    View under Scales, Forms &amp; Agreements &rarr;
-                  </span>
-                </Link>
-                <div className="recording-cta-box">
-                  <a
-                    href="https://nashvillemusicians.org/sites/default/files/RECORDINGSCALESUMMARYSHEET0203%202025A.pdf"
-                    className="recording-cta-item"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <strong>Info Sheet</strong>
-                    <span>Summarizing all recording scales</span>
-                  </a>
-                  <Link href="/scales-forms-agreements" className="recording-cta-item">
-                    <strong>Scales &amp; Agreements</strong>
-                    <span>Recording scales, forms, and contract information</span>
-                  </Link>
-                </div>
               </aside>
               <section
                 className="page-content recording-content"
@@ -415,25 +659,10 @@ export async function MirroredPage({ page, heroHomeConfig = null }) {
         ) : null}
 
         {page.kind === "mirror-page" && !homeRoute && scalesFormsPage ? (
-          <div className="recording-page">
+          <div className="recording-page recording-sidebar-layout">
             <div className="recording-body-grid recording-body-grid--scales">
               <section className="recording-content">
-                <div className="recording-accordion-stack">
-                  {scalesContent?.sections?.map((section, idx) => (
-                    <details key={`${section.title}-${idx}`} className="recording-accordion" open={idx === 0}>
-                      <summary>
-                        <span className="recording-accordion-label">{section.title}</span>
-                        <span className="recording-accordion-caret" aria-hidden="true">
-                          ▾
-                        </span>
-                      </summary>
-                      <div
-                        className="recording-accordion-body recording-flow"
-                        dangerouslySetInnerHTML={{ __html: section.body }}
-                      />
-                    </details>
-                  ))}
-                </div>
+                <ScalesMasterDetail sections={scalesContent?.sections} />
 
                 {scalesContent?.introHtml ? (
                   <div
@@ -498,7 +727,7 @@ export async function MirroredPage({ page, heroHomeConfig = null }) {
                 <Link href="/scales-forms-agreements" className="recording-callout recording-bforms-callout">
                   <h3 className="recording-bforms-title">B Forms</h3>
                   <p>
-                    B-4 (SRLA), B-5 (Demo), and B-9 (Limited Pressing) fillable PDFs live below in the accordion.
+                    B-4 (SRLA), B-5 (Demo), and B-9 (Limited Pressing) fillable PDFs — choose <strong>B Forms</strong> in the section list.
                   </p>
                   <span className="recording-callout-link">Open B Forms section ↓</span>
                 </Link>
@@ -508,34 +737,103 @@ export async function MirroredPage({ page, heroHomeConfig = null }) {
         ) : null}
 
         {page.kind === "mirror-page" && !homeRoute && !isMainRecordingPage && !scalesFormsPage ? (
-          <div className={`page-columns ${recordingRoute ? "recording-columns" : ""} ${pageTypeClass}`}>
-            {newsEventsRoute && newsEventItems.length ? (
-              <NewsEventsFeed items={newsEventItems} />
-            ) : eventDetailRoute ? (
-              <section
-                className="page-content event-detail-content"
-                dangerouslySetInnerHTML={{ __html: bodyHtml }}
-              />
-            ) : (
-              <section
-                className={`page-content ${recordingRoute ? "recording-content" : ""}`}
-                dangerouslySetInnerHTML={{ __html: bodyHtml }}
-              />
-            )}
-            {page.pageAssets?.length && !eventDetailRoute && !recordingRoute ? (
-              <aside className="page-sidebar">
-                <AssetGallery title="Unique Page Assets" assets={page.pageAssets} />
-              </aside>
-            ) : null}
-          </div>
+          newsEventsRoute ? (
+            <div className={`recording-page recording-sidebar-layout news-events-sidebar-layout ${pageTypeClass}`}>
+              <div className="recording-body-grid recording-body-grid--scales recording-body-grid--news">
+                <div className="recording-news-main">
+                  {newsEventItems.length ? (
+                    <NewsEventsFeed items={newsEventItems} />
+                  ) : (
+                    <section
+                      className="page-content recording-content"
+                      dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                    />
+                  )}
+                </div>
+                <aside className="recording-sidebar">
+                  <RecordingSidebarPanel boxes={newsSidebarBoxes} />
+                  {isAdmin ? (
+                    <RecordingSidebarEditor
+                      pageRoute="/news-and-events"
+                      initialBoxes={newsSidebarBoxes}
+                    />
+                  ) : null}
+                </aside>
+              </div>
+            </div>
+          ) : signatoryPage ? (
+            <div className={`recording-page recording-sidebar-layout signatory-sidebar-layout ${pageTypeClass}`}>
+              <div className="recording-body-grid recording-body-grid--scales">
+                <section className="page-content signatory-content">
+                  <div
+                    className="signatory-article-host"
+                    dangerouslySetInnerHTML={{ __html: signatoryContentHtml }}
+                  />
+                </section>
+                <aside className="recording-sidebar">
+                  <RecordingSidebarPanel boxes={signatorySidebarBoxes} />
+                  {isAdmin ? (
+                    <RecordingSidebarEditor
+                      pageRoute="/signatory-information"
+                      initialBoxes={signatorySidebarBoxes}
+                    />
+                  ) : null}
+                </aside>
+              </div>
+            </div>
+          ) : liveMusicPage ? (
+            <div className={`recording-page recording-sidebar-layout live-music-sidebar-layout ${pageTypeClass}`}>
+              <div className="recording-body-grid recording-body-grid--scales">
+                <section
+                  className="page-content recording-content live-music-main"
+                  dangerouslySetInnerHTML={{ __html: liveMusicParts.mainHtml }}
+                />
+                <aside className="recording-sidebar live-music-sidebar">
+                  <div dangerouslySetInnerHTML={{ __html: liveMusicParts.sidebarHtml }} />
+                </aside>
+              </div>
+            </div>
+          ) : (
+            <div className={`page-columns ${recordingRoute ? "recording-columns" : ""} ${pageTypeClass}`}>
+              {newUseReusePage && newUseReuseSections ? (
+                <div className="new-use-grid">
+                  <section
+                    className="page-content new-use-copy"
+                    dangerouslySetInnerHTML={{ __html: newUseReuseSections.copyHtml }}
+                  />
+                  <section className="page-content new-use-form">
+                    {newUseStatus ? (
+                      <p className={`form-status form-status--${newUseStatus.tone}`}>
+                        {newUseStatus.message}
+                      </p>
+                    ) : null}
+                    <div dangerouslySetInnerHTML={{ __html: newUseReuseSections.formHtml }} />
+                  </section>
+                </div>
+              ) : eventDetailRoute ? (
+                <section
+                  className="page-content event-detail-content"
+                  dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                />
+              ) : (
+                <section
+                  className={`page-content ${recordingRoute ? "recording-content" : ""}`}
+                  dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                />
+              )}
+              {page.pageAssets?.length && !eventDetailRoute && !recordingRoute ? (
+                <aside className="page-sidebar">
+                  <AssetGallery title="Unique Page Assets" assets={page.pageAssets} />
+                </aside>
+              ) : null}
+            </div>
+          )
         ) : null}
 
         {page.kind === "asset-index" ? <AssetIndex page={page} /> : null}
         {page.kind === "asset-group" ? (
           <AssetGallery title={page.title} assets={page.assets} />
         ) : null}
-      </article>
-      <Footer />
-    </main>
+    </article>
   );
 }

@@ -1,0 +1,17 @@
+---
+description: Turso-only database; mirror page content in mirror_page_content
+globs:
+alwaysApply: true
+---
+
+# Database policy
+
+- **Turso only** (dev and production). Use `TURSO_DATABASE_URL` (`libsql://…`) and `TURSO_AUTH_TOKEN`. Do not add local `file:` SQLite, Postgres, or other DB clients. All access is via `lib/sqlite.mjs` → `@libsql/client`.
+
+# Page content and the database
+
+- **Canonical store for catch-all mirror pages** (anything rendered by `app/[...slug]/page.js`): table **`mirror_page_content`** (Turso). Rows are seeded and updated by `npm run db:sync:mirror-pages` from `content/generated/site-data.generated.js`, then editable in the DB.
+- **Do not** leave new long-form mirror copy only in `mirrored-page.js` string constants or one-off HTML without also syncing to **`mirror_page_content`** (or documenting a follow-up sync) when that content represents a full page body.
+- **News / events** continue to use **`news_event_pages`**; **member pages** use **`member_pages`**.
+- When adding or changing mirror page body content in this project, run **`npm run db:sync:mirror-pages`** after **`npm run generate:content`** so Turso stays in sync, and tell the user that the content was written to the database pipeline.
+- To seed one route from bundled `site-data` into Turso: **`npm run db:upsert:mirror-page -- /route-name`** (no trailing slash). Catch-all pages still fall back to bundled data if Turso is down or the row has no substantive HTML.

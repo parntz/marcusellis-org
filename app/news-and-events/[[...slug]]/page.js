@@ -1,0 +1,154 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { NewsEventsFeed } from "../../../components/news-events-feed";
+import { PageHeaderWithCallout } from "../../../components/page-header-with-callout";
+import { RecordingSidebarEditor } from "../../../components/recording-sidebar-editor";
+import { RecordingSidebarPanel } from "../../../components/recording-sidebar-panel";
+import { authOptions } from "../../../lib/auth-options";
+import { listNewsEventsItems } from "../../../lib/news-events-items";
+import { resolveSidebarBoxes } from "../../../lib/resolve-sidebar-boxes.mjs";
+import { INTERNAL_PAGE_DESCRIPTION } from "../../../lib/internal-page-description.js";
+import { siteMeta } from "../../../lib/site-data";
+import { getClient } from "../../../lib/sqlite.mjs";
+
+export const dynamic = "force-dynamic";
+
+function normalizeSlug(params) {
+  const s = params?.slug;
+  if (Array.isArray(s)) return s;
+  if (s) return [s];
+  return [];
+}
+
+async function fetchNewsDetailPage(route) {
+  const client = getClient();
+  const page = (
+    await client.execute({
+      sql: `SELECT route, title, summary, meta_description, body_html FROM news_event_pages WHERE route = ? LIMIT 1`,
+      args: [route],
+    })
+  ).rows?.[0];
+
+  const item = (
+    await client.execute({
+      sql: `SELECT badge_month, badge_day, event_date_text FROM news_events_items WHERE href = ? LIMIT 1`,
+      args: [route],
+    })
+  ).rows?.[0];
+
+  return { page, item };
+}
+
+export async function generateMetadata({ params }) {
+  const slug = normalizeSlug(params);
+  if (!slug.length) {
+    return {
+      title: `News & Events | ${siteMeta.title}`,
+      description: siteMeta.kicker || siteMeta.title,
+    };
+  }
+  const route = `/news-and-events/${slug.join("/")}`;
+  const client = getClient();
+  const row = (
+    await client.execute({
+      sql: `SELECT title, meta_description FROM news_event_pages WHERE route = ? LIMIT 1`,
+      args: [route],
+    })
+  ).rows?.[0];
+  if (!row?.title) {
+    return { title: siteMeta.title };
+  }
+  return {
+    title: `${row.title} | ${siteMeta.title}`,
+    description: row.meta_description || row.title,
+  };
+}
+
+export default async function NewsAndEventsPage({ params }) {
+  const slug = normalizeSlug(params);
+  const session = await getServerSession(authOptions);
+  const isAdmin = Boolean(session?.user);
+  const newsSidebarBoxes = await resolveSidebarBoxes("/news-and-events");
+
+  if (!slug.length) {
+    const newsEventItems = await listNewsEventsItems(1000, "/news-and-events");
+    return (
+      <article className="page-frame news-shell pg-news-events">
+        <PageHeaderWithCallout
+          title="News & Events"
+          description={INTERNAL_PAGE_DESCRIPTION.NEWS_EVENTS}
+        />
+
+        <div className="recording-page recording-sidebar-layout news-events-sidebar-layout">
+          <div className="recording-body-grid recording-body-grid--scales recording-body-grid--news">
+            <div className="recording-news-main">
+              {newsEventItems.length ? (
+                <NewsEventsFeed items={newsEventItems} />
+              ) : (
+                <section className="page-content recording-content">
+                  <p className="news-events-empty">No news or events are available yet.</p>
+                </section>
+              )}
+            </div>
+            <aside className="recording-sidebar">
+              <RecordingSidebarPanel boxes={newsSidebarBoxes} />
+              {isAdmin ? (
+                <RecordingSidebarEditor pageRoute="/news-and-events" initialBoxes={newsSidebarBoxes} />
+              ) : null}
+            </aside>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  const route = `/news-and-events/${slug.join("/")}`;
+  const { page, item } = await fetchNewsDetailPage(route);
+  if (!page) {
+    notFound();
+  }
+
+  const evDate = item?.event_date_text ?? item?.eventDateText;
+  const detailDescription =
+    [page.summary, evDate].filter(Boolean).join(" · ") || INTERNAL_PAGE_DESCRIPTION.NEWS_ARCHIVE_DETAIL;
+  const badgeMonth = item?.badge_month ?? item?.badgeMonth;
+  const badgeDay = item?.badge_day ?? item?.badgeDay;
+
+  return (
+    <article className="page-frame news-shell pg-news-events">
+      <div className="recording-page recording-sidebar-layout news-events-sidebar-layout">
+        <div className="recording-body-grid recording-body-grid--scales recording-body-grid--news">
+          <div className="recording-news-main">
+            <PageHeaderWithCallout
+              kicker={
+                badgeMonth || badgeDay ? (
+                  <div className="news-detail__eyebrow">
+                    {badgeMonth ? <span>{badgeMonth}</span> : null}
+                    {badgeDay ? <strong>{badgeDay}</strong> : null}
+                  </div>
+                ) : null
+              }
+              title={page.title}
+              description={detailDescription}
+              trailing={
+                <Link href="/news-and-events" className="text-link">
+                  ← Back to News &amp; Events
+                </Link>
+              }
+            />
+            <section className="page-content">
+              <div className="richtext" dangerouslySetInnerHTML={{ __html: page.body_html }} />
+            </section>
+          </div>
+          <aside className="recording-sidebar">
+            <RecordingSidebarPanel boxes={newsSidebarBoxes} />
+            {isAdmin ? (
+              <RecordingSidebarEditor pageRoute="/news-and-events" initialBoxes={newsSidebarBoxes} />
+            ) : null}
+          </aside>
+        </div>
+      </div>
+    </article>
+  );
+}

@@ -10,8 +10,12 @@
     "db:init": "node scripts/db-init.mjs",
     "db:seed": "node scripts/db-seed.mjs",
     "db:sync:news-events": "node scripts/db-sync-news-events.mjs",
+    "db:sync:news-pages": "node scripts/db-sync-news-pages.mjs",
+    "db:sync:mirror-pages": "node scripts/db-sync-mirror-pages.mjs",
+    "db:upsert:mirror-page": "node scripts/db-upsert-mirror-route.mjs",
     "db:sync:member-pages": "node scripts/db-sync-member-pages.mjs",
-    "db:prepare": "npm run db:init && npm run db:sync:news-events",
+    "db:seed:sidebar": "node scripts/db-seed-sidebar.mjs",
+    "db:prepare": "npm run db:init && npm run db:sync:news-events && npm run db:sync:news-pages && npm run db:sync:mirror-pages",
     "predev": "node scripts/predev.mjs",
     "prebuild": "node scripts/prebuild-site.mjs",
     "dev": "next dev",
@@ -21,6 +25,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.10",
     "@libsql/client": "^0.17.2",
     "@netlify/blobs": "^10.7.4",
     "bcryptjs": "^3.0.3",
@@ -28,7 +33,8 @@
     "next": "^14.2.35",
     "next-auth": "^4.24.13",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "resend": "^6.10.0"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.9",

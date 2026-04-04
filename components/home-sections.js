@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function HomeSections({ items }) {
   if (!items?.length) {
@@ -16,10 +17,13 @@ export function HomeSections({ items }) {
           <article key={item.title} className="home-section-card">
             {item.image ? (
               <div className="home-section-image-wrap">
-                <img
+                <Image
                   src={item.image}
                   alt={item.title}
                   className="home-section-image"
+                  width={640}
+                  height={360}
+                  sizes="(max-width: 600px) 100vw, 50vw"
                 />
               </div>
             ) : null}

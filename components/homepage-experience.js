@@ -1,9 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { DEFAULT_HERO_HOME } from "../lib/hero-home-defaults.mjs";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  DEFAULT_HERO_HOME,
+  growSliderToDurationSeconds,
+} from "../lib/hero-home-defaults.mjs";
 
 /** After moving one item from `from` to `to`, map an index that pointed at a slide before the move. */
 function mapIndexAfterReorder(oldIndex, from, to) {
@@ -45,6 +57,40 @@ function useReducedMotion() {
   return reduced;
 }
 
+/**
+ * Negative delay (ms) so the incoming hero matches the outgoing animation phase (grow vs shrink).
+ * Uses Web Animations API when available.
+ */
+function getHeroAnimationSyncDelayMs(el) {
+  if (!el || typeof window === "undefined") return 0;
+  const tag = el.tagName?.toLowerCase();
+  const img = tag === "img" ? el : el.querySelector?.("img");
+  if (!img || typeof img.getAnimations !== "function") return 0;
+
+  const anims = img.getAnimations();
+  for (const anim of anims) {
+    const name = anim.animationName;
+    if (name && name !== "hero-grow-zoom") continue;
+    if (anim.playState !== "running" && anim.playState !== "pending") continue;
+    const eff = anim.effect;
+    if (!eff || eff.constructor?.name !== "KeyframeEffect") continue;
+    const timing = eff.getTiming?.();
+    if (!timing) continue;
+    let dur = timing.duration;
+    if (typeof dur === "string") {
+      const n = parseFloat(dur);
+      dur = Number.isFinite(n) ? n : 0;
+    }
+    if (!dur || dur <= 0) continue;
+    const ct = anim.currentTime;
+    if (ct == null || !Number.isFinite(Number(ct))) continue;
+    const ctMs = Number(ct);
+    const mod = ((ctMs % dur) + dur) % dur;
+    return -mod;
+  }
+  return 0;
+}
+
 function useRevealOnScroll(reducedMotion) {
   useEffect(() => {
     if (typeof window === "undefined" || reducedMotion) {
@@ -73,38 +119,71 @@ function useRevealOnScroll(reducedMotion) {
   }, [reducedMotion]);
 }
 
-function useHeroParallax(reducedMotion) {
-  const [parallax, setParallax] = useState({ x: 0, y: 0 });
+/**
+ * Hero zoom starts after load. Optional animationDelayMs sets --hero-animation-delay (negative ms)
+ * so the incoming slide matches the outgoing slide’s oscillating zoom phase at crossfade.
+ */
+const HeroImageWithGrow = forwardRef(function HeroImageWithGrow(
+  { src, alt, className, style, growEnabled, animationDelayMs },
+  ref
+) {
+  const [armed, setArmed] = useState(false);
+  const imgRef = useRef(null);
+
+  const setRefs = useCallback(
+    (node) => {
+      imgRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref]
+  );
 
   useEffect(() => {
-    if (typeof window === "undefined" || reducedMotion) {
+    setArmed(false);
+  }, [src]);
+
+  useEffect(() => {
+    const el = imgRef.current;
+    if (!el) {
       return undefined;
     }
+    if (el.complete && el.naturalWidth > 0) {
+      setArmed(true);
+    }
+    return undefined;
+  }, [src]);
 
-    let animationFrame = null;
-    const handleMove = (event) => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-      }
+  const handleLoad = useCallback(() => {
+    setArmed(true);
+  }, []);
 
-      animationFrame = requestAnimationFrame(() => {
-        const x = (event.clientX / window.innerWidth - 0.5) * 16;
-        const y = (event.clientY / window.innerHeight - 0.5) * 14;
-        setParallax({ x, y });
-      });
-    };
+  const zoomClass = growEnabled && armed ? "hero-image-bg--grow" : "";
 
-    window.addEventListener("pointermove", handleMove, { passive: true });
-    return () => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-      }
-      window.removeEventListener("pointermove", handleMove);
-    };
-  }, [reducedMotion]);
+  const mergedStyle = useMemo(() => {
+    const base = { ...(style || {}) };
+    if (animationDelayMs != null && Number.isFinite(animationDelayMs)) {
+      base["--hero-animation-delay"] = `${animationDelayMs}ms`;
+    }
+    return base;
+  }, [style, animationDelayMs]);
 
-  return parallax;
-}
+  return (
+    <Image
+      ref={setRefs}
+      src={src}
+      alt={alt}
+      className={[className, zoomClass].filter(Boolean).join(" ")}
+      style={mergedStyle}
+      onLoadingComplete={handleLoad}
+      width={1600}
+      height={900}
+      priority
+    />
+  );
+});
+
+HeroImageWithGrow.displayName = "HeroImageWithGrow";
 
 export function HomepageExperience({
   siteMeta,
@@ -121,19 +200,7 @@ export function HomepageExperience({
   const { data: session, status } = useSession();
   const isAdmin = status === "authenticated" && Boolean(session?.user);
   const reducedMotion = useReducedMotion();
-  const parallax = useHeroParallax(reducedMotion);
   useRevealOnScroll(reducedMotion);
-
-  const heroTransform = useMemo(
-    () =>
-      reducedMotion
-        ? undefined
-        : {
-            "--hero-shift-x": `${parallax.x}px`,
-            "--hero-shift-y": `${parallax.y}px`,
-          },
-    [parallax.x, parallax.y, reducedMotion]
-  );
 
   const initialHero = heroHomeConfig
     ? {
@@ -143,6 +210,7 @@ export function HomepageExperience({
         delaySeconds: heroHomeConfig.delaySeconds ?? DEFAULT_HERO_HOME.delaySeconds,
         transitionSeconds:
           heroHomeConfig.transitionSeconds ?? DEFAULT_HERO_HOME.transitionSeconds,
+        growSlider: heroHomeConfig.growSlider ?? DEFAULT_HERO_HOME.growSlider,
       }
     : { ...DEFAULT_HERO_HOME, images: [...DEFAULT_HERO_HOME.images] };
   const [heroImages, setHeroImages] = useState(initialHero.images);
@@ -151,18 +219,30 @@ export function HomepageExperience({
   const [fadeOut, setFadeOut] = useState(false);
   const [delaySeconds, setDelaySeconds] = useState(initialHero.delaySeconds);
   const [transitionSeconds, setTransitionSeconds] = useState(initialHero.transitionSeconds);
+  const [growSlider, setGrowSlider] = useState(initialHero.growSlider);
   const [uploadBusy, setUploadBusy] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [dragIndex, setDragIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const heroFileInputRef = useRef(null);
+  const slotARef = useRef(null);
+  const slotBRef = useRef(null);
+  const activeSlotRef = useRef("a");
   const visibleRef = useRef(0);
   const pendingRef = useRef(false);
+
+  const len = heroImages.length;
+  const [slotAIdx, setSlotAIdx] = useState(0);
+  const [slotBIdx, setSlotBIdx] = useState(() => (len > 1 ? 1 : 0));
+  const [activeSlot, setActiveSlot] = useState("a");
+  const [slotAAnimDelayMs, setSlotAAnimDelayMs] = useState(null);
+  const [slotBAnimDelayMs, setSlotBAnimDelayMs] = useState(null);
   const lastSavedJsonRef = useRef(
     JSON.stringify({
       images: initialHero.images,
       delaySeconds: initialHero.delaySeconds,
       transitionSeconds: initialHero.transitionSeconds,
+      growSlider: initialHero.growSlider,
     })
   );
 
@@ -175,14 +255,72 @@ export function HomepageExperience({
   }, [pendingIndex]);
 
   useEffect(() => {
+    activeSlotRef.current = activeSlot;
+  }, [activeSlot]);
+
+  const useDualSlotHero =
+    heroImages.length >= 2 && !reducedMotion && transitionSeconds > 0;
+
+  const prevHeroLenRef = useRef(heroImages.length);
+  useEffect(() => {
+    if (heroImages.length < 2) {
+      prevHeroLenRef.current = heroImages.length;
+      return;
+    }
+    if (prevHeroLenRef.current === heroImages.length) return;
+    prevHeroLenRef.current = heroImages.length;
+    const v = Math.min(visibleRef.current, heroImages.length - 1);
+    setVisibleIndex(v);
+    setSlotAIdx(v);
+    setSlotBIdx((v + 1) % heroImages.length);
+    setActiveSlot("a");
+    setSlotAAnimDelayMs(null);
+    setSlotBAnimDelayMs(null);
+  }, [heroImages.length]);
+
+  const useDualSlotHeroRef = useRef(useDualSlotHero);
+  useEffect(() => {
+    useDualSlotHeroRef.current = useDualSlotHero;
+  }, [useDualSlotHero]);
+  const heroLenRef = useRef(heroImages.length);
+  useEffect(() => {
+    heroLenRef.current = heroImages.length;
+  }, [heroImages.length]);
+
+  useEffect(() => {
     if (reducedMotion || heroImages.length < 2) return undefined;
     const id = setInterval(() => {
       if (pendingRef.current) return;
-      const len = heroImages.length;
-      setPendingIndex((visibleRef.current + 1) % len);
+      const n = heroImages.length;
+      setPendingIndex((visibleRef.current + 1) % n);
     }, delaySeconds * 1000);
     return () => clearInterval(id);
   }, [heroImages.length, delaySeconds, reducedMotion]);
+
+  useLayoutEffect(() => {
+    if (pendingIndex === null || !useDualSlotHero) return;
+    const slot = activeSlot;
+    const inactive = slot === "a" ? "b" : "a";
+    if (inactive === "a") {
+      setSlotAIdx((idx) => (idx === pendingIndex ? idx : pendingIndex));
+    } else {
+      setSlotBIdx((idx) => (idx === pendingIndex ? idx : pendingIndex));
+    }
+    const outgoingRef = slot === "a" ? slotARef : slotBRef;
+    const incomingSlot = slot === "a" ? "b" : "a";
+    let raf2 = null;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        const delayMs = getHeroAnimationSyncDelayMs(outgoingRef.current);
+        if (incomingSlot === "a") setSlotAAnimDelayMs(delayMs);
+        else setSlotBAnimDelayMs(delayMs);
+      });
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+    };
+  }, [pendingIndex, useDualSlotHero, activeSlot]);
 
   useEffect(() => {
     if (pendingIndex === null) {
@@ -200,9 +338,24 @@ export function HomepageExperience({
       innerRaf = requestAnimationFrame(() => setFadeOut(true));
     });
     const ms = Math.max(0, transitionSeconds * 1000);
+    const doneIndex = pendingIndex;
     const t = setTimeout(() => {
-      setVisibleIndex(pendingIndex);
+      setVisibleIndex(doneIndex);
       setPendingIndex(null);
+      setFadeOut(false);
+      const lenNow = heroLenRef.current;
+      if (useDualSlotHeroRef.current && lenNow >= 2) {
+        const outgoingWas = activeSlotRef.current;
+        setActiveSlot(outgoingWas === "a" ? "b" : "a");
+        const preloadIdx = (doneIndex + 1) % lenNow;
+        if (outgoingWas === "a") {
+          setSlotAIdx(preloadIdx);
+          setSlotAAnimDelayMs(null);
+        } else {
+          setSlotBIdx(preloadIdx);
+          setSlotBAnimDelayMs(null);
+        }
+      }
     }, ms);
     return () => {
       cancelAnimationFrame(outerRaf);
@@ -216,7 +369,7 @@ export function HomepageExperience({
       return undefined;
     }
 
-    const payload = { images: heroImages, delaySeconds, transitionSeconds };
+    const payload = { images: heroImages, delaySeconds, transitionSeconds, growSlider };
     const nextJson = JSON.stringify(payload);
     if (nextJson === lastSavedJsonRef.current) {
       return undefined;
@@ -242,9 +395,38 @@ export function HomepageExperience({
     }, 650);
 
     return () => clearTimeout(timer);
-  }, [heroImages, delaySeconds, transitionSeconds, isAdmin]);
+  }, [heroImages, delaySeconds, transitionSeconds, growSlider, isAdmin]);
+
+  const growDurationSec = useMemo(
+    () => growSliderToDurationSeconds(growSlider),
+    [growSlider]
+  );
+  const growZoomEnabled = Boolean(!reducedMotion && growDurationSec != null);
 
   const thumbActive = pendingIndex !== null ? pendingIndex : visibleIndex;
+
+  const { opA, opB, zA, zB } = useMemo(() => {
+    if (pendingIndex === null) {
+      return {
+        opA: activeSlot === "a" ? 1 : 0,
+        opB: activeSlot === "b" ? 1 : 0,
+        zA: 1,
+        zB: 1,
+      };
+    }
+    const outgoing = fadeOut ? 0 : 1;
+    const incoming = fadeOut ? 1 : 0;
+    const incomingSlot = activeSlot === "a" ? "b" : "a";
+    return {
+      opA: activeSlot === "a" ? outgoing : incoming,
+      opB: activeSlot === "b" ? outgoing : incoming,
+      zA: incomingSlot === "a" ? 2 : 1,
+      zB: incomingSlot === "b" ? 2 : 1,
+    };
+  }, [activeSlot, pendingIndex, fadeOut]);
+
+  const safeSlotA = len > 0 ? Math.min(Math.max(0, slotAIdx), len - 1) : 0;
+  const safeSlotB = len > 0 ? Math.min(Math.max(0, slotBIdx), len - 1) : 0;
 
   const handleAddImageFile = async (event) => {
     const file = event.target.files?.[0];
@@ -333,40 +515,49 @@ export function HomepageExperience({
   );
 
   return (
-    <div className="home-exp" style={heroTransform}>
+    <div className="home-exp">
       <section
         className="hero-image-block"
-        style={
-          transitionSeconds > 0
-            ? { "--hero-transition-duration": `${transitionSeconds}s` }
-            : undefined
-        }
+        style={{
+          ...(growDurationSec != null
+            ? { "--hero-grow-duration": `${growDurationSec}s` }
+            : {}),
+          ...(transitionSeconds > 0 ? { "--hero-transition-duration": `${transitionSeconds}s` } : {}),
+        }}
       >
-        {heroImages.length >= 2 &&
-        !reducedMotion &&
-        pendingIndex !== null &&
-        transitionSeconds > 0 ? (
-          <div className="hero-image-bg-stack" aria-hidden>
-            <img
-              className="hero-image-bg hero-image-bg-layer"
-              src={heroImages[visibleIndex]}
-              alt=""
-              style={{ opacity: fadeOut ? 0 : 1 }}
+        <div className="hero-image-bg-holder">
+          {useDualSlotHero ? (
+            <div className="hero-image-bg-stack">
+              <HeroImageWithGrow
+                ref={slotARef}
+                key="hero-slot-a"
+                src={heroImages[safeSlotA]}
+                alt=""
+                className="hero-image-bg hero-image-bg-layer"
+                style={{ opacity: opA, zIndex: zA }}
+                growEnabled={growZoomEnabled}
+                animationDelayMs={slotAAnimDelayMs}
+              />
+              <HeroImageWithGrow
+                ref={slotBRef}
+                key="hero-slot-b"
+                src={heroImages[safeSlotB]}
+                alt=""
+                className="hero-image-bg hero-image-bg-layer"
+                style={{ opacity: opB, zIndex: zB }}
+                growEnabled={growZoomEnabled}
+                animationDelayMs={slotBAnimDelayMs}
+              />
+            </div>
+          ) : (
+            <HeroImageWithGrow
+              src={heroImages[visibleIndex] || heroImages[0]}
+              alt="Nashville musicians performing"
+              className="hero-image-bg"
+              growEnabled={growZoomEnabled}
             />
-            <img
-              className="hero-image-bg hero-image-bg-layer"
-              src={heroImages[pendingIndex]}
-              alt=""
-              style={{ opacity: fadeOut ? 1 : 0 }}
-            />
-          </div>
-        ) : (
-          <img
-            src={heroImages[visibleIndex] || heroImages[0]}
-            alt="Nashville musicians performing"
-            className="hero-image-bg"
-          />
-        )}
+          )}
+        </div>
         <div className="hero-image-overlay" />
         <div className="hero-image-content">
           <h1 className="hero-image-title">
@@ -401,7 +592,7 @@ export function HomepageExperience({
                     }}
                     aria-label={`Show ${src.split("/").pop()}`}
                   >
-                    <img src={src} alt="" draggable={false} />
+                    <Image src={src} alt="" draggable={false} width={160} height={90} />
                   </button>
                   <button
                     type="button"
@@ -440,7 +631,6 @@ export function HomepageExperience({
               ) : null}
             </div>
             <div className="hero-admin-controls">
-              <p className="hero-admin-panel-title">Slideshow timing</p>
               <label className="hero-admin-field">
                 <span>Seconds between slides</span>
                 <div className="hero-admin-range">
@@ -467,6 +657,24 @@ export function HomepageExperience({
                     onChange={(e) => setTransitionSeconds(Number(e.target.value))}
                   />
                   <strong>{transitionSeconds === 0 ? "Off (instant)" : `${transitionSeconds}s`}</strong>
+                </div>
+              </label>
+              <label className="hero-admin-field">
+                <span>Grow zoom speed</span>
+                <div className="hero-admin-range">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={growSlider}
+                    onChange={(e) => setGrowSlider(Number(e.target.value))}
+                  />
+                  <strong>
+                    {growSlider === 0
+                      ? "Off"
+                      : `${growDurationSec != null ? growDurationSec.toFixed(1) : "—"}s`}
+                  </strong>
                 </div>
               </label>
               {saveError ? (

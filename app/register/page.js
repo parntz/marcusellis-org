@@ -1,29 +1,18 @@
-import { Footer } from "../../components/footer";
+import { PageHeaderWithCallout } from "../../components/page-header-with-callout";
 import { RegisterForm } from "../../components/register-form";
-import { SiteHeader } from "../../components/site-header";
+import { INTERNAL_PAGE_DESCRIPTION } from "../../lib/internal-page-description.js";
 
 export const metadata = {
   title: "Create Account",
 };
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
   return (
-    <main className="page-shell">
-      <SiteHeader />
-      <article className="page-frame">
-        <header className="page-header">
-          <p className="page-kicker">Membership Login</p>
-          <h2 className="page-title">Create Account</h2>
-          <p className="page-summary">
-            Choose a strong password to protect your account. reCAPTCHA is required before account
-            creation.
-          </p>
-        </header>
-        <section className="auth-layout auth-layout-single">
-          <RegisterForm />
-        </section>
-      </article>
-      <Footer />
-    </main>
+    <article className="page-frame">
+      <PageHeaderWithCallout title="Create Account" description={INTERNAL_PAGE_DESCRIPTION.REGISTER} />
+      <section className="auth-layout auth-layout-single">
+        <RegisterForm />
+      </section>
+    </article>
   );
 }

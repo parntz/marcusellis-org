@@ -1,36 +1,26 @@
 import Link from "next/link";
-import { Footer } from "../../components/footer";
+import { PageHeaderWithCallout } from "../../components/page-header-with-callout";
 import { SignInForm } from "../../components/sign-in-form";
-import { SiteHeader } from "../../components/site-header";
+import { INTERNAL_PAGE_DESCRIPTION } from "../../lib/internal-page-description.js";
 
 export const metadata = {
   title: "Sign In",
 };
 
-export default function SignInPage() {
+export default async function SignInPage() {
   return (
-    <main className="page-shell">
-      <SiteHeader />
-      <article className="page-frame">
-        <header className="page-header">
-          <p className="page-kicker">Member Access</p>
-          <h2 className="page-title">Sign In</h2>
-          <p className="page-summary">
-            Secure sign-in with credentials, strong passwords, reCAPTCHA, and optional Google login.
-          </p>
-        </header>
-        <section className="auth-layout">
-          <SignInForm />
-          <aside className="auth-side">
-            <h3>Need an account?</h3>
-            <p>Register with a strong password or sign in with Google.</p>
-            <Link href="/register" className="btn btn-secondary">
-              Create Account
-            </Link>
-          </aside>
-        </section>
-      </article>
-      <Footer />
-    </main>
+    <article className="page-frame">
+      <PageHeaderWithCallout title="Sign In" description={INTERNAL_PAGE_DESCRIPTION.SIGN_IN} />
+      <section className="auth-layout">
+        <SignInForm />
+        <aside className="auth-side">
+          <h3>Need an account?</h3>
+          <p>Register with a strong password or sign in with Google.</p>
+          <Link href="/register" className="btn btn-secondary">
+            Create Account
+          </Link>
+        </aside>
+      </section>
+    </article>
   );
 }

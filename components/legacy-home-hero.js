@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export function LegacyHomeHero({ slides }) {
@@ -29,10 +30,13 @@ export function LegacyHomeHero({ slides }) {
       <div className="legacy-hero-frame">
         {activeSlide.image ? (
           <div className="legacy-hero-image-wrap">
-            <img
+            <Image
               src={activeSlide.image}
               alt={activeSlide.title}
               className="legacy-hero-image"
+              width={1600}
+              height={900}
+              priority
             />
           </div>
         ) : null}
@@ -42,11 +46,11 @@ export function LegacyHomeHero({ slides }) {
           {activeSlide.ctaLabel ? (
             <Link href={activeSlide.href} className="legacy-hero-cta">
               <span>{activeSlide.ctaLabel}</span>
-              <img
+              <Image
                 src="/images/slide-learn-more.png"
                 alt=""
-                width="129"
-                height="29"
+                width={129}
+                height={29}
               />
             </Link>
           ) : null}
