@@ -79,6 +79,7 @@ await client.executeMultiple(ddl);
 const defaultHeroPayload = JSON.stringify({
   images: DEFAULT_HERO_IMAGES,
   delaySeconds: 6,
+  transitionSeconds: 0.8,
 });
 await client.execute({
   sql: `INSERT OR IGNORE INTO site_config (key, value, updated_at) VALUES (?, ?, datetime('now'))`,

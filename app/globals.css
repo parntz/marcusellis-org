@@ -251,7 +251,7 @@ img {
 
 .main-nav {
   border-top: 0;
-  padding: 0 0 10px;
+  padding: 3px 0 10px;
 }
 
 .main-nav-list,
@@ -1632,6 +1632,16 @@ details[open] > summary .recording-accordion-caret {
   width: calc(100% + 2 * clamp(18px, 2vw, 28px));
 }
 
+.hero-image-bg-stack {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-image-bg-layer {
+  transition: opacity var(--hero-transition-duration, 0.8s) ease-in-out;
+}
+
 .hero-image-bg {
   position: absolute;
   inset: 0;
@@ -1683,17 +1693,26 @@ details[open] > summary .recording-accordion-caret {
   font-weight: 600;
 }
 
+/* Full-size overlay so absolutely positioned children (thumbs + timing) aren’t clipped by flex/overflow */
 .hero-thumb-admin {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
   padding: 0;
   margin: 0;
   border: 0;
+  pointer-events: none;
+}
+
+.hero-thumb-admin > * {
+  pointer-events: auto;
 }
 
 .hero-thumb-strip {
   position: absolute;
   right: 20px;
   top: 20px;
-  z-index: 3;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -1710,6 +1729,22 @@ details[open] > summary .recording-accordion-caret {
   margin: 0;
   border: none;
   box-sizing: border-box;
+  cursor: grab;
+}
+
+.hero-thumb:active {
+  cursor: grabbing;
+}
+
+.hero-thumb.hero-thumb-dragging {
+  opacity: 0.55;
+  outline: 2px dashed rgba(156, 236, 255, 0.9);
+  outline-offset: 2px;
+}
+
+.hero-thumb.hero-thumb-drag-over {
+  outline: 2px solid var(--accent, #24d6ff);
+  outline-offset: 2px;
 }
 
 .hero-thumb-button {
@@ -1869,10 +1904,43 @@ details[open] > summary .recording-accordion-caret {
   line-height: 1;
 }
 
+/* Top-aligned with thumbnail strip, slightly left of the strip (thumb column: 20px inset, 88px wide) */
 .hero-admin-controls {
-  margin-top: 14px;
+  position: absolute;
+  top: 20px;
+  bottom: auto;
+  left: auto;
+  right: calc(20px + 88px + 10px);
+  z-index: 4;
+  width: min(300px, calc(100% - 20px - 88px - 10px - 16px));
+  max-width: min(300px, calc(100% - 134px));
+  margin: 0;
+  padding: 12px 14px;
   display: grid;
   gap: 10px;
+  border-radius: 0;
+  border: 1px solid rgba(160, 183, 255, 0.35);
+  background: rgba(6, 8, 14, 0.92);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 640px) {
+  .hero-admin-controls {
+    top: 20px;
+    right: calc(20px + 70px + 10px);
+    max-width: min(300px, calc(100% - 116px));
+    width: min(300px, calc(100% - 20px - 70px - 10px - 16px));
+  }
+}
+
+.hero-admin-panel-title {
+  margin: 0 0 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .hero-admin-field {

@@ -2,8 +2,19 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_HERO_HOME } from "../lib/hero-home-defaults.mjs";
+
+/** After moving one item from `from` to `to`, map an index that pointed at a slide before the move. */
+function mapIndexAfterReorder(oldIndex, from, to) {
+  if (oldIndex === from) return to;
+  if (from < to) {
+    if (oldIndex > from && oldIndex <= to) return oldIndex - 1;
+  } else if (from > to) {
+    if (oldIndex >= to && oldIndex < from) return oldIndex + 1;
+  }
+  return oldIndex;
+}
 
 function formatNewsDate(route) {
   const match = route.match(/\/(\d{4})-(\d{2})$/);
@@ -107,8 +118,8 @@ export function HomepageExperience({
   spotlight,
   heroHomeConfig,
 }) {
-  const { data: session } = useSession();
-  const isAdmin = !!session?.user;
+  const { data: session, status } = useSession();
+  const isAdmin = status === "authenticated" && Boolean(session?.user);
   const reducedMotion = useReducedMotion();
   const parallax = useHeroParallax(reducedMotion);
   useRevealOnScroll(reducedMotion);
@@ -125,33 +136,87 @@ export function HomepageExperience({
   );
 
   const initialHero = heroHomeConfig
-    ? { ...heroHomeConfig, images: [...heroHomeConfig.images] }
+    ? {
+        ...DEFAULT_HERO_HOME,
+        ...heroHomeConfig,
+        images: [...heroHomeConfig.images],
+        delaySeconds: heroHomeConfig.delaySeconds ?? DEFAULT_HERO_HOME.delaySeconds,
+        transitionSeconds:
+          heroHomeConfig.transitionSeconds ?? DEFAULT_HERO_HOME.transitionSeconds,
+      }
     : { ...DEFAULT_HERO_HOME, images: [...DEFAULT_HERO_HOME.images] };
   const [heroImages, setHeroImages] = useState(initialHero.images);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [visibleIndex, setVisibleIndex] = useState(0);
+  const [pendingIndex, setPendingIndex] = useState(null);
+  const [fadeOut, setFadeOut] = useState(false);
   const [delaySeconds, setDelaySeconds] = useState(initialHero.delaySeconds);
+  const [transitionSeconds, setTransitionSeconds] = useState(initialHero.transitionSeconds);
   const [uploadBusy, setUploadBusy] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [dragIndex, setDragIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
   const heroFileInputRef = useRef(null);
+  const visibleRef = useRef(0);
+  const pendingRef = useRef(false);
   const lastSavedJsonRef = useRef(
-    JSON.stringify({ images: initialHero.images, delaySeconds: initialHero.delaySeconds })
+    JSON.stringify({
+      images: initialHero.images,
+      delaySeconds: initialHero.delaySeconds,
+      transitionSeconds: initialHero.transitionSeconds,
+    })
   );
 
   useEffect(() => {
+    visibleRef.current = visibleIndex;
+  }, [visibleIndex]);
+
+  useEffect(() => {
+    pendingRef.current = pendingIndex !== null;
+  }, [pendingIndex]);
+
+  useEffect(() => {
     if (reducedMotion || heroImages.length < 2) return undefined;
-    const id = setInterval(
-      () => setActiveIndex((prev) => (prev + 1) % heroImages.length),
-      delaySeconds * 1000
-    );
+    const id = setInterval(() => {
+      if (pendingRef.current) return;
+      const len = heroImages.length;
+      setPendingIndex((visibleRef.current + 1) % len);
+    }, delaySeconds * 1000);
     return () => clearInterval(id);
   }, [heroImages.length, delaySeconds, reducedMotion]);
+
+  useEffect(() => {
+    if (pendingIndex === null) {
+      setFadeOut(false);
+      return undefined;
+    }
+    if (transitionSeconds <= 0) {
+      setVisibleIndex(pendingIndex);
+      setPendingIndex(null);
+      return undefined;
+    }
+    setFadeOut(false);
+    let innerRaf = null;
+    const outerRaf = requestAnimationFrame(() => {
+      innerRaf = requestAnimationFrame(() => setFadeOut(true));
+    });
+    const ms = Math.max(0, transitionSeconds * 1000);
+    const t = setTimeout(() => {
+      setVisibleIndex(pendingIndex);
+      setPendingIndex(null);
+    }, ms);
+    return () => {
+      cancelAnimationFrame(outerRaf);
+      if (innerRaf) cancelAnimationFrame(innerRaf);
+      clearTimeout(t);
+    };
+  }, [pendingIndex, transitionSeconds]);
 
   useEffect(() => {
     if (!isAdmin) {
       return undefined;
     }
 
-    const payload = { images: heroImages, delaySeconds };
+    const payload = { images: heroImages, delaySeconds, transitionSeconds };
     const nextJson = JSON.stringify(payload);
     if (nextJson === lastSavedJsonRef.current) {
       return undefined;
@@ -177,9 +242,9 @@ export function HomepageExperience({
     }, 650);
 
     return () => clearTimeout(timer);
-  }, [heroImages, delaySeconds, isAdmin]);
+  }, [heroImages, delaySeconds, transitionSeconds, isAdmin]);
 
-  const activeHero = heroImages[activeIndex] || heroImages[0];
+  const thumbActive = pendingIndex !== null ? pendingIndex : visibleIndex;
 
   const handleAddImageFile = async (event) => {
     const file = event.target.files?.[0];
@@ -212,22 +277,96 @@ export function HomepageExperience({
   };
 
   const handleRemove = (index) => {
-    setHeroImages((prev) => prev.filter((_, i) => i !== index));
-    setActiveIndex((prev) => {
-      if (prev > index) return prev - 1;
-      if (prev >= (heroImages.length || 1) - 1) return 0;
-      return prev;
+    setPendingIndex(null);
+    setHeroImages((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      setVisibleIndex((v) => {
+        if (v > index) return v - 1;
+        if (v >= next.length) return Math.max(0, next.length - 1);
+        return v;
+      });
+      return next;
     });
   };
 
+  const handleHeroDragStart = useCallback((e, index) => {
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(index));
+    setDragIndex(index);
+  }, []);
+
+  const handleHeroDragEnd = useCallback(() => {
+    setDragIndex(null);
+    setDragOverIndex(null);
+  }, []);
+
+  const handleHeroDragOver = useCallback((e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragIndex !== null && index !== dragIndex) {
+      setDragOverIndex(index);
+    }
+  }, [dragIndex]);
+
+  const handleHeroDrop = useCallback(
+    (e, toIndex) => {
+      e.preventDefault();
+      const fromIndex = Number(e.dataTransfer.getData("text/plain"));
+      if (Number.isNaN(fromIndex) || fromIndex === toIndex) {
+        handleHeroDragEnd();
+        return;
+      }
+      setHeroImages((prev) => {
+        const next = [...prev];
+        const [item] = next.splice(fromIndex, 1);
+        next.splice(toIndex, 0, item);
+        return next;
+      });
+      setVisibleIndex((v) => mapIndexAfterReorder(v, fromIndex, toIndex));
+      setPendingIndex((p) =>
+        p === null ? null : mapIndexAfterReorder(p, fromIndex, toIndex)
+      );
+      setDragIndex(null);
+      setDragOverIndex(null);
+    },
+    [handleHeroDragEnd]
+  );
+
   return (
     <div className="home-exp" style={heroTransform}>
-      <section className="hero-image-block">
-        <img
-          src={activeHero}
-          alt="Nashville musicians performing"
-          className="hero-image-bg"
-        />
+      <section
+        className="hero-image-block"
+        style={
+          transitionSeconds > 0
+            ? { "--hero-transition-duration": `${transitionSeconds}s` }
+            : undefined
+        }
+      >
+        {heroImages.length >= 2 &&
+        !reducedMotion &&
+        pendingIndex !== null &&
+        transitionSeconds > 0 ? (
+          <div className="hero-image-bg-stack" aria-hidden>
+            <img
+              className="hero-image-bg hero-image-bg-layer"
+              src={heroImages[visibleIndex]}
+              alt=""
+              style={{ opacity: fadeOut ? 0 : 1 }}
+            />
+            <img
+              className="hero-image-bg hero-image-bg-layer"
+              src={heroImages[pendingIndex]}
+              alt=""
+              style={{ opacity: fadeOut ? 1 : 0 }}
+            />
+          </div>
+        ) : (
+          <img
+            src={heroImages[visibleIndex] || heroImages[0]}
+            alt="Nashville musicians performing"
+            className="hero-image-bg"
+          />
+        )}
         <div className="hero-image-overlay" />
         <div className="hero-image-content">
           <h1 className="hero-image-title">
@@ -240,18 +379,35 @@ export function HomepageExperience({
           <div className="hero-thumb-admin">
             <div className="hero-thumb-strip">
               {heroImages.map((src, index) => (
-                <div key={src + index} className="hero-thumb">
+                <div
+                  key={src}
+                  className={`hero-thumb${dragIndex === index ? " hero-thumb-dragging" : ""}${
+                    dragOverIndex === index && dragIndex !== index ? " hero-thumb-drag-over" : ""
+                  }`}
+                  draggable
+                  aria-grabbed={dragIndex === index}
+                  onDragStart={(e) => handleHeroDragStart(e, index)}
+                  onDragEnd={handleHeroDragEnd}
+                  onDragOver={(e) => handleHeroDragOver(e, index)}
+                  onDrop={(e) => handleHeroDrop(e, index)}
+                  title="Drag to reorder slides"
+                >
                   <button
                     type="button"
-                    className={`hero-thumb-button${index === activeIndex ? " hero-thumb-active" : ""}`}
-                    onClick={() => setActiveIndex(index)}
+                    className={`hero-thumb-button${index === thumbActive ? " hero-thumb-active" : ""}`}
+                    onClick={() => {
+                      if (index === visibleIndex && pendingIndex === null) return;
+                      setPendingIndex(index);
+                    }}
                     aria-label={`Show ${src.split("/").pop()}`}
                   >
-                    <img src={src} alt="" />
+                    <img src={src} alt="" draggable={false} />
                   </button>
                   <button
                     type="button"
                     className="hero-thumb-remove"
+                    draggable={false}
+                    onDragStart={(e) => e.stopPropagation()}
                     onClick={() => handleRemove(index)}
                     aria-label={`Remove ${src.split("/").pop()}`}
                   >
@@ -284,8 +440,9 @@ export function HomepageExperience({
               ) : null}
             </div>
             <div className="hero-admin-controls">
+              <p className="hero-admin-panel-title">Slideshow timing</p>
               <label className="hero-admin-field">
-                <span>Slide duration (seconds)</span>
+                <span>Seconds between slides</span>
                 <div className="hero-admin-range">
                   <input
                     type="range"
@@ -296,6 +453,20 @@ export function HomepageExperience({
                     onChange={(e) => setDelaySeconds(Number(e.target.value))}
                   />
                   <strong>{delaySeconds}s</strong>
+                </div>
+              </label>
+              <label className="hero-admin-field">
+                <span>Transition duration (seconds)</span>
+                <div className="hero-admin-range">
+                  <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={transitionSeconds}
+                    onChange={(e) => setTransitionSeconds(Number(e.target.value))}
+                  />
+                  <strong>{transitionSeconds === 0 ? "Off (instant)" : `${transitionSeconds}s`}</strong>
                 </div>
               </label>
               {saveError ? (

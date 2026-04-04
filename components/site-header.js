@@ -6,6 +6,9 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { primaryNav, siteMeta, utilityNav } from "../lib/site-data";
 
+/** Static brand logo (see public/images/nma-logo.png) */
+const BRAND_LOGO_SRC = "/images/nma-logo.png";
+
 function normalizeNavHref(href = "") {
   if (href.startsWith("/sites/default/files/")) {
     return `/_downloaded${href}`;
@@ -137,9 +140,7 @@ export function SiteHeader() {
     <header className={`site-header ${isScrolled ? "is-scrolled" : ""}`}>
       <div className="brand-band">
         <Link href="/" className="brand-lockup">
-          {siteMeta.logoImage ? (
-            <img src={siteMeta.logoImage} alt={siteMeta.title} className="brand-mark" />
-          ) : null}
+          <img src={BRAND_LOGO_SRC} alt={siteMeta.title} className="brand-mark" />
           <div>
             <p className="brand-kicker">{siteMeta.kicker}</p>
             <h1 className="brand-name">{siteMeta.title}</h1>
