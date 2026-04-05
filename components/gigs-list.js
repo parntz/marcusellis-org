@@ -510,10 +510,12 @@ export function GigsList({ gigs = [], isAdmin = false, onEditGig = null }) {
                     data-active={overlayActive ? "true" : "false"}
                   >
                     <span className="gig-card__admin-overlay__wash">
-                      <span
-                        key={`${gig.id}-${glassVariant}-${glassCycle}`}
-                        className={`gig-card__admin-overlay__glass gig-card__admin-overlay__glass--${glassVariant}`}
-                      />
+                      {overlayActive ? (
+                        <span
+                          key={`${gig.id}-${glassVariant}-${glassCycle}`}
+                          className={`gig-card__admin-overlay__glass gig-card__admin-overlay__glass--${glassVariant}`}
+                        />
+                      ) : null}
                     </span>
                   </span>
                 </button>

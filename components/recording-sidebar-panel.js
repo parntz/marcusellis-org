@@ -648,10 +648,12 @@ function EditableSidebarBox({ box, isAdmin = false, onEdit, children }) {
           data-active={overlayActive ? "true" : "false"}
         >
           <span className="recording-sidebar-box__admin-overlay__wash" aria-hidden="true">
-            <span
-              key={`${glassVariant}-${glassCycle}`}
-              className={`recording-sidebar-box__admin-overlay__glass recording-sidebar-box__admin-overlay__glass--${glassVariant}`}
-            />
+            {overlayActive ? (
+              <span
+                key={`${glassVariant}-${glassCycle}`}
+                className={`recording-sidebar-box__admin-overlay__glass recording-sidebar-box__admin-overlay__glass--${glassVariant}`}
+              />
+            ) : null}
           </span>
         </button>
       ) : null}

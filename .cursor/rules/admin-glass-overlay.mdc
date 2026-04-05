@@ -1,0 +1,12 @@
+---
+description: Centralized admin hover glass overlay — extend here only
+globs:
+alwaysApply: true
+---
+
+# Admin editable-region overlay
+
+- **Single source of truth:** `app/admin-glass-overlay.css` (imported from `app/layout.js`). All admin “glass” hover treatments for gigs, news/events, member links, recording sidebar boxes, the header callout, and the **homepage hero image text** block use the selectors in that file.
+- **Do not** duplicate overlay/border/glow/`__wash`/`__glass` styles in `globals.css`, `callout-rotator.css`, or component-scoped CSS for new admin targets.
+- **New editable surfaces:** reuse the same DOM pattern as an existing overlay (`…__admin-overlay`, `…__admin-overlay__wash`, optional `…__admin-overlay__glass--*`) and add **only** the new class names to the comma-separated lists in `admin-glass-overlay.css` (plus any one-off modifier block if truly different).
+- **News/events rows** and **homepage hero text** intentionally omit the `::after` “EDIT” chip; other surfaces include it via the shared rule in that file.

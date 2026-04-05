@@ -157,6 +157,13 @@ const ddl = `
 
   CREATE INDEX IF NOT EXISTS idx_member_site_links_display_order
     ON member_site_links(display_order ASC, id ASC);
+
+  CREATE TABLE IF NOT EXISTS page_header_overrides (
+    route TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `;
 
 await client.executeMultiple(ddl);

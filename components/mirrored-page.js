@@ -713,7 +713,12 @@ function transformScalesFormsContent(bodyHtml) {
   return { introHtml: intro, sections };
 }
 
-export async function MirroredPage({ page, heroHomeConfig = null, searchParams = {} }) {
+export async function MirroredPage({
+  page,
+  heroHomeConfig = null,
+  homeHeroTextConfig = null,
+  searchParams = {},
+}) {
   const session = await getServerSession(authOptions);
   const isAdmin = Boolean(session?.user);
 
@@ -939,9 +944,11 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
             resources={resources}
             spotlight={spotlight}
             heroHomeConfig={heroHomeConfig}
+            homeHeroTextConfig={homeHeroTextConfig}
           />
         ) : (
           <PageHeaderWithCallout
+            route={page.route}
             title={page.title}
             description={computeMirrorPageDescription(page, {
               scalesFormsPage,

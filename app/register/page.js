@@ -9,7 +9,11 @@ export const metadata = {
 export default async function RegisterPage() {
   return (
     <article className="page-frame">
-      <PageHeaderWithCallout title="Create Account" description={INTERNAL_PAGE_DESCRIPTION.REGISTER} />
+      <PageHeaderWithCallout
+        route="/register"
+        title="Create Account"
+        description={INTERNAL_PAGE_DESCRIPTION.REGISTER}
+      />
       <section className="auth-layout auth-layout-single">
         <RegisterForm />
       </section>

@@ -30,6 +30,7 @@ export default async function MemberProfilePage({ params }) {
   return (
     <article className="page-frame member-profile-shell">
       <PageHeaderWithCallout
+        route={`/users/${member.slug}`}
         title={decodeHtmlEntities(member.title)}
         description={INTERNAL_PAGE_DESCRIPTION.MEMBER_PROFILE}
         trailing={

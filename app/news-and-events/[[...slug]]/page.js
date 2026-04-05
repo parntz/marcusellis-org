@@ -10,6 +10,7 @@ import { listNewsEventsItems } from "../../../lib/news-events-items";
 import { resolveSidebarBoxes } from "../../../lib/resolve-sidebar-boxes.mjs";
 import { INTERNAL_PAGE_DESCRIPTION } from "../../../lib/internal-page-description.js";
 import { siteMeta } from "../../../lib/site-data";
+import { getEditablePageHeader } from "../../../lib/page-header-editor";
 import { getClient } from "../../../lib/sqlite.mjs";
 
 export const dynamic = "force-dynamic";
@@ -73,11 +74,16 @@ export default async function NewsAndEventsPage({ params }) {
 
   if (!slug.length) {
     const newsEventItems = await listNewsEventsItems(1000, "/news-and-events");
+    const listHeader = await getEditablePageHeader("/news-and-events");
+    const listTitle = listHeader?.title?.trim() || "News & Events";
+    const listDescription =
+      listHeader?.description?.trim() || INTERNAL_PAGE_DESCRIPTION.NEWS_EVENTS;
     return (
       <article className="page-frame news-shell pg-news-events">
         <PageHeaderWithCallout
-          title="News & Events"
-          description={INTERNAL_PAGE_DESCRIPTION.NEWS_EVENTS}
+          route="/news-and-events"
+          title={listTitle}
+          description={listDescription}
           titleAction={isAdmin ? <NewsEventsCreateButton /> : null}
         />
 
@@ -123,6 +129,7 @@ export default async function NewsAndEventsPage({ params }) {
         <div className="recording-body-grid recording-body-grid--scales recording-body-grid--news">
           <div className="recording-news-main">
             <PageHeaderWithCallout
+              route={route}
               kicker={
                 badgeMonth || badgeDay ? (
                   <div className="news-detail__eyebrow">

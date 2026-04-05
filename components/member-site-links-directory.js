@@ -193,10 +193,12 @@ export function MemberSiteLinksDirectory({ initialLinks = [], isAdmin = false })
                   data-active={overlayActive ? "true" : "false"}
                 >
                   <span className="member-links-card__admin-overlay__wash">
-                    <span
-                      key={`${item.id}-${glassVariant}-${glassCycle}`}
-                      className={`member-links-card__admin-overlay__glass member-links-card__admin-overlay__glass--${glassVariant}`}
-                    />
+                    {overlayActive ? (
+                      <span
+                        key={`${item.id}-${glassVariant}-${glassCycle}`}
+                        className={`member-links-card__admin-overlay__glass member-links-card__admin-overlay__glass--${glassVariant}`}
+                      />
+                    ) : null}
                   </span>
                 </span>
               </button>

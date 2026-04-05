@@ -21,6 +21,98 @@ const NEWS_CAL_FIXED_MIN_WIDTH = 861;
 const newsCalMqString = `(min-width: ${NEWS_CAL_FIXED_MIN_WIDTH}px)`;
 const GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
 
+const LISTING_MONTH_OPTIONS = [
+  { abbr: "JAN", label: "January" },
+  { abbr: "FEB", label: "February" },
+  { abbr: "MAR", label: "March" },
+  { abbr: "APR", label: "April" },
+  { abbr: "MAY", label: "May" },
+  { abbr: "JUN", label: "June" },
+  { abbr: "JUL", label: "July" },
+  { abbr: "AUG", label: "August" },
+  { abbr: "SEP", label: "September" },
+  { abbr: "OCT", label: "October" },
+  { abbr: "NOV", label: "November" },
+  { abbr: "DEC", label: "December" },
+];
+
+function listingMonthIndex(abbr) {
+  const u = String(abbr || "")
+    .trim()
+    .toUpperCase()
+    .slice(0, 3);
+  const idx = LISTING_MONTH_OPTIONS.findIndex((m) => m.abbr === u);
+  return idx >= 0 ? idx : -1;
+}
+
+function yearFromIso(iso) {
+  if (!iso || typeof iso !== "string") return null;
+  const y = Number(iso.slice(0, 4));
+  return Number.isFinite(y) && y >= 1970 && y <= 2100 ? y : null;
+}
+
+/** Build YYYY-MM-DD for the listing tile; year from event date when possible, else current year. */
+function listingIsoFromBadge(badgeMonth, badgeDay, preferredYear) {
+  const idx = listingMonthIndex(badgeMonth);
+  if (idx < 0) return "";
+  const dayRaw = parseInt(String(badgeDay || "").replace(/\D/g, ""), 10);
+  if (!Number.isFinite(dayRaw) || dayRaw < 1) return "";
+  const y =
+    preferredYear != null && preferredYear >= 1970 && preferredYear <= 2100
+      ? preferredYear
+      : new Date().getFullYear();
+  const max = new Date(y, idx + 1, 0).getDate();
+  const day = Math.min(dayRaw, max);
+  return `${y}-${String(idx + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function badgeFromListingIso(iso) {
+  if (!iso) return { badgeMonth: "", badgeDay: "" };
+  const parts = iso.split("-");
+  const y = Number(parts[0]);
+  const m = Number(parts[1]);
+  const d = Number(parts[2]);
+  if (!y || !m || !d) return { badgeMonth: "", badgeDay: "" };
+  const idx = m - 1;
+  if (idx < 0 || idx > 11) return { badgeMonth: "", badgeDay: "" };
+  const abbr = LISTING_MONTH_OPTIONS[idx]?.abbr || "";
+  return { badgeMonth: abbr, badgeDay: String(d) };
+}
+
+function clampListingDay(monthAbbr, dayStr) {
+  const idx = listingMonthIndex(monthAbbr);
+  if (idx < 0) return String(dayStr || "").replace(/\D/g, "").slice(0, 4) || "";
+  const y = new Date().getFullYear();
+  const max = new Date(y, idx + 1, 0).getDate();
+  let n = parseInt(String(dayStr || "").replace(/\D/g, ""), 10);
+  if (!Number.isFinite(n) || n < 1) return "1";
+  return String(Math.min(n, max));
+}
+
+function parseIsoFromEventDateText(text) {
+  const t = String(text || "").trim();
+  if (!t) return "";
+  const d = new Date(t);
+  if (Number.isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  if (y < 1970 || y > 2100) return "";
+  const mo = d.getMonth() + 1;
+  const da = d.getDate();
+  return `${y}-${String(mo).padStart(2, "0")}-${String(da).padStart(2, "0")}`;
+}
+
+function formatEventDateLineFromIso(iso) {
+  if (!iso) return "";
+  const parts = iso.split("-").map(Number);
+  const y = parts[0];
+  const m = parts[1];
+  const da = parts[2];
+  if (!y || !m || !da) return "";
+  const d = new Date(y, m - 1, da);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+}
+
 function pickRandomGlassVariant(current = GLASS_VARIANTS[0]) {
   const options = GLASS_VARIANTS.filter((variant) => variant !== current);
   return options[Math.floor(Math.random() * options.length)] || current;
@@ -34,27 +126,54 @@ function sortItems(items) {
   });
 }
 
+function slugifyNewsHref(title) {
+  const base = String(title || "")
+    .trim()
+    .toLowerCase()
+    .replace(/["'`\u2018\u2019\u201c\u201d]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  return base || "untitled";
+}
+
 function emptyForm() {
   return {
     title: "",
     itemType: "news",
     eventDateText: "",
+    eventDateIso: "",
+    listingDateIso: "",
     badgeMonth: "",
     badgeDay: "",
     summary: "",
-    href: "/news-and-events/",
+    href: "",
     metaDescription: "",
     bodyHtml: "",
   };
 }
 
 function formFromItem(item) {
+  const eventDateText = String(item.eventDateText || "");
+  const eventDateIso = parseIsoFromEventDateText(eventDateText);
+  let badgeMonth = String(item.badgeMonth || "");
+  let badgeDay = String(item.badgeDay || "");
+  const listingDateIso = listingIsoFromBadge(badgeMonth, badgeDay, yearFromIso(eventDateIso));
+  if (listingDateIso) {
+    const b = badgeFromListingIso(listingDateIso);
+    badgeMonth = b.badgeMonth;
+    badgeDay = b.badgeDay;
+  } else {
+    badgeDay = clampListingDay(badgeMonth, badgeDay);
+  }
   return {
     title: String(item.title || ""),
     itemType: String(item.itemType || "news"),
-    eventDateText: String(item.eventDateText || ""),
-    badgeMonth: String(item.badgeMonth || ""),
-    badgeDay: String(item.badgeDay || ""),
+    eventDateText,
+    eventDateIso,
+    listingDateIso,
+    badgeMonth,
+    badgeDay,
     summary: String(item.summary || ""),
     href: String(item.href || ""),
     metaDescription: String(item.metaDescription || ""),
@@ -344,12 +463,16 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
     try {
       const url = editingId ? `/api/news-events/${editingId}` : "/api/news-events";
       const method = editingId ? "PUT" : "POST";
+      const payload =
+        editingId > 0
+          ? form
+          : { ...form, href: `/news-and-events/${slugifyNewsHref(form.title)}` };
       const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.item) {
@@ -472,7 +595,7 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by title, event info, date, type, or route..."
+                placeholder="Search by title, summary, date, or keywords…"
               />
               {query ? (
                 <button type="button" className="news-events-search-clear" onClick={() => setQuery("")}>
@@ -536,10 +659,12 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
                       data-active={overlayActive ? "true" : "false"}
                     >
                       <span className="news-events-item__admin-overlay__wash">
-                        <span
-                          key={`${item.id}-${glassVariant}-${glassCycle}`}
-                          className={`news-events-item__admin-overlay__glass news-events-item__admin-overlay__glass--${glassVariant}`}
-                        />
+                        {overlayActive ? (
+                          <span
+                            key={`${item.id}-${glassVariant}-${glassCycle}`}
+                            className={`news-events-item__admin-overlay__glass news-events-item__admin-overlay__glass--${glassVariant}`}
+                          />
+                        ) : null}
                       </span>
                     </span>
                   </button>
@@ -615,57 +740,54 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
               </div>
 
               <div className="news-events-editor__group">
-                <label htmlFor="news-item-type">Type</label>
-                <input
-                  id="news-item-type"
-                  type="text"
-                  value={form.itemType}
-                  onChange={(event) => setForm((current) => ({ ...current, itemType: event.target.value }))}
-                  placeholder="news, event, archive, notice"
-                />
-              </div>
-
-              <div className="news-events-editor__group">
-                <label htmlFor="news-item-date">Event Date Text</label>
-                <input
-                  id="news-item-date"
-                  type="text"
-                  value={form.eventDateText}
-                  onChange={(event) => setForm((current) => ({ ...current, eventDateText: event.target.value }))}
-                  placeholder="Friday, April 10, 7 PM"
-                />
-              </div>
-
-              <div className="news-events-editor__group news-events-editor__group--badge">
-                <label htmlFor="news-item-badge-month">Badge</label>
-                <div className="news-events-editor__badge-row">
+                <label htmlFor="news-item-event-date">Event date</label>
+                <div className="news-events-editor__date-input-wrap">
                   <input
-                    id="news-item-badge-month"
-                    type="text"
-                    value={form.badgeMonth}
-                    onChange={(event) => setForm((current) => ({ ...current, badgeMonth: event.target.value }))}
-                    placeholder="APR"
+                    id="news-item-event-date"
+                    type="date"
+                    value={form.eventDateIso}
+                    onChange={(event) => {
+                      const iso = event.target.value;
+                      setForm((current) => ({
+                        ...current,
+                        eventDateIso: iso,
+                        eventDateText: iso ? formatEventDateLineFromIso(iso) : "",
+                      }));
+                    }}
                   />
-                  <input
-                    id="news-item-badge-day"
-                    type="text"
-                    value={form.badgeDay}
-                    onChange={(event) => setForm((current) => ({ ...current, badgeDay: event.target.value }))}
-                    placeholder="10"
-                  />
+                  <span className="news-events-editor__date-icon" aria-hidden="true" />
                 </div>
               </div>
 
-              <div className="news-events-editor__group news-events-editor__group--wide">
-                <label htmlFor="news-item-href">Link / Route</label>
-                <input
-                  id="news-item-href"
-                  type="text"
-                  value={form.href}
-                  onChange={(event) => setForm((current) => ({ ...current, href: event.target.value }))}
-                  placeholder="/news-and-events/my-story or https://example.com"
-                  required
-                />
+              <div className="news-events-editor__group">
+                <label htmlFor="news-item-listing-date">Listing date</label>
+                <div className="news-events-editor__date-input-wrap">
+                  <input
+                    id="news-item-listing-date"
+                    type="date"
+                    value={form.listingDateIso}
+                    onChange={(event) => {
+                      const iso = event.target.value;
+                      if (!iso) {
+                        setForm((current) => ({
+                          ...current,
+                          listingDateIso: "",
+                          badgeMonth: "",
+                          badgeDay: "",
+                        }));
+                        return;
+                      }
+                      const { badgeMonth, badgeDay } = badgeFromListingIso(iso);
+                      setForm((current) => ({
+                        ...current,
+                        listingDateIso: iso,
+                        badgeMonth,
+                        badgeDay,
+                      }));
+                    }}
+                  />
+                  <span className="news-events-editor__date-icon" aria-hidden="true" />
+                </div>
               </div>
 
               <div className="news-events-editor__group news-events-editor__group--wide">
@@ -675,30 +797,6 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
                   rows="4"
                   value={form.summary}
                   onChange={(event) => setForm((current) => ({ ...current, summary: event.target.value }))}
-                />
-              </div>
-
-              <div className="news-events-editor__group news-events-editor__group--wide">
-                <label htmlFor="news-item-meta">Meta Description</label>
-                <input
-                  id="news-item-meta"
-                  type="text"
-                  value={form.metaDescription}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, metaDescription: event.target.value }))
-                  }
-                  placeholder="Optional SEO description for internal detail pages"
-                />
-              </div>
-
-              <div className="news-events-editor__group news-events-editor__group--wide">
-                <label htmlFor="news-item-body">Detail Body HTML</label>
-                <textarea
-                  id="news-item-body"
-                  rows="10"
-                  value={form.bodyHtml}
-                  onChange={(event) => setForm((current) => ({ ...current, bodyHtml: event.target.value }))}
-                  placeholder="Used when the route is an internal /news-and-events/... or /event/... page."
                 />
               </div>
 

@@ -17,7 +17,7 @@ export default async function AccountPage() {
 
   return (
     <article className="page-frame">
-      <PageHeaderWithCallout title="Welcome Back" description={INTERNAL_PAGE_DESCRIPTION.ACCOUNT} />
+      <PageHeaderWithCallout route="/account" title="Welcome Back" description={INTERNAL_PAGE_DESCRIPTION.ACCOUNT} />
       <section className="page-content">
         <h3>Account Overview</h3>
         <p>Signed in as {session.user.email}</p>

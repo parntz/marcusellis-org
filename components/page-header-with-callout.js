@@ -1,33 +1,51 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../lib/auth-options";
 import { listCallouts, listCalloutsForAdmin } from "../lib/callouts";
+import { getPageHeaderOverride } from "../lib/page-header-editor";
 import { getCalloutConfig } from "../lib/site-config-callouts";
 import { CalloutRotator } from "./callout-rotator";
+import { PageHeaderTextAdmin } from "./page-header-text-admin";
 
 /**
- * Standard internal page header: title + one-line description + optional DB callout (News & Events band).
+ * Standard internal page header: title + description + optional DB callout (News & Events band).
  * Prefer `title` + `description`; optional `kicker` (e.g. date badge row) and `trailing` (e.g. actions).
  * `children` wraps the main column for rare full overrides.
  */
-export async function PageHeaderWithCallout({ title, description, kicker, trailing, titleAction, children }) {
+export async function PageHeaderWithCallout({
+  route = "",
+  title,
+  description,
+  kicker,
+  trailing,
+  titleAction,
+  children,
+}) {
   const session = await getServerSession(authOptions);
   const isAdmin = Boolean(session?.user);
   const headerCallouts = await listCallouts("header");
   const adminCallouts = isAdmin ? await listCalloutsForAdmin("header") : [];
   const calloutConfig = await getCalloutConfig("header");
   const hasCallout = headerCallouts.length > 0 || isAdmin;
+  const headerOverride = route ? await getPageHeaderOverride(route) : null;
+  const resolvedTitle = headerOverride ? headerOverride.title : title;
+  const resolvedDescription = headerOverride ? headerOverride.description : description ?? "";
 
   const main = children ? (
     <div className="page-header-main__inner">{children}</div>
   ) : (
-    <div className="page-header-main__inner">
+    <div className={`page-header-main__inner${isAdmin ? " page-header-main__inner--admin-editable" : ""}`}>
       {kicker ? <div className="page-header-main__kicker">{kicker}</div> : null}
       <div className={`page-header-main__title-row${titleAction ? " has-action" : ""}`}>
-        <h1 className="page-title">{title}</h1>
+        <h1 className="page-title" data-page-header-title>
+          {resolvedTitle}
+        </h1>
         {titleAction ? <div className="page-header-main__title-action">{titleAction}</div> : null}
       </div>
-      <p className="page-summary page-summary--internal">{description ?? ""}</p>
+      <p className="page-summary page-summary--internal" data-page-header-description>
+        {resolvedDescription}
+      </p>
       {trailing ? <div className="page-header-main__trailing">{trailing}</div> : null}
+      {isAdmin ? <PageHeaderTextAdmin route={route} /> : null}
     </div>
   );
 

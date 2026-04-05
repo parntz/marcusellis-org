@@ -10,7 +10,7 @@ export const metadata = {
 export default async function SignInPage() {
   return (
     <article className="page-frame">
-      <PageHeaderWithCallout title="Sign In" description={INTERNAL_PAGE_DESCRIPTION.SIGN_IN} />
+      <PageHeaderWithCallout route="/sign-in" title="Sign In" description={INTERNAL_PAGE_DESCRIPTION.SIGN_IN} />
       <section className="auth-layout">
         <SignInForm />
         <aside className="auth-side">

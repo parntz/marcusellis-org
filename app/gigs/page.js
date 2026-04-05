@@ -27,6 +27,7 @@ export default async function GigsPage() {
   return (
     <article className="page-frame gigs-shell pg-gigs news-events-sidebar-layout">
       <PageHeaderWithCallout
+        route="/gigs"
         title="Upcoming Gigs"
         description="Where AFM Local 257 musicians are playing next, with schedules, venue details, maps, artists, and gig notes."
         titleAction={isAdmin ? <GigsCreateButton /> : null}

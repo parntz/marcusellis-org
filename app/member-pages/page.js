@@ -156,6 +156,7 @@ export default async function MemberPages({ searchParams }) {
   return (
     <article className="page-frame member-pages-shell">
       <PageHeaderWithCallout
+        route="/member-pages"
         title="Member Profile Pages"
         description={INTERNAL_PAGE_DESCRIPTION.MEMBER_PAGES}
       />

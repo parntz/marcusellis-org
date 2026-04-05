@@ -41,6 +41,7 @@ export default async function EventDetailPage({ params }) {
   return (
     <article className="page-frame news-shell">
       <PageHeaderWithCallout
+        route={route}
         kicker={
           badgeMonth || badgeDay ? (
             <div className="news-detail__eyebrow">

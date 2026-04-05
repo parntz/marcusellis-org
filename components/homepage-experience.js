@@ -185,6 +185,13 @@ const HeroImageWithGrow = forwardRef(function HeroImageWithGrow(
 
 HeroImageWithGrow.displayName = "HeroImageWithGrow";
 
+const HERO_TEXT_GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
+
+function pickRandomHeroTextGlassVariant(current = HERO_TEXT_GLASS_VARIANTS[0]) {
+  const options = HERO_TEXT_GLASS_VARIANTS.filter((variant) => variant !== current);
+  return options[Math.floor(Math.random() * options.length)] || current;
+}
+
 export function HomepageExperience({
   siteMeta,
   siteStats,
@@ -196,6 +203,7 @@ export function HomepageExperience({
   resources,
   spotlight,
   heroHomeConfig,
+  homeHeroTextConfig,
 }) {
   const { data: session, status } = useSession();
   const isAdmin = status === "authenticated" && Boolean(session?.user);
@@ -224,6 +232,9 @@ export function HomepageExperience({
   const [saveError, setSaveError] = useState("");
   const [dragIndex, setDragIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [heroTextEditorOpen, setHeroTextEditorOpen] = useState(false);
+  const [heroTextSaveBusy, setHeroTextSaveBusy] = useState(false);
+  const [heroTextError, setHeroTextError] = useState("");
   const heroFileInputRef = useRef(null);
   const slotARef = useRef(null);
   const slotBRef = useRef(null);
@@ -245,6 +256,20 @@ export function HomepageExperience({
       growSlider: initialHero.growSlider,
     })
   );
+  const initialHeroText = {
+    titleLine1: String(homeHeroTextConfig?.titleLine1 || "Nashville Musicians"),
+    titleLine2: String(homeHeroTextConfig?.titleLine2 || "Association"),
+    subheading: String(homeHeroTextConfig?.subheading || "AFM Local 257 — Since 1902"),
+  };
+  const [heroTitleLine1, setHeroTitleLine1] = useState(initialHeroText.titleLine1);
+  const [heroTitleLine2, setHeroTitleLine2] = useState(initialHeroText.titleLine2);
+  const [heroSubheading, setHeroSubheading] = useState(initialHeroText.subheading);
+  const [heroTitleLine1Draft, setHeroTitleLine1Draft] = useState(initialHeroText.titleLine1);
+  const [heroTitleLine2Draft, setHeroTitleLine2Draft] = useState(initialHeroText.titleLine2);
+  const [heroSubheadingDraft, setHeroSubheadingDraft] = useState(initialHeroText.subheading);
+  const [heroTextOverlayActive, setHeroTextOverlayActive] = useState(false);
+  const [heroTextGlassVariant, setHeroTextGlassVariant] = useState(HERO_TEXT_GLASS_VARIANTS[0]);
+  const [heroTextGlassCycle, setHeroTextGlassCycle] = useState(0);
 
   useEffect(() => {
     visibleRef.current = visibleIndex;
@@ -471,6 +496,74 @@ export function HomepageExperience({
     });
   };
 
+  const openHeroTextEditor = useCallback(async () => {
+    setHeroTextError("");
+    try {
+      const res = await fetch("/api/site-config/home-hero-text", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Could not load hero text.");
+      }
+      setHeroTitleLine1(String(data.titleLine1 || ""));
+      setHeroTitleLine2(String(data.titleLine2 || ""));
+      setHeroSubheading(String(data.subheading || ""));
+      setHeroTitleLine1Draft(String(data.titleLine1 || ""));
+      setHeroTitleLine2Draft(String(data.titleLine2 || ""));
+      setHeroSubheadingDraft(String(data.subheading || ""));
+    } catch (err) {
+      setHeroTextError(err instanceof Error ? err.message : "Could not load hero text.");
+      setHeroTitleLine1Draft(heroTitleLine1);
+      setHeroTitleLine2Draft(heroTitleLine2);
+      setHeroSubheadingDraft(heroSubheading);
+    } finally {
+      setHeroTextEditorOpen(true);
+    }
+  }, [heroSubheading, heroTitleLine1, heroTitleLine2]);
+
+  const saveHeroText = useCallback(
+    async (event) => {
+      event.preventDefault();
+      setHeroTextSaveBusy(true);
+      setHeroTextError("");
+      try {
+        const res = await fetch("/api/site-config/home-hero-text", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            titleLine1: heroTitleLine1Draft,
+            titleLine2: heroTitleLine2Draft,
+            subheading: heroSubheadingDraft,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || "Could not save hero text.");
+        }
+        setHeroTitleLine1(String(data.titleLine1 || ""));
+        setHeroTitleLine2(String(data.titleLine2 || ""));
+        setHeroSubheading(String(data.subheading || ""));
+        setHeroTextEditorOpen(false);
+      } catch (err) {
+        setHeroTextError(err instanceof Error ? err.message : "Could not save hero text.");
+      } finally {
+        setHeroTextSaveBusy(false);
+      }
+    },
+    [heroSubheadingDraft, heroTitleLine1Draft, heroTitleLine2Draft]
+  );
+
+  const triggerHeroTextGlass = useCallback(() => {
+    setHeroTextGlassVariant((current) => pickRandomHeroTextGlassVariant(current));
+    setHeroTextGlassCycle((n) => n + 1);
+  }, []);
+
+  useEffect(() => {
+    if (!isAdmin || !heroTextOverlayActive) return undefined;
+    triggerHeroTextGlass();
+    const id = window.setInterval(triggerHeroTextGlass, 5000);
+    return () => window.clearInterval(id);
+  }, [isAdmin, heroTextOverlayActive, triggerHeroTextGlass]);
+
   const handleHeroDragStart = useCallback((e, index) => {
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", String(index));
@@ -559,12 +652,56 @@ export function HomepageExperience({
           )}
         </div>
         <div className="hero-image-overlay" />
-        <div className="hero-image-content">
+        <div
+          className={`hero-image-content${isAdmin ? " hero-image-content--admin-editable" : ""}`}
+          role={isAdmin ? "button" : undefined}
+          tabIndex={isAdmin ? 0 : undefined}
+          aria-label={isAdmin ? "Edit homepage hero text" : undefined}
+          onClick={isAdmin ? () => void openHeroTextEditor() : undefined}
+          onKeyDown={
+            isAdmin
+              ? (event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    void openHeroTextEditor();
+                  }
+                }
+              : undefined
+          }
+          onMouseEnter={() => {
+            if (isAdmin) setHeroTextOverlayActive(true);
+          }}
+          onMouseLeave={() => setHeroTextOverlayActive(false)}
+          onFocusCapture={() => {
+            if (isAdmin) setHeroTextOverlayActive(true);
+          }}
+          onBlurCapture={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) {
+              setHeroTextOverlayActive(false);
+            }
+          }}
+        >
           <h1 className="hero-image-title">
-            Nashville Musicians
-            <span>Association</span>
+            {heroTitleLine1}
+            <span>{heroTitleLine2}</span>
           </h1>
-          <p className="hero-image-sub">AFM Local 257 — Since 1902</p>
+          <p className="hero-image-sub">{heroSubheading}</p>
+          {isAdmin ? (
+            <span
+              className="hero-image-content__admin-overlay"
+              aria-hidden="true"
+              data-active={heroTextOverlayActive ? "true" : "false"}
+            >
+              <span className="hero-image-content__admin-overlay__wash">
+                {heroTextOverlayActive ? (
+                  <span
+                    key={`hero-text-glass-${heroTextGlassVariant}-${heroTextGlassCycle}`}
+                    className={`hero-image-content__admin-overlay__glass hero-image-content__admin-overlay__glass--${heroTextGlassVariant}`}
+                  />
+                ) : null}
+              </span>
+            </span>
+          ) : null}
         </div>
         {isAdmin ? (
           <div className="hero-thumb-admin">
@@ -677,6 +814,9 @@ export function HomepageExperience({
                   </strong>
                 </div>
               </label>
+              <button type="button" className="btn btn-ghost" onClick={() => void openHeroTextEditor()}>
+                Edit hero text
+              </button>
               {saveError ? (
                 <p className="hero-admin-error" role="alert">
                   {saveError}
@@ -686,6 +826,73 @@ export function HomepageExperience({
           </div>
         ) : null}
       </section>
+
+      {heroTextEditorOpen ? (
+        <div
+          className="page-header-editor-backdrop"
+          role="presentation"
+          onClick={() => !heroTextSaveBusy && setHeroTextEditorOpen(false)}
+        >
+          <div
+            className="page-header-editor-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Edit homepage hero text"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="page-header-editor-modal__header">
+              <p className="gigs-admin__eyebrow">Admin</p>
+              <h3>Edit Hero Text</h3>
+            </div>
+            <form className="page-header-editor-form" onSubmit={saveHeroText}>
+              <label>
+                Title line 1
+                <input
+                  type="text"
+                  value={heroTitleLine1Draft}
+                  onChange={(event) => setHeroTitleLine1Draft(event.target.value)}
+                  maxLength={160}
+                  required
+                />
+              </label>
+              <label>
+                Title line 2
+                <input
+                  type="text"
+                  value={heroTitleLine2Draft}
+                  onChange={(event) => setHeroTitleLine2Draft(event.target.value)}
+                  maxLength={160}
+                  required
+                />
+              </label>
+              <label>
+                Subheading
+                <input
+                  type="text"
+                  value={heroSubheadingDraft}
+                  onChange={(event) => setHeroSubheadingDraft(event.target.value)}
+                  maxLength={220}
+                  required
+                />
+              </label>
+              {heroTextError ? <p className="hero-admin-error">{heroTextError}</p> : null}
+              <div className="page-header-editor-actions">
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => setHeroTextEditorOpen(false)}
+                  disabled={heroTextSaveBusy}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={heroTextSaveBusy}>
+                  {heroTextSaveBusy ? "Saving..." : "Save Hero Text"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
 
       <section className="hero-block" data-reveal>
         <div className="hero-noise" aria-hidden />
