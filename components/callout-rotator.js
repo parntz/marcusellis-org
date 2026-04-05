@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -508,10 +507,12 @@ export function CalloutRotator({
               data-active={overlayActive ? "true" : "false"}
             >
               <span className="callout-admin-overlay__wash" aria-hidden="true">
-                <span
-                  key={`${glassVariant}-${glassCycle}`}
-                  className={`callout-admin-overlay__glass callout-admin-overlay__glass--${glassVariant}`}
-                />
+                {overlayActive ? (
+                  <span
+                    key={`${glassVariant}-${glassCycle}`}
+                    className={`callout-admin-overlay__glass callout-admin-overlay__glass--${glassVariant}`}
+                  />
+                ) : null}
               </span>
             </button>
           ) : null}
