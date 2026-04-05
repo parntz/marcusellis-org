@@ -4,6 +4,15 @@ const nextConfig = {
     unoptimized: true,
   },
   trailingSlash: true,
+  async redirects() {
+    return [
+      {
+        source: "/user/login",
+        destination: "/sign-in",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

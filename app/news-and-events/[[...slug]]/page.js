@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
+import { NewsEventsCreateButton } from "../../../components/news-events-create-button";
 import { NewsEventsFeed } from "../../../components/news-events-feed";
 import { PageHeaderWithCallout } from "../../../components/page-header-with-callout";
-import { RecordingSidebarEditor } from "../../../components/recording-sidebar-editor";
 import { RecordingSidebarPanel } from "../../../components/recording-sidebar-panel";
 import { authOptions } from "../../../lib/auth-options";
 import { listNewsEventsItems } from "../../../lib/news-events-items";
@@ -78,13 +78,14 @@ export default async function NewsAndEventsPage({ params }) {
         <PageHeaderWithCallout
           title="News & Events"
           description={INTERNAL_PAGE_DESCRIPTION.NEWS_EVENTS}
+          titleAction={isAdmin ? <NewsEventsCreateButton /> : null}
         />
 
         <div className="recording-page recording-sidebar-layout news-events-sidebar-layout">
           <div className="recording-body-grid recording-body-grid--scales recording-body-grid--news">
             <div className="recording-news-main">
-              {newsEventItems.length ? (
-                <NewsEventsFeed items={newsEventItems} />
+              {newsEventItems.length || isAdmin ? (
+                <NewsEventsFeed items={newsEventItems} isAdmin={isAdmin} />
               ) : (
                 <section className="page-content recording-content">
                   <p className="news-events-empty">No news or events are available yet.</p>
@@ -92,10 +93,11 @@ export default async function NewsAndEventsPage({ params }) {
               )}
             </div>
             <aside className="recording-sidebar">
-              <RecordingSidebarPanel boxes={newsSidebarBoxes} />
-              {isAdmin ? (
-                <RecordingSidebarEditor pageRoute="/news-and-events" initialBoxes={newsSidebarBoxes} />
-              ) : null}
+              <RecordingSidebarPanel
+                boxes={newsSidebarBoxes}
+                pageRoute="/news-and-events"
+                isAdmin={isAdmin}
+              />
             </aside>
           </div>
         </div>
@@ -142,10 +144,11 @@ export default async function NewsAndEventsPage({ params }) {
             </section>
           </div>
           <aside className="recording-sidebar">
-            <RecordingSidebarPanel boxes={newsSidebarBoxes} />
-            {isAdmin ? (
-              <RecordingSidebarEditor pageRoute="/news-and-events" initialBoxes={newsSidebarBoxes} />
-            ) : null}
+            <RecordingSidebarPanel
+              boxes={newsSidebarBoxes}
+              pageRoute="/news-and-events"
+              isAdmin={isAdmin}
+            />
           </aside>
         </div>
       </div>

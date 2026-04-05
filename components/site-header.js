@@ -24,7 +24,7 @@ function isAppRouteHref(href = "") {
     return false;
   }
 
-  if (href.startsWith("/_downloaded/")) {
+  if (href.startsWith("/")) {
     return false;
   }
 
@@ -37,7 +37,7 @@ function isAppRouteHref(href = "") {
 }
 
 /**
- * Tennessee Credit Union member PDF — match nav (`/_downloaded/...`), mirrored body
+ * Tennessee Credit Union member PDF — match nav (`/...`), mirrored body
  * (`/sites/default/files/...` or absolute nashvillemusicians.org URLs after build rewrite).
  */
 function isTtcuPdfLinkHref(href = "") {

@@ -3,7 +3,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { GigsList } from "./gigs-list";
 import { ModalLightbox } from "./modal-lightbox";
 
 const GOOGLE_MAPS_API_KEY = (() => {
@@ -17,6 +18,7 @@ function emptyGigForm() {
   return {
     startAt: "",
     endAt: "",
+    bandName: "",
     locationName: "",
     locationAddress: "",
     googlePlaceId: "",
@@ -113,6 +115,7 @@ function formFromGig(gig) {
   return {
     startAt: gig.startAt || "",
     endAt: gig.endAt || "",
+    bandName: gig.bandName || "",
     locationName: gig.locationName || "",
     locationAddress: gig.locationAddress || "",
     googlePlaceId: gig.googlePlaceId || "",
@@ -135,6 +138,10 @@ export function GigsManager({ initialGigs = [] }) {
     GOOGLE_MAPS_API_KEY ? "Loading Google Places…" : "Google Places API key not configured. Enter venue details manually."
   );
   const placeHostRef = useRef(null);
+
+  useEffect(() => {
+    setGigs(sortGigs(initialGigs));
+  }, [initialGigs]);
 
   useEffect(() => {
     const host = placeHostRef.current;
@@ -230,21 +237,27 @@ export function GigsManager({ initialGigs = [] }) {
     };
   }, [editorOpen]);
 
-  function resetForm() {
+  const resetForm = useCallback(() => {
     setEditingId(0);
     setForm(emptyGigForm());
     setError("");
-  }
+  }, []);
 
   function closeEditor() {
     setEditorOpen(false);
     resetForm();
   }
 
-  function beginCreate() {
+  const beginCreate = useCallback(() => {
     resetForm();
     setEditorOpen(true);
-  }
+  }, [resetForm]);
+
+  useEffect(() => {
+    const handleCreate = () => beginCreate();
+    window.addEventListener("gigs:create", handleCreate);
+    return () => window.removeEventListener("gigs:create", handleCreate);
+  }, [beginCreate]);
 
   function beginEdit(gig) {
     setEditingId(gig.id);
@@ -354,42 +367,7 @@ export function GigsManager({ initialGigs = [] }) {
 
   return (
     <section className="gigs-admin">
-      <div className="gigs-admin__header">
-        <div>
-          <p className="gigs-admin__eyebrow">Admin</p>
-          <h2>Manage Upcoming Gigs</h2>
-        </div>
-        <button type="button" className="btn btn-primary" onClick={beginCreate}>
-          Add Gig
-        </button>
-      </div>
-
-      <div className="gigs-admin-list">
-        <h3>Saved Gigs</h3>
-        {gigs.length ? (
-          <ul className="gigs-admin-list__items">
-            {gigs.map((gig) => (
-              <li key={gig.id} className="gigs-admin-list__item">
-                <div>
-                  <strong>{gig.locationName}</strong>
-                  <p>{gig.dateLabel}</p>
-                  <p>{(gig.artists || []).join(", ")}</p>
-                </div>
-                <div className="gigs-admin-list__actions">
-                  <button type="button" className="btn btn-ghost" onClick={() => beginEdit(gig)}>
-                    Edit
-                  </button>
-                  <button type="button" className="btn btn-ghost" onClick={() => handleDelete(gig.id)}>
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="gigs-editor__hint">No gigs saved yet.</p>
-        )}
-      </div>
+      <GigsList gigs={gigs} isAdmin onEditGig={beginEdit} />
 
       <ModalLightbox open={editorOpen} onClose={closeEditor} closeLabel="Close gig editor">
         <div className="gigs-editor-modal">
@@ -423,6 +401,19 @@ export function GigsManager({ initialGigs = [] }) {
                 type="datetime-local"
                 value={form.endAt}
                 onChange={(event) => setForm((current) => ({ ...current, endAt: event.target.value }))}
+              />
+            </div>
+
+            <div className="gigs-editor__group">
+              <label htmlFor="gig-band-name">Band Name</label>
+              <input
+                id="gig-band-name"
+                type="text"
+                value={form.bandName}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, bandName: event.target.value }))
+                }
+                placeholder="Artist, act, or band name"
               />
             </div>
 
@@ -502,6 +493,16 @@ export function GigsManager({ initialGigs = [] }) {
             ) : null}
 
             <div className="gigs-editor__actions">
+              {editingId ? (
+                <button
+                  type="button"
+                  className="btn btn-ghost gigs-editor__delete"
+                  onClick={() => handleDelete(editingId)}
+                  disabled={saveBusy || uploadBusy}
+                >
+                  Delete Gig
+                </button>
+              ) : null}
               <button type="button" className="btn btn-ghost" onClick={closeEditor} disabled={saveBusy || uploadBusy}>
                 Cancel
               </button>

@@ -35,6 +35,15 @@ const ddl = `
   CREATE INDEX IF NOT EXISTS idx_news_events_items_source_order
     ON news_events_items(source_route, display_order ASC);
 
+  CREATE TABLE IF NOT EXISTS news_event_pages (
+    route TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    summary TEXT NOT NULL DEFAULT '',
+    meta_description TEXT NOT NULL DEFAULT '',
+    body_html TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS auth_users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
@@ -122,6 +131,7 @@ const ddl = `
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     start_at TEXT NOT NULL,
     end_at TEXT NOT NULL DEFAULT '',
+    band_name TEXT NOT NULL DEFAULT '',
     location_name TEXT NOT NULL,
     location_address TEXT NOT NULL DEFAULT '',
     google_place_id TEXT NOT NULL DEFAULT '',
@@ -134,9 +144,28 @@ const ddl = `
 
   CREATE INDEX IF NOT EXISTS idx_gigs_start_at
     ON gigs(start_at ASC);
+
+  CREATE TABLE IF NOT EXISTS member_site_links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    subtitle TEXT NOT NULL DEFAULT '',
+    href TEXT NOT NULL,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_member_site_links_display_order
+    ON member_site_links(display_order ASC, id ASC);
 `;
 
 await client.executeMultiple(ddl);
+
+const gigColumns = await client.execute("PRAGMA table_info(gigs)");
+const gigColumnNames = new Set(gigColumns.rows.map((row) => String(row.name || "").toLowerCase()));
+if (!gigColumnNames.has("band_name")) {
+  await client.execute("ALTER TABLE gigs ADD COLUMN band_name TEXT NOT NULL DEFAULT ''");
+}
 
 const defaultHeroPayload = JSON.stringify({
   images: DEFAULT_HERO_IMAGES,

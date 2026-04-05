@@ -1,15 +1,20 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getServerSession } from "next-auth";
 import { AssetGallery } from "./asset-gallery";
 import { HomepageExperience } from "./homepage-experience";
+import { FindArtistEnhancer } from "./find-artist-enhancer";
+import { MemberSiteLinksCreateButton } from "./member-site-links-create-button";
+import { MemberSiteLinksDirectory } from "./member-site-links-directory";
 import { NewsEventsFeed } from "./news-events-feed";
 import { PageHeaderWithCallout } from "./page-header-with-callout";
+import { ProfilePageEnhancer } from "./profile-page-enhancer";
 import { computeMirrorPageDescription } from "../lib/internal-page-description.js";
-import { RecordingSidebarEditor } from "./recording-sidebar-editor";
 import { RecordingSidebarPanel } from "./recording-sidebar-panel";
 import { RecordingVideo } from "./recording-video";
 import { ScalesMasterDetail } from "./scales-master-detail";
 import { authOptions } from "../lib/auth-options";
+import { listMemberSiteLinks } from "../lib/member-site-links";
 import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
 import { pageMap, pages, primaryNav, siteMeta, siteStats, utilityNav } from "../lib/site-data";
 import { listNewsEventsItems } from "../lib/news-events-items";
@@ -43,6 +48,7 @@ function AssetIndex({ page }) {
 
 function cleanDrupalHtml(html) {
   let cleaned = html;
+  cleaned = cleaned.replace(/href=(["'])\/user\/login\/?\1/gi, 'href="/sign-in"');
   cleaned = cleaned.replace(/<ul[^>]*>[\s\S]*?<\/ul>\s*/i, (match) => {
     const navPatterns = /href="\/(?:recording|scales-forms|new-use|signatory|live-music|gigs|find-an-artist|live-scales|afm-entertainment|form-ls1|member-services|member-benefits|free-rehearsal|benefits-union|member-site|media|what-sound|photo-and-video|nashville-musician-magazine|directory|members-only)/i;
     if (navPatterns.test(match)) return "";
@@ -56,6 +62,11 @@ function cleanDrupalHtml(html) {
   cleaned = cleaned.replace(/<h3>\s*(?:&nbsp;|\s)*<\/h3>/gi, "");
   cleaned = cleaned.replace(/<h2>\s*(?:&nbsp;|\s)*<\/h2>/gi, "");
   cleaned = cleaned.replace(/<a><\/a>/g, "");
+  cleaned = cleaned.replace(
+    /<(p|div|li)[^>]*>\s*Source:\s*(?:<a[^>]*>)?https?:\/\/[^\s<]+(?:<\/a>)?\s*<\/\1>/gi,
+    ""
+  );
+  cleaned = cleaned.replace(/(?:^|[\r\n])\s*Source:\s*https?:\/\/\S+\s*(?=[\r\n]|$)/gi, "");
   cleaned = cleaned.replace(/<div[^>]*>Media Folder:[\s\S]*?<\/div>\s*<\/div>/gi, "");
   cleaned = cleaned.replace(
     /<label[^>]*for="edit-url"[^>]*>[\s\S]*?<input[^>]*name="url"[^>]*>[\s\S]*?<\/div>/gi,
@@ -63,6 +74,45 @@ function cleanDrupalHtml(html) {
   );
   cleaned = cleaned.replace(/(\s*\n){3,}/g, "\n");
   return cleaned;
+}
+
+function cleanText(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function decodeHtmlEntities(input = "") {
+  return String(input)
+    .replace(/&#(\d+);/g, (_m, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_m, code) => String.fromCharCode(Number.parseInt(code, 16)))
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&rsquo;/gi, "'")
+    .replace(/&lsquo;/gi, "'")
+    .replace(/&rdquo;/gi, '"')
+    .replace(/&ldquo;/gi, '"')
+    .replace(/&ndash;/gi, "-")
+    .replace(/&mdash;/gi, "-")
+    .replace(/&trade;/gi, "TM")
+    .replace(/&reg;/gi, "(R)")
+    .replace(/&copy;/gi, "(C)")
+    .replace(/&eacute;/gi, "e")
+    .replace(/&uuml;/gi, "u")
+    .replace(/&ouml;/gi, "o")
+    .replace(/&aacute;/gi, "a")
+    .replace(/&nbsp/gi, " ");
+}
+
+function stripHtml(input = "") {
+  return cleanText(
+    decodeHtmlEntities(
+      String(input)
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/p>/gi, "\n\n")
+        .replace(/<[^>]+>/g, " ")
+    )
+  );
 }
 
 /** Curated main copy + sidebar CTAs for /live-music (main uses newspaper columns like signatory). */
@@ -208,6 +258,239 @@ function normalizeSignatoryBodyHtml(html) {
   out = out.replace(/\salign="[^"]*"/gi, "");
 
   return out;
+}
+
+function normalizeTitleKey(value) {
+  return cleanText(stripHtml(value)).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function describeLiveScalesResource(title) {
+  const key = normalizeTitleKey(title);
+  if (key.includes("touring pension agreement")) {
+    return "AFM-EP pension paperwork for touring live engagements.";
+  }
+  if (key.includes("road scale")) {
+    return "Touring wage minimums, travel terms, and per diem guidance.";
+  }
+  if (key.includes("afm t2")) {
+    return "Use this contract when traveling outside the Nashville area.";
+  }
+  if (key.includes("afm l1")) {
+    return "Standard contract for local concerts, weddings, parties, and special events.";
+  }
+  if (key.includes("ls 1") || key.includes("ls1")) {
+    return "Single-engagement pension contribution packet with instructions.";
+  }
+  if (key.includes("wage scales")) {
+    return "Current Local 257 live performance wage minimums.";
+  }
+  return "Download the current PDF resource.";
+}
+
+function extractLiveScalesContent(bodyHtml) {
+  const cleaned = cleanDrupalHtml(bodyHtml || "");
+  const leadHtml = cleaned.match(/<p\b[^>]*>[\s\S]*?<\/p>/i)?.[0] || "";
+  const noteHtml = cleaned.match(/<div>\s*<strong>\s*Note:[\s\S]*?<\/strong>\s*<\/div>/i)?.[0] || "";
+
+  const overviewItems = Array.from(
+    cleaned.matchAll(/<div>\s*<(?:strong|b)>([\s\S]*?)<\/(?:strong|b)>([\s\S]*?)<\/div>/gi),
+    (match) => ({
+      title: cleanText(stripHtml(match[1])).replace(/:$/, ""),
+      description: cleanText(stripHtml(match[2])),
+    })
+  ).filter((item) => item.title && item.description && !/^note\b/i.test(item.title));
+
+  const resources = [];
+  const seenHrefs = new Set();
+  for (const match of cleaned.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const href = cleanText(match[1]);
+    if (!/\/sites\/default\/files\//i.test(href) || seenHrefs.has(href)) {
+      continue;
+    }
+    seenHrefs.add(href);
+    const title = cleanText(stripHtml(match[2]));
+    if (!title) continue;
+    resources.push({
+      title,
+      href,
+      summary: describeLiveScalesResource(title),
+    });
+  }
+
+  return {
+    leadHtml,
+    noteHtml,
+    overviewItems,
+    resources,
+  };
+}
+
+function extractRehearsalHallContent(bodyHtml) {
+  const contentHtml = extractContentEncodedHtml(bodyHtml || "");
+  const paragraphs = Array.from(contentHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi), (match) =>
+    cleanText(stripHtml(match[1]))
+  ).filter(Boolean);
+
+  return {
+    lead:
+      paragraphs[0] ||
+      "Use of the Cooper Rehearsal Hall at Local 257 is free to all current members.",
+  };
+}
+
+const BENEFITS_INSURANCE_ITEMS = [
+  "Instrument and equipment coverage",
+  "Musician liability insurance",
+  "Accidental death and dismemberment",
+  "Cancer care protection",
+  "Catastrophic major medical",
+  "Disability income plan",
+  "Group term life",
+  "Hospital indemnity",
+  "Major medical plans",
+  "Short-term medical",
+];
+
+const BENEFITS_RESOURCE_LINKS = [
+  {
+    title: "Sound Healthcare & Financial",
+    href: "http://soundhealthcare.org",
+    external: true,
+    summary: "Health and financial resources tailored to working musicians.",
+  },
+  {
+    title: "The Tennessee Credit Union",
+    href: "http://www.nashvillemusicians.org/sites/default/files/Media%20Root/300210%20TTCU%20Look%20Services_MAIN.pdf",
+    external: true,
+    summary: "Member-facing credit union information and services.",
+  },
+  {
+    title: "AFM Pension Info",
+    href: "http://afm-epf.org",
+    external: true,
+    summary: "Plan details, applications, and pension fund resources.",
+  },
+  {
+    title: "HUB Instrument Insurance",
+    href: "https://nashvillemusicians.org/sites/default/files/Media%20Root/HUBInstrumentInsurance2024.pdf",
+    external: true,
+    summary: "Coverage details for instruments and music-related equipment.",
+  },
+  {
+    title: "Union Plus Program",
+    href: "/union-plus-program",
+    external: false,
+    summary: "Discounts, legal services, travel savings, and everyday member perks.",
+  },
+  {
+    title: "Free Rehearsal Hall",
+    href: "/free-rehearsal-hall",
+    external: false,
+    summary: "Book the Cooper Rehearsal Hall as a current Local 257 member.",
+  },
+  {
+    title: "Member Site Links",
+    href: "/member-site-links",
+    external: false,
+    summary: "Jump to member tools, profiles, and practical online resources.",
+  },
+];
+
+function extractBenefitsHubContent(bodyHtml) {
+  const contentHtml = extractContentEncodedHtml(bodyHtml || "");
+  const paragraphs = Array.from(contentHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi), (match) =>
+    cleanText(stripHtml(match[1]))
+  ).filter(Boolean);
+
+  return {
+    lead:
+      paragraphs[0] ||
+      "Local 257 offers members meaningful services, insurance access, pension resources, discounts, and practical support for working musicians.",
+  };
+}
+
+const MEMBER_SITE_LINK_URL_OVERRIDES = new Map([
+  ["http://www.billwencepromotions.com/", "https://billwencepromos.com/"],
+  ["http://www.brentrowan.com/", "https://brentrowan.com/"],
+  ["http://www.buddygreene.com/", "https://www.buddygreene.com/"],
+  ["http://www.charliemccoy.com/", "https://charliemccoy.com/"],
+  ["http://www.nashvillenumbersystem.com/", "https://nashvillenumbersystem.com/download/"],
+  ["http://www.aliasmusic.org/", "https://www.aliasmusic.org/"],
+  ["http://www.colinlinden.com/", "https://colinlinden.bandzoogle.com/"],
+  ["http://www.davepomeroy.com/", "https://davepomeroy.com/"],
+  ["http://www.deanslocum.com/", "https://www.deanslocum.com/"],
+  ["http://www.gcmusic1.com/", "https://www.gcmusic1.com/"],
+  ["http://www.jackpearson.com/", "https://jackpearson.com/"],
+  ["http://www.jaypatten.com/", "https://jaypatten.com/"],
+  ["http://www.jeffsteinberg.com/", "https://www.jeffsteinberg.com/"],
+  ["http://www.jerrydouglas.com/", "https://jerrydouglas.com/"],
+  ["http://www.jellyrolljohnson.com/", "https://www.jellyrolljohnson.com/"],
+  ["http://www.beairdmusicgroup.com/", "https://www.beairdmusicgroup.com/"],
+  ["http://www.larry-franklin.com/", "https://www.larry-franklin.com/"],
+  ["http://www.markoconnor.com/", "https://www.markoconnor.com/"],
+  ["http://www.digitalaudiopost.com/", "https://www.digitalaudiopost.com/"],
+  ["http://www.digitalmusicworkshop.com/", "https://www.digitalmusicworkshop.com/"],
+  ["http://www.paulfranklinmethod.com", "https://www.paulfranklinmethod.com/"],
+  ["http://www.stevewariner.com/", "https://www.stevewariner.com/"],
+  ["http://www.terrytownson.com/", "https://terrytownson.com/"],
+  ["https://www.tigerfitzhugh.com/", "https://www.tigerfitzhugh.com/"],
+  ["http://www.vincegill.com/", "https://www.vincegill.com/"],
+]);
+
+const MEMBER_SITE_LINK_REMOVALS = new Set([
+  "http://www.curtisjay.com/",
+  "http://www.leeplaysbass.com/",
+  "http://www.ronoates.com/",
+]);
+
+function splitMemberSiteLabel(label) {
+  const clean = cleanText(label);
+  if (!clean) return { title: "", subtitle: "" };
+  const pieces = clean.split(/\s+-\s+/);
+  if (pieces.length > 1) {
+    return { title: pieces[0], subtitle: pieces.slice(1).join(" - ") };
+  }
+  return { title: clean, subtitle: "" };
+}
+
+function extractMemberSiteLinksContent(bodyHtml) {
+  const contentHtml = extractContentEncodedHtml(bodyHtml || "");
+  const introMatch = contentHtml.match(/<p\b[^>]*>[\s\S]*?<\/p>/i);
+  const rawLinks = Array.from(
+    contentHtml.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi),
+    (match) => {
+      const href = cleanText(match[1]);
+      const label = cleanText(stripHtml(match[2]));
+      const canonicalHref = MEMBER_SITE_LINK_URL_OVERRIDES.get(href) || href;
+      const { title, subtitle } = splitMemberSiteLabel(label);
+      let domain = "";
+      try {
+        domain = new URL(canonicalHref).hostname.replace(/^www\./i, "");
+      } catch {}
+      return {
+        href: canonicalHref,
+        originalHref: href,
+        label,
+        title,
+        subtitle,
+        domain,
+      };
+    }
+  )
+    .filter((item) => /^https?:\/\//i.test(item.href))
+    .filter((item) => !MEMBER_SITE_LINK_REMOVALS.has(item.originalHref))
+    .filter((item) => item.title)
+    .filter((item, index, arr) => arr.findIndex((entry) => entry.title === item.title) === index)
+    .sort((a, b) => a.title.localeCompare(b.title));
+
+  return {
+    introHtml: introMatch?.[0] || "",
+    links: rawLinks,
+    removedCount: Array.from(
+      contentHtml.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi),
+      (match) => cleanText(match[1])
+    ).filter((href) => MEMBER_SITE_LINK_REMOVALS.has(href)).length,
+  };
 }
 
 /** Full-width intro + “What does Signatory mean?” heading; following copy flows in newspaper columns. */
@@ -538,6 +821,11 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
   const newUseReusePage = page.kind === "mirror-page" && page.route === "/new-use-reuse";
   const signatoryPage = page.kind === "mirror-page" && page.route === "/signatory-information";
   const liveMusicPage = page.kind === "mirror-page" && page.route === "/live-music";
+  const liveScalesPage = page.kind === "mirror-page" && page.route === "/live-scales-contracts-pension";
+  const rehearsalHallPage = page.kind === "mirror-page" && page.route === "/free-rehearsal-hall";
+  const benefitsHubPage = page.kind === "mirror-page" && page.route === "/benefits-union-members";
+  const memberSiteLinksPage = page.kind === "mirror-page" && page.route === "/member-site-links";
+  const findArtistPage = page.kind === "mirror-page" && page.route === "/find-an-artist-or-band";
   const recordingNavChildren =
     primaryNav.find((item) => item.href === "/recording")?.children || [];
   const hideHeaderSummary =
@@ -557,9 +845,10 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
     if (r === "/free-rehearsal-hall") return "pg-venue";
     if (r === "/member-site-links") return "pg-links";
     if (r === "/gigs") return "pg-gigs";
+    if (r === "/find-an-artist-or-band") return "pg-find-artist";
     if (r === "/live-scales-contracts-pension") return "pg-scales-live";
     if (r === "/form-ls1-qa") return "pg-faq";
-    if (r === "/afm-entertainment") return "pg-hub";
+    if (r === "/afm-entertainment") return "pg-hub pg-afm-entertainment";
     if (r === "/what-sound-exchange") return "pg-video";
     if (r === "/nashville-musician-magazine") return "pg-magazine";
     if (r === "/members-only-directory") return "pg-directory";
@@ -568,8 +857,15 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
     if (r === "/scales-forms-agreements") return "pg-scales-forms";
     if (r.startsWith("/event/")) return "pg-event";
     if (r.startsWith("/musical-styles/") || r.startsWith("/user/")) return "pg-profile";
+    if (
+      /Contact Information:\s*<\/h2>/i.test(page.bodyHtml || "") &&
+      /Personnel\s*\/\s*Instrumentation:\s*<\/h2>/i.test(page.bodyHtml || "")
+    ) {
+      return "pg-profile";
+    }
     return "";
   })();
+  const profilePage = pageTypeClass.includes("pg-profile");
   const newsEventItems = newsEventsRoute
     ? await listNewsEventsItems(1000, "/news-and-events")
     : [];
@@ -577,6 +873,9 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
   const newsSidebarBoxes = newsEventsRoute ? await resolveSidebarBoxes("/news-and-events") : null;
   const signatorySidebarBoxes = signatoryPage
     ? await resolveSidebarBoxes("/signatory-information", "/news-and-events")
+    : null;
+  const findArtistSidebarBoxes = findArtistPage
+    ? await resolveSidebarBoxes("/find-an-artist-or-band", "/recording")
     : null;
   const recordingContent = isMainRecordingPage
     ? extractRecordingContent(page.bodyHtml || "")
@@ -594,9 +893,25 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
     return m ? m[0].replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").trim() : "";
   })();
   const liveMusicParts = liveMusicPage ? extractLiveMusicHubParts() : null;
+  const liveScalesContent = liveScalesPage ? extractLiveScalesContent(page.bodyHtml || "") : null;
+  const rehearsalHallContent = rehearsalHallPage ? extractRehearsalHallContent(page.bodyHtml || "") : null;
+  const benefitsHubContent = benefitsHubPage ? extractBenefitsHubContent(page.bodyHtml || "") : null;
+  const memberSiteLinksContent = memberSiteLinksPage ? extractMemberSiteLinksContent(page.bodyHtml || "") : null;
+  const persistedMemberSiteLinks = memberSiteLinksPage ? await listMemberSiteLinks() : null;
+  const memberSiteLinksInitialLinks = memberSiteLinksPage
+    ? persistedMemberSiteLinks || []
+    : null;
 
   const bodyHtml =
-    isMainRecordingPage || scalesFormsPage || newUseReusePage || signatoryPage || liveMusicPage
+    isMainRecordingPage ||
+    scalesFormsPage ||
+    newUseReusePage ||
+    signatoryPage ||
+    liveMusicPage ||
+    liveScalesPage ||
+    rehearsalHallPage ||
+    benefitsHubPage ||
+    memberSiteLinksPage
       ? ""
       : getRouteBodyHtml(page.route, page.bodyHtml || "");
 
@@ -633,6 +948,7 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
               hideHeaderSummary,
               isMainRecordingPage,
             })}
+            titleAction={memberSiteLinksPage && isAdmin ? <MemberSiteLinksCreateButton /> : null}
           />
         )}
 
@@ -645,10 +961,7 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
                 ) : null}
               </div>
               <aside className="recording-sidebar">
-                <RecordingSidebarPanel boxes={recordingSidebarBoxes} />
-                {isAdmin ? (
-                  <RecordingSidebarEditor pageRoute="/recording" initialBoxes={recordingSidebarBoxes} />
-                ) : null}
+                <RecordingSidebarPanel boxes={recordingSidebarBoxes} pageRoute="/recording" isAdmin={isAdmin} />
               </aside>
               <section
                 className="page-content recording-content"
@@ -741,8 +1054,8 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
             <div className={`recording-page recording-sidebar-layout news-events-sidebar-layout ${pageTypeClass}`}>
               <div className="recording-body-grid recording-body-grid--scales recording-body-grid--news">
                 <div className="recording-news-main">
-                  {newsEventItems.length ? (
-                    <NewsEventsFeed items={newsEventItems} />
+                  {newsEventItems.length || isAdmin ? (
+                    <NewsEventsFeed items={newsEventItems} isAdmin={isAdmin} />
                   ) : (
                     <section
                       className="page-content recording-content"
@@ -751,13 +1064,11 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
                   )}
                 </div>
                 <aside className="recording-sidebar">
-                  <RecordingSidebarPanel boxes={newsSidebarBoxes} />
-                  {isAdmin ? (
-                    <RecordingSidebarEditor
-                      pageRoute="/news-and-events"
-                      initialBoxes={newsSidebarBoxes}
-                    />
-                  ) : null}
+                  <RecordingSidebarPanel
+                    boxes={newsSidebarBoxes}
+                    pageRoute="/news-and-events"
+                    isAdmin={isAdmin}
+                  />
                 </aside>
               </div>
             </div>
@@ -771,13 +1082,387 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
                   />
                 </section>
                 <aside className="recording-sidebar">
-                  <RecordingSidebarPanel boxes={signatorySidebarBoxes} />
-                  {isAdmin ? (
-                    <RecordingSidebarEditor
-                      pageRoute="/signatory-information"
-                      initialBoxes={signatorySidebarBoxes}
-                    />
-                  ) : null}
+                  <RecordingSidebarPanel
+                    boxes={signatorySidebarBoxes}
+                    pageRoute="/signatory-information"
+                    isAdmin={isAdmin}
+                  />
+                </aside>
+              </div>
+            </div>
+          ) : liveScalesPage ? (
+            <div className={`recording-page recording-sidebar-layout live-scales-sidebar-layout ${pageTypeClass}`}>
+              <div className="recording-body-grid recording-body-grid--scales">
+                <section className="page-content live-scales-content">
+                  <div className="live-scales-shell">
+                    {liveScalesContent?.leadHtml ? (
+                      <div
+                        className="live-scales-lead"
+                        dangerouslySetInnerHTML={{ __html: liveScalesContent.leadHtml }}
+                      />
+                    ) : null}
+
+                    {liveScalesContent?.noteHtml ? (
+                      <div
+                        className="live-scales-note"
+                        dangerouslySetInnerHTML={{ __html: liveScalesContent.noteHtml }}
+                      />
+                    ) : null}
+
+                    {liveScalesContent?.overviewItems?.length ? (
+                      <section className="live-scales-section">
+                        <div className="section-headline live-scales-section-headline">
+                          <p className="eyebrow">Live Department Guide</p>
+                          <h2>Which document do you need?</h2>
+                        </div>
+                        <div className="live-scales-overview-grid">
+                          {liveScalesContent.overviewItems.map((item) => (
+                            <article key={`${item.title}-${item.description}`} className="live-scales-overview-card">
+                              <h3>{item.title}</h3>
+                              <p>{item.description}</p>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                    ) : null}
+
+                    {liveScalesContent?.resources?.length ? (
+                      <section className="live-scales-section">
+                        <div className="section-headline live-scales-section-headline">
+                          <p className="eyebrow">Downloads</p>
+                          <h2>Forms and scale sheets</h2>
+                        </div>
+                        <div className="live-scales-resource-grid">
+                          {liveScalesContent.resources.map((resource) => (
+                            <a
+                              key={resource.href}
+                              className="live-scales-resource-card"
+                              href={resource.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <span className="live-scales-resource-kicker">PDF Download</span>
+                              <h3>{resource.title}</h3>
+                              <p>{resource.summary}</p>
+                              <span className="live-scales-resource-link">Open file</span>
+                            </a>
+                          ))}
+                        </div>
+                      </section>
+                    ) : null}
+                  </div>
+                </section>
+                <aside className="recording-sidebar live-scales-sidebar">
+                  <div className="recording-contact-box">
+                    <h3 className="recording-sidebar-heading">Live Department</h3>
+                    <a href="tel:+16152449514" className="recording-phone">
+                      615-244-9514
+                    </a>
+                    <p className="recording-contact-cta">Questions about live scales, contracts, or pension paperwork.</p>
+                    <div className="recording-staff">
+                      <div className="recording-staff-member">
+                        <a href="mailto:michael@nashvillemusicians.org">Michael Minton</a>
+                        <span>Live and Touring Department</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="recording-cta-box">
+                    <Link href="/form-ls1-qa" className="recording-cta-item">
+                      <strong>LS-1 Q&amp;A</strong>
+                      <span>Read the detailed guide to pension contribution questions.</span>
+                    </Link>
+                    <Link href="/gigs" className="recording-cta-item">
+                      <strong>Gig Calendar</strong>
+                      <span>See where Local 257 musicians are playing right now.</span>
+                    </Link>
+                    <Link href="/find-an-artist-or-band" className="recording-cta-item">
+                      <strong>Find an Artist or Band</strong>
+                      <span>Search member listings when you need players or a full group.</span>
+                    </Link>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          ) : rehearsalHallPage ? (
+            <div className={`recording-page recording-sidebar-layout rehearsal-hall-sidebar-layout ${pageTypeClass}`}>
+              <div className="recording-body-grid recording-body-grid--scales">
+                <section className="page-content rehearsal-hall-content">
+                  <div className="rehearsal-hall-shell">
+                    <section className="rehearsal-hall-hero">
+                      <div className="rehearsal-hall-hero-copy">
+                        <p className="eyebrow">Member Rehearsal Space</p>
+                        <h2>Cooper Rehearsal Hall</h2>
+                        <p>{rehearsalHallContent?.lead}</p>
+                      </div>
+                      <div className="rehearsal-hall-hero-media">
+                        <Image
+                          src="/sites/default/files/Media Root/IMG_6820.jpeg"
+                          alt="Dissonation rehearsing in Cooper Rehearsal Hall"
+                          fill
+                          className="rehearsal-hall-hero-image"
+                          sizes="(min-width: 860px) 40vw, 100vw"
+                        />
+                      </div>
+                    </section>
+
+                    <section className="rehearsal-hall-section">
+                      <div className="section-headline rehearsal-hall-section-headline">
+                        <p className="eyebrow">What You Get</p>
+                        <h2>Room features built for real rehearsals</h2>
+                      </div>
+                      <div className="rehearsal-hall-feature-grid">
+                        <article className="rehearsal-hall-feature-card">
+                          <h3>Member access</h3>
+                          <p>Free to all current Local 257 members.</p>
+                        </article>
+                        <article className="rehearsal-hall-feature-card">
+                          <h3>Long booking window</h3>
+                          <p>Available from 9 a.m. until 11 p.m. for working bands and projects.</p>
+                        </article>
+                        <article className="rehearsal-hall-feature-card">
+                          <h3>Stage and lighting</h3>
+                          <p>A real stage setup with lighting helps groups rehearse like the show matters.</p>
+                        </article>
+                        <article className="rehearsal-hall-feature-card">
+                          <h3>P.A. and treatment</h3>
+                          <p>Includes a P.A. with monitors and acoustical treatment in the room.</p>
+                        </article>
+                      </div>
+                    </section>
+
+                  </div>
+                </section>
+                <aside className="recording-sidebar rehearsal-hall-sidebar">
+                  <div className="recording-contact-box">
+                    <h3 className="recording-sidebar-heading">Book The Hall</h3>
+                    <a href="tel:+16152449514" className="recording-phone">
+                      615-244-9514
+                    </a>
+                    <p className="recording-contact-cta">Call and ask for Michael or Alona to reserve the room.</p>
+                    <div className="recording-staff">
+                      <div className="recording-staff-member">
+                        <span>Hours</span>
+                        <span>9 a.m. to 11 p.m.</span>
+                      </div>
+                      <div className="recording-staff-member">
+                        <span>Eligibility</span>
+                        <span>Current Local 257 members</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="recording-callout recording-rate-callout rehearsal-hall-note">
+                    <h3 className="recording-sidebar-heading">Good For</h3>
+                    <p>Band rehearsals, stage prep, section run-throughs, and getting a room balance before the gig.</p>
+                  </div>
+
+                  <div className="recording-cta-box">
+                    <Link href="/member-services" className="recording-cta-item">
+                      <strong>Member Services</strong>
+                      <span>See other practical services available through Local 257.</span>
+                    </Link>
+                    <Link href="/gigs" className="recording-cta-item">
+                      <strong>Upcoming Gigs</strong>
+                      <span>Check the calendar and see where members are working.</span>
+                    </Link>
+                    <Link href="/live-scales-contracts-pension" className="recording-cta-item">
+                      <strong>Live Scales and Contracts</strong>
+                      <span>Handle the paperwork after the rehearsal turns into a show.</span>
+                    </Link>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          ) : benefitsHubPage ? (
+            <div className={`recording-page recording-sidebar-layout benefits-sidebar-layout ${pageTypeClass}`}>
+              <div className="recording-body-grid recording-body-grid--scales">
+                <section className="page-content benefits-content">
+                  <div className="benefits-shell">
+                    <section className="benefits-hero">
+                      <div className="benefits-hero-copy">
+                        <p className="eyebrow">Member Benefits</p>
+                        <h2>Benefits that actually help a working musician</h2>
+                        <p>{benefitsHubContent?.lead}</p>
+                      </div>
+                      <div className="benefits-hero-mark">
+                        <Image
+                          src="/images/afm-epf-logo.png"
+                          alt="AFM-EP Fund logo"
+                          width={420}
+                          height={260}
+                          className="benefits-hero-logo"
+                        />
+                      </div>
+                    </section>
+
+                    <section className="benefits-section">
+                      <div className="benefits-pillar-grid">
+                        <article className="benefits-pillar-card">
+                          <p className="benefits-pillar-kicker">Retirement</p>
+                          <h3>Pension and long-term security</h3>
+                          <p>
+                            The AFM-EP Fund is one of the largest pension funds in the entertainment industry and
+                            gives qualifying musicians a real path toward retirement benefits built from covered work.
+                          </p>
+                        </article>
+                        <article className="benefits-pillar-card">
+                          <p className="benefits-pillar-kicker">Protection</p>
+                          <h3>Insurance built around real gear and real risk</h3>
+                          <p>
+                            Local 257 members can access instrument coverage, liability protection, and additional
+                            health and life-related plans designed to match the realities of music work.
+                          </p>
+                          <div className="benefits-chip-list" role="list" aria-label="Insurance options">
+                            {BENEFITS_INSURANCE_ITEMS.map((item) => (
+                              <span key={item} className="benefits-chip">
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </article>
+                        <article className="benefits-pillar-card">
+                          <p className="benefits-pillar-kicker">Savings</p>
+                          <h3>Discounts and practical day-to-day support</h3>
+                          <p>
+                            Union Plus, credit union access, healthcare resources, and member tools give the union
+                            relationship value well beyond the bandstand.
+                          </p>
+                        </article>
+                      </div>
+                    </section>
+
+                    <section className="benefits-section">
+                      <div className="section-headline benefits-section-headline">
+                        <p className="eyebrow">Quick Access</p>
+                        <h2>Open the programs and documents people actually use</h2>
+                      </div>
+                      <div className="benefits-resource-grid">
+                        {BENEFITS_RESOURCE_LINKS.map((item) =>
+                          item.external ? (
+                            <a
+                              key={item.href}
+                              href={item.href}
+                              className="benefits-resource-card"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <span className="benefits-resource-kicker">Benefit Link</span>
+                              <h3>{item.title}</h3>
+                              <p>{item.summary}</p>
+                              <span className="benefits-resource-link">Open resource</span>
+                            </a>
+                          ) : (
+                            <Link key={item.href} href={item.href} className="benefits-resource-card">
+                              <span className="benefits-resource-kicker">Benefit Link</span>
+                              <h3>{item.title}</h3>
+                              <p>{item.summary}</p>
+                              <span className="benefits-resource-link">Open resource</span>
+                            </Link>
+                          )
+                        )}
+                      </div>
+                    </section>
+                  </div>
+                </section>
+                <aside className="recording-sidebar benefits-sidebar">
+                  <div className="recording-contact-box">
+                    <h3 className="recording-sidebar-heading">Need Help?</h3>
+                    <a href="tel:+16152449514" className="recording-phone">
+                      615-244-9514
+                    </a>
+                    <p className="recording-contact-cta">Call the Local 257 office for benefit questions, paperwork help, and program guidance.</p>
+                    <div className="recording-staff">
+                      <div className="recording-staff-member">
+                        <span>Member support</span>
+                        <span>Benefits, resources, and office assistance</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="recording-callout recording-rate-callout benefits-sidebar-note">
+                    <h3 className="recording-sidebar-heading">Worth Using</h3>
+                    <p>These benefits are most valuable when members actually use them, not just know they exist.</p>
+                  </div>
+
+                  <div className="recording-cta-box">
+                    <Link href="/free-rehearsal-hall" className="recording-cta-item">
+                      <strong>Book The Rehearsal Hall</strong>
+                      <span>Reserve the Cooper Rehearsal Hall as a current member.</span>
+                    </Link>
+                    <Link href="/member-site-links" className="recording-cta-item">
+                      <strong>Member Site Links</strong>
+                      <span>Jump to practical resources and member-facing tools.</span>
+                    </Link>
+                    <Link href="/union-plus-program" className="recording-cta-item">
+                      <strong>Union Plus Program</strong>
+                      <span>See additional discounts, savings, and member offers.</span>
+                    </Link>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          ) : memberSiteLinksPage ? (
+            <div className={`recording-page recording-sidebar-layout member-links-sidebar-layout ${pageTypeClass}`}>
+              <div className="recording-body-grid recording-body-grid--scales">
+                <section className="page-content member-links-content">
+                  <div className="member-links-shell">
+                    <section className="member-links-hero">
+                      <div className="member-links-hero-copy">
+                        <p className="eyebrow">Member Directory</p>
+                        <h2>Member sites that still point somewhere useful</h2>
+                        <p>
+                          Old local-site link pages tend to decay. This version keeps the public member-site list in a
+                          cleaner directory, points moved domains at their current homes when possible, and leaves out
+                          the clearly dead entries.
+                        </p>
+                      </div>
+                      <div className="member-links-stat-card">
+                        <span className="member-links-stat-value">{memberSiteLinksInitialLinks?.length || 0}</span>
+                        <span className="member-links-stat-label">Published Links</span>
+                        <p>This directory is now maintained on-site by admins.</p>
+                      </div>
+                    </section>
+
+                    <section className="member-links-section">
+                      {memberSiteLinksContent?.introHtml ? (
+                        <div
+                          className="member-links-intro"
+                          dangerouslySetInnerHTML={{ __html: memberSiteLinksContent.introHtml }}
+                        />
+                      ) : null}
+
+                      <MemberSiteLinksDirectory
+                        initialLinks={memberSiteLinksInitialLinks || []}
+                        isAdmin={isAdmin}
+                      />
+                    </section>
+                  </div>
+                </section>
+                <aside className="recording-sidebar member-links-sidebar">
+                  <div className="recording-callout recording-rate-callout member-links-sidebar-note">
+                    <h3 className="recording-sidebar-heading">Public Profiles</h3>
+                    <p>Need current profile listings instead of older standalone websites? Start with the public member pages.</p>
+                  </div>
+
+                  <div className="recording-cta-box">
+                    <Link href="/member-pages" className="recording-cta-item">
+                      <strong>Member Profile Pages</strong>
+                      <span>Browse the current public member profiles on this site.</span>
+                    </Link>
+                    <Link href="/find-an-artist-or-band" className="recording-cta-item">
+                      <strong>Find An Artist or Band</strong>
+                      <span>Search performers, bands, and instrumentation listings.</span>
+                    </Link>
+                    <Link href="/benefits-union-members" className="recording-cta-item">
+                      <strong>Member Benefits</strong>
+                      <span>Explore benefits, discounts, and other union support.</span>
+                    </Link>
+                    <Link href="/free-rehearsal-hall" className="recording-cta-item">
+                      <strong>Free Rehearsal Hall</strong>
+                      <span>Reserve the Cooper Rehearsal Hall as a current member.</span>
+                    </Link>
+                  </div>
                 </aside>
               </div>
             </div>
@@ -790,6 +1475,23 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
                 />
                 <aside className="recording-sidebar live-music-sidebar">
                   <div dangerouslySetInnerHTML={{ __html: liveMusicParts.sidebarHtml }} />
+                </aside>
+              </div>
+            </div>
+          ) : findArtistPage ? (
+            <div className={`recording-page recording-sidebar-layout find-artist-sidebar-layout ${pageTypeClass}`}>
+              <div className="recording-body-grid recording-body-grid--scales">
+                <section
+                  className="recording-content find-artist-main"
+                  dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                />
+                <FindArtistEnhancer />
+                <aside className="recording-sidebar">
+                  <RecordingSidebarPanel
+                    boxes={findArtistSidebarBoxes}
+                    pageRoute="/find-an-artist-or-band"
+                    isAdmin={isAdmin}
+                  />
                 </aside>
               </div>
             </div>
@@ -821,7 +1523,8 @@ export async function MirroredPage({ page, heroHomeConfig = null, searchParams =
                   dangerouslySetInnerHTML={{ __html: bodyHtml }}
                 />
               )}
-              {page.pageAssets?.length && !eventDetailRoute && !recordingRoute ? (
+              {profilePage ? <ProfilePageEnhancer /> : null}
+              {page.pageAssets?.length && !eventDetailRoute && !recordingRoute && !profilePage ? (
                 <aside className="page-sidebar">
                   <AssetGallery title="Unique Page Assets" assets={page.pageAssets} />
                 </aside>
