@@ -10,8 +10,9 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function parseNewsEventsItemId(context) {
-  const raw = context.params?.id;
+async function parseNewsEventsItemId(context) {
+  const params = await context.params;
+  const raw = params?.id;
   const id = Number(raw);
   return Number.isInteger(id) && id > 0 ? id : 0;
 }
@@ -22,7 +23,7 @@ export async function PUT(request, context) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const id = parseNewsEventsItemId(context);
+  const id = await parseNewsEventsItemId(context);
   if (!id) {
     return NextResponse.json({ error: "Invalid item id." }, { status: 400 });
   }
@@ -48,7 +49,7 @@ export async function DELETE(_request, context) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const id = parseNewsEventsItemId(context);
+  const id = await parseNewsEventsItemId(context);
   if (!id) {
     return NextResponse.json({ error: "Invalid item id." }, { status: 400 });
   }

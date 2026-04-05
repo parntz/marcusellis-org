@@ -17,6 +17,7 @@ import {
   DEFAULT_HERO_HOME,
   growSliderToDurationSeconds,
 } from "../lib/hero-home-defaults.mjs";
+import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 
 /** After moving one item from `from` to `to`, map an index that pointed at a slide before the move. */
 function mapIndexAfterReorder(oldIndex, from, to) {
@@ -408,12 +409,15 @@ export function HomepageExperience({
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          setSaveError(err.error || "Could not save hero settings.");
+          const msg = err.error || "Could not save hero settings.";
+          setSaveError(msg);
+          showDbToastError("Database update failed.");
           return;
         }
         lastSavedJsonRef.current = nextJson;
       } catch {
         setSaveError("Could not save hero settings.");
+        showDbToastError("Database update failed.");
       }
     }, 650);
 
@@ -469,13 +473,16 @@ export function HomepageExperience({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setSaveError(data.error || "Upload failed.");
+        showDbToastError("Database update failed.");
         return;
       }
       if (data.url) {
         setHeroImages((prev) => (prev.length >= 6 ? prev : [...prev, data.url]));
+        showDbToastSuccess();
       }
     } catch {
       setSaveError("Upload failed.");
+      showDbToastError("Database update failed.");
     } finally {
       setUploadBusy(false);
     }
@@ -535,14 +542,19 @@ export function HomepageExperience({
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          throw new Error(data.error || "Could not save hero text.");
+          const msg = data.error || "Could not save hero text.";
+          showDbToastError(data.error || "Database update failed.");
+          setHeroTextError(msg);
+          return;
         }
         setHeroTitleLine1(String(data.titleLine1 || ""));
         setHeroTitleLine2(String(data.titleLine2 || ""));
         setHeroSubheading(String(data.subheading || ""));
         setHeroTextEditorOpen(false);
+        showDbToastSuccess();
       } catch (err) {
         setHeroTextError(err instanceof Error ? err.message : "Could not save hero text.");
+        showDbToastError("Database update failed.");
       } finally {
         setHeroTextSaveBusy(false);
       }
@@ -926,17 +938,25 @@ export function HomepageExperience({
         </div>
 
         <div className="hero-panels">
-          <article className="hero-panel">
-            <p className="panel-kicker">Membership Reach</p>
-            <p className="panel-value">{siteStats.pageCount.toLocaleString()}+</p>
-            <p className="panel-copy">Resources, updates, and pages serving Nashville musicians.</p>
+          <article className="hero-panel hero-panel--promo hero-panel--parking">
+            <p className="panel-kicker">Member Notice</p>
+            <h3 className="parking-panel-title">Free Downtown Parking</h3>
+            <p className="parking-panel-copy">
+              Active members can park free in designated downtown garages. Open the parking map
+              to see participating locations.
+            </p>
+            <Link href="/file/parkingmappng" className="btn btn-primary parking-panel-cta">
+              Open Parking Map
+            </Link>
           </article>
-          <article className="hero-panel">
-            <p className="panel-kicker">Right Now</p>
-            <h3>Live updates and member-first support</h3>
-            <p className="panel-copy">{homePage.summary}</p>
-            <Link href="/news-and-events" className="text-link">
-              View current programming
+          <article className="hero-panel hero-panel--promo hero-panel--travel">
+            <p className="panel-kicker">Member Notice</p>
+            <h3 className="parking-panel-title">Flying soon?</h3>
+            <p className="parking-panel-copy">
+              Click Travel Tips for Musicians to get the lowdown on carrying on your instrument.
+            </p>
+            <Link href="/news-and-events" className="btn btn-primary parking-panel-cta">
+              Travel Tips for Musicians
             </Link>
           </article>
         </div>

@@ -16,7 +16,7 @@ import { ScalesMasterDetail } from "./scales-master-detail";
 import { authOptions } from "../lib/auth-options";
 import { listMemberSiteLinks } from "../lib/member-site-links";
 import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
-import { pageMap, pages, primaryNav, siteMeta, siteStats, utilityNav } from "../lib/site-data";
+import { pageMap, primaryNav, siteStats, utilityNav } from "../lib/site-data";
 import { listNewsEventsItems } from "../lib/news-events-items";
 
 function AssetIndex({ page }) {
@@ -722,94 +722,10 @@ export async function MirroredPage({
   const session = await getServerSession(authOptions);
   const isAdmin = Boolean(session?.user);
 
-  const uniquePages = Array.from(
-    new Map((pages || []).map((item) => [item.route, item])).values()
-  );
   const homeRoute = page.route === "/" && page.kind === "mirror-page";
-  const aboutPage = pageMap["/about-us"] || null;
   const joinHref =
     utilityNav.find((item) => item.label.toLowerCase().includes("join"))?.href ||
     "/join-nashville-musicians-association";
-  const benefits = [
-    {
-      label: "Contracts",
-      title: "Contract support and protections",
-      summary: "Access negotiated standards and practical support for recording and live work.",
-      href: "/scales-forms-agreements",
-    },
-    {
-      label: "Benefits",
-      title: "Benefits built for working players",
-      summary: "Explore union-backed services, discounts, and career-focused member support.",
-      href: "/member-benefits",
-    },
-    {
-      label: "Community",
-      title: "A connected Nashville network",
-      summary: "Find collaborations, local opportunities, and peers across the music community.",
-      href: "/find-an-artist-or-band",
-    },
-    {
-      label: "Advocacy",
-      title: "Representation where it matters",
-      summary: "Strengthen your leverage with a union voice in negotiations and workplace issues.",
-      href: "/about-us",
-    },
-    {
-      label: "Resources",
-      title: "Actionable resources and documents",
-      summary: "Get quick access to scales, forms, agreements, and key member information.",
-      href: "/downloaded-assets/documents",
-    },
-    {
-      label: "Events",
-      title: "Stay in sync with local programming",
-      summary: "Track announcements, updates, and opportunities around Nashville music.",
-      href: "/news-and-events",
-    },
-  ];
-  const events = uniquePages
-    .filter(
-      (item) =>
-        item.kind === "mirror-page" &&
-        /^\/news-and-events\/\d{4}-\d{2}$/.test(item.route) &&
-        item.summary
-    )
-    .sort((left, right) => right.route.localeCompare(left.route))
-    .slice(0, 6);
-  const resources = [
-    {
-      label: "Scales, Forms & Agreements",
-      href: "/scales-forms-agreements",
-      summary: "Essential contracts and rate resources.",
-      status: "Member Info",
-    },
-    {
-      label: "Membership Directory",
-      href: "/directory",
-      summary: "Locate peers and member contacts.",
-      status: "Popular",
-    },
-    {
-      label: "Member Site Links",
-      href: "/member-site-links",
-      summary: "Fast links to day-to-day member tools.",
-      status: "Quick Access",
-    },
-    {
-      label: "Downloaded Assets",
-      href: "/downloaded-assets",
-      summary: "Browse documents, media, and files.",
-      status: "New",
-    },
-  ];
-  const spotlight = [
-    "/find-an-artist-or-band",
-    "/free-rehearsal-hall",
-    "/join-nashville-musicians-association",
-  ]
-    .map((route) => pageMap[route])
-    .filter(Boolean);
   const newsEventsRoute = page.kind === "mirror-page" && page.route === "/news-and-events";
   const eventDetailRoute = page.kind === "mirror-page" && page.route.startsWith("/event/");
   const memberPagesRoute = page.kind === "mirror-page" && page.route === "/member-pages";
@@ -934,15 +850,9 @@ export async function MirroredPage({
     <article className={`page-frame ${memberPagesRoute ? "member-pages-shell" : ""} ${pageTypeClass}`}>
         {homeRoute ? (
           <HomepageExperience
-            siteMeta={siteMeta}
             siteStats={siteStats}
             homePage={page}
-            aboutPage={aboutPage}
             joinHref={joinHref}
-            benefits={benefits}
-            events={events}
-            resources={resources}
-            spotlight={spotlight}
             heroHomeConfig={heroHomeConfig}
             homeHeroTextConfig={homeHeroTextConfig}
           />

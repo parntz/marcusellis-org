@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 
 const FAMILY = "recording_sidebar";
 
@@ -60,6 +61,7 @@ export function RecordingSidebarEditor({ pageRoute, initialBoxes }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setErr(data.error || "Save failed.");
+        showDbToastError("Database update failed.");
         return;
       }
       if (Array.isArray(data.boxes)) {
@@ -72,9 +74,11 @@ export function RecordingSidebarEditor({ pageRoute, initialBoxes }) {
         );
       }
       setOpen(false);
-      window.location.reload();
+      showDbToastSuccess();
+      window.setTimeout(() => window.location.reload(), 600);
     } catch {
       setErr("Save failed.");
+      showDbToastError("Database update failed.");
     } finally {
       setBusy(false);
     }

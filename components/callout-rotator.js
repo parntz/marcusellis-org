@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { ModalLightbox } from "./modal-lightbox";
 
 const SLIDE_DURATION_MS = 320;
@@ -150,14 +151,18 @@ function MemberNoticeEditor({
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Save failed.");
+        const msg = data.error || "Save failed.";
+        setError(msg);
+        showDbToastError("Database update failed.");
         return;
       }
 
       router.refresh();
       onClose?.();
+      showDbToastSuccess();
     } catch {
       setError("Save failed.");
+      showDbToastError("Database update failed.");
     } finally {
       setSaveBusy(false);
     }

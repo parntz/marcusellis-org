@@ -22,7 +22,8 @@ function isSafeAssetId(id) {
 }
 
 export async function GET(_request, context) {
-  const raw = context.params?.id;
+  const params = await context.params;
+  const raw = params?.id;
   const id = typeof raw === "string" ? decodeURIComponent(raw) : "";
   if (!isSafeAssetId(id)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { ModalLightbox } from "./modal-lightbox";
 
 const GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
@@ -112,7 +113,9 @@ export function MemberSiteLinksDirectory({ initialLinks = [], isAdmin = false })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.link) {
-        setError(data.error || "Save failed.");
+        const msg = data.error || "Save failed.";
+        setError(msg);
+        showDbToastError("Database update failed.");
         return;
       }
 
@@ -124,8 +127,10 @@ export function MemberSiteLinksDirectory({ initialLinks = [], isAdmin = false })
       });
       closeEditor();
       router.refresh();
+      showDbToastSuccess();
     } catch {
       setError("Save failed.");
+      showDbToastError("Database update failed.");
     } finally {
       setSaveBusy(false);
     }
@@ -143,15 +148,19 @@ export function MemberSiteLinksDirectory({ initialLinks = [], isAdmin = false })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Delete failed.");
+        const msg = data.error || "Delete failed.";
+        setError(msg);
+        showDbToastError("Database update failed.");
         return;
       }
 
       setLinks((current) => current.filter((item) => item.id !== editingId));
       closeEditor();
       router.refresh();
+      showDbToastSuccess("Deleted from database.");
     } catch {
       setError("Delete failed.");
+      showDbToastError("Database update failed.");
     }
   }
 

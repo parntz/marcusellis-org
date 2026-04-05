@@ -6,8 +6,9 @@ import { deleteGig, getGigById, updateGig } from "../../../../lib/gigs";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function parseGigId(context) {
-  const raw = context.params?.id;
+async function parseGigId(context) {
+  const params = await context.params;
+  const raw = params?.id;
   const id = Number(raw);
   return Number.isInteger(id) && id > 0 ? id : 0;
 }
@@ -18,7 +19,7 @@ export async function PUT(request, context) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const id = parseGigId(context);
+  const id = await parseGigId(context);
   if (!id) {
     return NextResponse.json({ error: "Invalid gig id." }, { status: 400 });
   }
@@ -44,7 +45,7 @@ export async function DELETE(_request, context) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const id = parseGigId(context);
+  const id = await parseGigId(context);
   if (!id) {
     return NextResponse.json({ error: "Invalid gig id." }, { status: 400 });
   }

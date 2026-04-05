@@ -4,6 +4,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { GigsList } from "./gigs-list";
 import { ModalLightbox } from "./modal-lightbox";
 
@@ -284,6 +285,7 @@ export function GigsManager({ initialGigs = [] }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.url) {
         setError(data.error || "Upload failed.");
+        showDbToastError("Database update failed.");
         return;
       }
 
@@ -291,8 +293,10 @@ export function GigsManager({ initialGigs = [] }) {
         ...current,
         imageUrl: data.url,
       }));
+      showDbToastSuccess();
     } catch {
       setError("Upload failed.");
+      showDbToastError("Database update failed.");
     } finally {
       event.target.value = "";
       setUploadBusy(false);
@@ -321,7 +325,9 @@ export function GigsManager({ initialGigs = [] }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.gig) {
-        setError(data.error || "Save failed.");
+        const msg = data.error || "Save failed.";
+        setError(msg);
+        showDbToastError("Database update failed.");
         return;
       }
 
@@ -333,8 +339,10 @@ export function GigsManager({ initialGigs = [] }) {
       });
       closeEditor();
       router.refresh();
+      showDbToastSuccess();
     } catch {
       setError("Save failed.");
+      showDbToastError("Database update failed.");
     } finally {
       setSaveBusy(false);
     }
@@ -351,7 +359,9 @@ export function GigsManager({ initialGigs = [] }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Delete failed.");
+        const msg = data.error || "Delete failed.";
+        setError(msg);
+        showDbToastError("Database update failed.");
         return;
       }
 
@@ -360,8 +370,10 @@ export function GigsManager({ initialGigs = [] }) {
         closeEditor();
       }
       router.refresh();
+      showDbToastSuccess("Deleted from database.");
     } catch {
       setError("Delete failed.");
+      showDbToastError("Database update failed.");
     }
   }
 

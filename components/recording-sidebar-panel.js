@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { ModalLightbox } from "./modal-lightbox";
 
 const SIDEBAR_FAMILY = "recording_sidebar";
@@ -869,7 +870,9 @@ export function RecordingSidebarPanel({
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          setError(data.error || "Save failed.");
+          const msg = data.error || "Save failed.";
+          setError(msg);
+          showDbToastError("Database update failed.");
           return;
         }
         const savedBoxes = normalizeBoxes(data.boxes || []);
@@ -877,8 +880,10 @@ export function RecordingSidebarPanel({
         setDraftBox(null);
         setEditingIndex(-1);
         router.refresh();
+        showDbToastSuccess();
       } catch {
         setError("Save failed.");
+        showDbToastError("Database update failed.");
       } finally {
         setSaveBusy(false);
       }

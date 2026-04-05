@@ -12,6 +12,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { ModalLightbox } from "./modal-lightbox";
 
 const ITEMS_PER_PAGE = 10;
@@ -476,7 +477,9 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.item) {
-        setError(data.error || "Save failed.");
+        const msg = data.error || "Save failed.";
+        setError(msg);
+        showDbToastError("Database update failed.");
         return;
       }
 
@@ -491,8 +494,10 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
       setForm(emptyForm());
       setError("");
       router.refresh();
+      showDbToastSuccess();
     } catch {
       setError("Save failed.");
+      showDbToastError("Database update failed.");
     } finally {
       setSaveBusy(false);
     }
@@ -510,7 +515,9 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Delete failed.");
+        const msg = data.error || "Delete failed.";
+        setError(msg);
+        showDbToastError("Database update failed.");
         return;
       }
 
@@ -519,8 +526,10 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
       setEditingId(0);
       setForm(emptyForm());
       router.refresh();
+      showDbToastSuccess("Deleted from database.");
     } catch {
       setError("Delete failed.");
+      showDbToastError("Database update failed.");
     }
   }
 

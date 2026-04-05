@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
+import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 
 const GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
 
@@ -26,7 +27,6 @@ export function PageHeaderTextAdmin({ route: routeProp = "" }) {
   const [glassCycle, setGlassCycle] = useState(0);
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(false);
-  const [toast, setToast] = useState(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -34,12 +34,6 @@ export function PageHeaderTextAdmin({ route: routeProp = "" }) {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (!toast) return undefined;
-    const id = window.setTimeout(() => setToast(null), 5000);
-    return () => window.clearTimeout(id);
-  }, [toast]);
 
   useEffect(() => {
     if (!overlayActive) return undefined;
@@ -53,7 +47,6 @@ export function PageHeaderTextAdmin({ route: routeProp = "" }) {
   }, [overlayActive]);
 
   const handleOpenEditor = useCallback(async () => {
-    setToast(null);
     setBusy(true);
     try {
       const titleEl = document.querySelector("[data-page-header-title]");
@@ -76,11 +69,8 @@ export function PageHeaderTextAdmin({ route: routeProp = "" }) {
       setTitle(String(data.title || ""));
       setDescription(String(data.description || ""));
       setOpen(true);
-    } catch (err) {
-      setToast({
-        variant: "error",
-        message: err instanceof Error ? err.message : "Unable to load page header.",
-      });
+    } catch {
+      // Load failure is not a database write; no DB toast.
     } finally {
       setBusy(false);
     }
@@ -116,7 +106,6 @@ export function PageHeaderTextAdmin({ route: routeProp = "" }) {
 
   async function handleSave(event) {
     event.preventDefault();
-    setToast(null);
     setBusy(true);
     try {
       const res = await fetch("/api/page-header", {
@@ -130,7 +119,8 @@ export function PageHeaderTextAdmin({ route: routeProp = "" }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data?.error || "Unable to save page header.");
+        showDbToastError(data?.error || "Database update failed.");
+        return;
       }
 
       const titleEl = document.querySelector("[data-page-header-title]");
@@ -143,12 +133,9 @@ export function PageHeaderTextAdmin({ route: routeProp = "" }) {
       }
 
       setOpen(false);
-      setToast({ variant: "success", message: "Header updated in database." });
-    } catch (err) {
-      setToast({
-        variant: "error",
-        message: err instanceof Error ? err.message : "Unable to save page header.",
-      });
+      showDbToastSuccess();
+    } catch {
+      showDbToastError("Database update failed.");
     } finally {
       setBusy(false);
     }
@@ -216,21 +203,6 @@ export function PageHeaderTextAdmin({ route: routeProp = "" }) {
           ) : null}
         </span>
       </div>
-
-      {mounted && toast
-        ? createPortal(
-            <div
-              className="page-header-editor-toast-host"
-              role={toast.variant === "error" ? "alert" : "status"}
-              aria-live={toast.variant === "error" ? "assertive" : "polite"}
-            >
-              <div className={`page-header-editor-toast page-header-editor-toast--${toast.variant}`}>
-                {toast.message}
-              </div>
-            </div>,
-            document.body
-          )
-        : null}
 
       {mounted && editorModal ? createPortal(editorModal, document.body) : null}
     </>
