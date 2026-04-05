@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import { createPortal } from "react-dom";
 import {
   forwardRef,
   useCallback,
@@ -26,17 +27,6 @@ function mapIndexAfterReorder(oldIndex, from, to) {
     if (oldIndex >= to && oldIndex < from) return oldIndex + 1;
   }
   return oldIndex;
-}
-
-function formatNewsDate(route) {
-  const match = route.match(/\/(\d{4})-(\d{2})$/);
-  if (!match) {
-    return "Update";
-  }
-
-  const [, year, month] = match;
-  const date = new Date(Number(year), Number(month) - 1, 1);
-  return date.toLocaleString("en-US", { month: "short", year: "numeric" });
 }
 
 function useReducedMotion() {
@@ -175,7 +165,7 @@ const HeroImageWithGrow = forwardRef(function HeroImageWithGrow(
       alt={alt}
       className={[className, zoomClass].filter(Boolean).join(" ")}
       style={mergedStyle}
-      onLoadingComplete={handleLoad}
+      onLoad={handleLoad}
       width={1600}
       height={900}
       priority
@@ -193,15 +183,9 @@ function pickRandomHeroTextGlassVariant(current = HERO_TEXT_GLASS_VARIANTS[0]) {
 }
 
 export function HomepageExperience({
-  siteMeta,
   siteStats,
   homePage,
-  aboutPage,
   joinHref,
-  benefits,
-  events,
-  resources,
-  spotlight,
   heroHomeConfig,
   homeHeroTextConfig,
 }) {
@@ -270,6 +254,20 @@ export function HomepageExperience({
   const [heroTextOverlayActive, setHeroTextOverlayActive] = useState(false);
   const [heroTextGlassVariant, setHeroTextGlassVariant] = useState(HERO_TEXT_GLASS_VARIANTS[0]);
   const [heroTextGlassCycle, setHeroTextGlassCycle] = useState(0);
+  const [heroTextEditorPortalReady, setHeroTextEditorPortalReady] = useState(false);
+
+  useEffect(() => {
+    setHeroTextEditorPortalReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!heroTextEditorOpen) return undefined;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [heroTextEditorOpen]);
 
   useEffect(() => {
     visibleRef.current = visibleIndex;
@@ -768,6 +766,7 @@ export function HomepageExperience({
               ) : null}
             </div>
             <div className="hero-admin-controls">
+              <p className="gigs-admin__eyebrow">Hero Image Admin</p>
               <label className="hero-admin-field">
                 <span>Seconds between slides</span>
                 <div className="hero-admin-range">
@@ -814,9 +813,6 @@ export function HomepageExperience({
                   </strong>
                 </div>
               </label>
-              <button type="button" className="btn btn-ghost" onClick={() => void openHeroTextEditor()}>
-                Edit hero text
-              </button>
               {saveError ? (
                 <p className="hero-admin-error" role="alert">
                   {saveError}
@@ -827,72 +823,75 @@ export function HomepageExperience({
         ) : null}
       </section>
 
-      {heroTextEditorOpen ? (
-        <div
-          className="page-header-editor-backdrop"
-          role="presentation"
-          onClick={() => !heroTextSaveBusy && setHeroTextEditorOpen(false)}
-        >
-          <div
-            className="page-header-editor-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Edit homepage hero text"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="page-header-editor-modal__header">
-              <p className="gigs-admin__eyebrow">Admin</p>
-              <h3>Edit Hero Text</h3>
-            </div>
-            <form className="page-header-editor-form" onSubmit={saveHeroText}>
-              <label>
-                Title line 1
-                <input
-                  type="text"
-                  value={heroTitleLine1Draft}
-                  onChange={(event) => setHeroTitleLine1Draft(event.target.value)}
-                  maxLength={160}
-                  required
-                />
-              </label>
-              <label>
-                Title line 2
-                <input
-                  type="text"
-                  value={heroTitleLine2Draft}
-                  onChange={(event) => setHeroTitleLine2Draft(event.target.value)}
-                  maxLength={160}
-                  required
-                />
-              </label>
-              <label>
-                Subheading
-                <input
-                  type="text"
-                  value={heroSubheadingDraft}
-                  onChange={(event) => setHeroSubheadingDraft(event.target.value)}
-                  maxLength={220}
-                  required
-                />
-              </label>
-              {heroTextError ? <p className="hero-admin-error">{heroTextError}</p> : null}
-              <div className="page-header-editor-actions">
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() => setHeroTextEditorOpen(false)}
-                  disabled={heroTextSaveBusy}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary" disabled={heroTextSaveBusy}>
-                  {heroTextSaveBusy ? "Saving..." : "Save Hero Text"}
-                </button>
+      {heroTextEditorPortalReady && heroTextEditorOpen
+        ? createPortal(
+            <div
+              className="page-header-editor-backdrop"
+              role="presentation"
+              onClick={() => !heroTextSaveBusy && setHeroTextEditorOpen(false)}
+            >
+              <div
+                className="page-header-editor-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Edit homepage hero text"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="page-header-editor-modal__header">
+                  <p className="gigs-admin__eyebrow">Admin</p>
+                  <h3>Edit Hero Text</h3>
+                </div>
+                <form className="page-header-editor-form" onSubmit={saveHeroText}>
+                  <label>
+                    Title line 1
+                    <input
+                      type="text"
+                      value={heroTitleLine1Draft}
+                      onChange={(event) => setHeroTitleLine1Draft(event.target.value)}
+                      maxLength={160}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Title line 2
+                    <input
+                      type="text"
+                      value={heroTitleLine2Draft}
+                      onChange={(event) => setHeroTitleLine2Draft(event.target.value)}
+                      maxLength={160}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Subheading
+                    <input
+                      type="text"
+                      value={heroSubheadingDraft}
+                      onChange={(event) => setHeroSubheadingDraft(event.target.value)}
+                      maxLength={220}
+                      required
+                    />
+                  </label>
+                  {heroTextError ? <p className="hero-admin-error">{heroTextError}</p> : null}
+                  <div className="page-header-editor-actions">
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => setHeroTextEditorOpen(false)}
+                      disabled={heroTextSaveBusy}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary" disabled={heroTextSaveBusy}>
+                      {heroTextSaveBusy ? "Saving..." : "Save Hero Text"}
+                    </button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
+            </div>,
+            document.body
+          )
+        : null}
 
       <section className="hero-block" data-reveal>
         <div className="hero-noise" aria-hidden />
@@ -962,131 +961,6 @@ export function HomepageExperience({
         </article>
       </section>
 
-      <section className="section-block benefits-block" data-reveal>
-        <div className="section-headline">
-          <p className="eyebrow">Membership Benefits</p>
-          <h2>Practical advantages for working musicians.</h2>
-        </div>
-        <div className="benefit-grid">
-          {benefits.map((item, index) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`benefit-card ${index % 3 === 0 ? "benefit-card-wide" : ""}`}
-            >
-              <p className="benefit-label">{item.label}</p>
-              <h3>{item.title}</h3>
-              <p>{item.summary}</p>
-              <span className="text-link">Open page</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="section-block updates-block" data-reveal>
-        <div className="section-headline">
-          <p className="eyebrow">Live Programming</p>
-          <h2>News, events, and local movement.</h2>
-        </div>
-        <div className="updates-layout">
-          {events[0] ? (
-            <Link href={events[0].route} className="featured-update">
-              <p className="update-date">{formatNewsDate(events[0].route)}</p>
-              <h3>{events[0].title}</h3>
-              <p>{events[0].summary}</p>
-              <span className="text-link">Read update</span>
-            </Link>
-          ) : null}
-          <div className="updates-list">
-            {events.slice(1, 5).map((item) => (
-              <Link key={item.route} href={item.route} className="update-item">
-                <p className="update-date">{formatNewsDate(item.route)}</p>
-                <h4>{item.title}</h4>
-                <span className="text-link">Open</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section-block mission-block" data-reveal>
-        <div>
-          <p className="eyebrow">About Local 257</p>
-          <h2>{aboutPage?.title || "A union rooted in Nashville’s working music culture."}</h2>
-          <p>
-            {aboutPage?.summary ||
-              "We support musicians through representation, fair standards, and a practical community centered on careers in music."}
-          </p>
-          <Link href="/about-us" className="btn btn-secondary">
-            Read the Mission
-          </Link>
-        </div>
-        <aside className="mission-aside">
-          <p className="quote">
-            “{siteMeta.title} gives artists and players a stronger voice on and off the stage.”
-          </p>
-          <div className="mission-stat-grid">
-            <div>
-              <p className="stat-value">{siteStats.mirroredPageCount.toLocaleString()}</p>
-              <p className="stat-label">Pages mirrored</p>
-            </div>
-            <div>
-              <p className="stat-value">{siteStats.assetCount.toLocaleString()}</p>
-              <p className="stat-label">Member resources</p>
-            </div>
-          </div>
-        </aside>
-      </section>
-
-      <section className="section-block resources-block" data-reveal>
-        <div className="section-headline">
-          <p className="eyebrow">Quick Access</p>
-          <h2>Resources you need before the next downbeat.</h2>
-        </div>
-        <div className="resource-grid">
-          {resources.map((item) => (
-            <Link href={item.href} key={item.href} className="resource-link-card">
-              <span className="resource-status">{item.status}</span>
-              <h3>{item.label}</h3>
-              <p>{item.summary}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {spotlight?.length ? (
-        <section className="section-block spotlight-block" data-reveal>
-          <div className="section-headline">
-            <p className="eyebrow">Community Spotlight</p>
-            <h2>Built by real players across the city.</h2>
-          </div>
-          <div className="spotlight-row">
-            {spotlight.map((item) => (
-              <Link key={item.route} href={item.route} className="spotlight-card">
-                <h3>{item.title}</h3>
-                <p>{item.summary}</p>
-                <span className="text-link">Explore</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <section className="cta-band" data-reveal>
-        <div>
-          <p className="eyebrow">Ready to Join the Local?</p>
-          <h2>Step into a stronger network for your career in music.</h2>
-          <p>Membership connects you to protection, opportunities, and a trusted Nashville community.</p>
-        </div>
-        <div className="cta-actions">
-          <Link href={joinHref} className="btn btn-primary">
-            Join Nashville Musicians
-          </Link>
-          <Link href="/member-benefits" className="btn btn-secondary">
-            Compare Member Benefits
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }
