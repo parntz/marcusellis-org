@@ -9,15 +9,19 @@ import { MemberSiteLinksDirectory } from "./member-site-links-directory";
 import { NewsEventsFeed } from "./news-events-feed";
 import { PageHeaderWithCallout } from "./page-header-with-callout";
 import { ProfilePageEnhancer } from "./profile-page-enhancer";
+import { FaqSearch } from "./faq-search";
 import { computeMirrorPageDescription } from "../lib/internal-page-description.js";
 import { RecordingSidebarPanel } from "./recording-sidebar-panel";
 import { RecordingVideo } from "./recording-video";
+import { RecordingPageAdmin } from "./recording-page-admin";
 import { ScalesMasterDetail } from "./scales-master-detail";
 import { authOptions } from "../lib/auth-options";
 import { listMemberSiteLinks } from "../lib/member-site-links";
 import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
 import { pageMap, primaryNav, siteStats, utilityNav } from "../lib/site-data";
 import { listNewsEventsItems } from "../lib/news-events-items";
+import { getRecordingPageConfig } from "../lib/site-config-recording-page";
+import { getScalesFormsLinksConfig } from "../lib/site-config-scales-forms-links";
 
 function AssetIndex({ page }) {
   return (
@@ -666,57 +670,13 @@ function extractRecordingContent(bodyHtml) {
   };
 }
 
-function transformScalesFormsContent(bodyHtml) {
-  let html = bodyHtml || "";
-
-  html = html.replace(/\s+style="[^"]*"/gi, "");
-  html = html.replace(/<ul>[\s\S]*?scales-forms-agreements[\s\S]*?<\/ul>/i, "");
-  html = html.replace(/<h1[^>]*>[\s\S]*?<\/h1>/i, "");
-  html = html.replace(/<p[^>]*>[\s\S]*?finest recording musicians[\s\S]*?<\/p>/i, "");
-  html = html.replace(/<p[^>]*>[\s\S]*?Click here to watch[\s\S]*?<\/p>/i, "");
-  html = html.replace(/<p[^>]*>[\s\S]*?Please Note:[\s\S]*?<\/p>/i, "");
-  html = html.replace(/<h3[^>]*>[\s\S]*?AFM SRLA scales[\s\S]*?<\/h3>/i, "");
-  html = html.replace(/<h3[^>]*>[\s\S]*?Contact the Local 257 Recording Department[\s\S]*?<\/h3>/i, "");
-
-  const tablistIndex = html.search(/<div[^>]*role="tablist"[^>]*>/i);
-  const introHtml = tablistIndex > -1 ? html.slice(0, tablistIndex) : html;
-  const tabHtml = tablistIndex > -1 ? html.slice(tablistIndex) : "";
-
-  const sections = [];
-  const sectionRegex =
-    /<h3[^>]*role="tab"[^>]*>[\s\S]*?<a[^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/h3>\s*<div[^>]*role="tabpanel"[^>]*>([\s\S]*?)<\/div>/gi;
-
-  tabHtml.replace(sectionRegex, (match, rawTitle, rawBody) => {
-    const title = rawTitle.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
-    const body = rawBody
-      .replace(/<\/?div[^>]*>/gi, "")
-      .replace(/<\/?span[^>]*>/gi, "")
-      .replace(
-        /<a\s+href="([^"]*)"([^>]*)>([\s\S]*?)<\/a>/gi,
-        (_m, href, _attrs, text) =>
-          `<a href="${href}" target="_blank" rel="noopener noreferrer">${text.trim()}</a>`
-      )
-      .replace(/&nbsp;/g, " ")
-      .replace(/\s{2,}/g, " ")
-      .trim();
-
-    sections.push({ title, body });
-    return "";
-  });
-
-  const intro = introHtml
-    .replace(/<a><\/a>/g, "")
-    .replace(/<\/?div[^>]*>/gi, "")
-    .replace(/&nbsp;/g, " ")
-    .trim();
-
-  return { introHtml: intro, sections };
-}
-
 export async function MirroredPage({
   page,
   heroHomeConfig = null,
   homeHeroTextConfig = null,
+  homeHeroContentConfig = null,
+  homePanelsConfig = null,
+  homeValueStripConfig = null,
   searchParams = {},
 }) {
   const session = await getServerSession(authOptions);
@@ -747,6 +707,7 @@ export async function MirroredPage({
   const benefitsHubPage = page.kind === "mirror-page" && page.route === "/benefits-union-members";
   const memberSiteLinksPage = page.kind === "mirror-page" && page.route === "/member-site-links";
   const findArtistPage = page.kind === "mirror-page" && page.route === "/find-an-artist-or-band";
+  const magazinePage = page.kind === "mirror-page" && page.route === "/nashville-musician-magazine";
   const recordingNavChildren =
     primaryNav.find((item) => item.href === "/recording")?.children || [];
   const hideHeaderSummary =
@@ -774,6 +735,7 @@ export async function MirroredPage({
     if (r === "/nashville-musician-magazine") return "pg-magazine";
     if (r === "/members-only-directory") return "pg-directory";
     if (r === "/signatory-information") return "pg-info";
+    if (r === "/terms-of-use" || r === "/privacy-policy") return "pg-legal";
     if (r === "/new-use-reuse") return "pg-form";
     if (r === "/scales-forms-agreements") return "pg-scales-forms";
     if (r.startsWith("/event/")) return "pg-event";
@@ -801,18 +763,22 @@ export async function MirroredPage({
   const recordingContent = isMainRecordingPage
     ? extractRecordingContent(page.bodyHtml || "")
     : null;
-  const scalesContent = scalesFormsPage ? transformScalesFormsContent(page.bodyHtml || "") : null;
+  const recordingPageConfig = isMainRecordingPage
+    ? await getRecordingPageConfig({
+        mainHtml: recordingContent?.flowHtml || "",
+        videoEmbedSrc: recordingContent?.videoEmbedSrc || "",
+        thumbnailSrc: "",
+        youtubeKicker: "YouTube video",
+        videoHeadline: "Single song overdub scale",
+      })
+    : null;
+  const recordingMainHtml = recordingPageConfig?.mainHtml
+    ? `<div class="recording-flow">${recordingPageConfig.mainHtml}</div>`
+    : "";
+  const scalesFormsLinks = scalesFormsPage ? await getScalesFormsLinksConfig() : null;
   const signatoryContentHtml = signatoryPage
     ? enhanceSignatoryArticleHtml(extractContentEncodedHtml(page.bodyHtml || ""))
     : "";
-  const rateUpdateText = (() => {
-    if (recordingContent?.rateUpdateText) return recordingContent.rateUpdateText;
-    if (!scalesFormsPage) return "";
-    const recPage = pageMap["/recording"];
-    if (!recPage?.bodyHtml) return "";
-    const m = recPage.bodyHtml.match(/<h3[^>]*>([^<]|<(?!\/h3>))*SRLA([^<]|<(?!\/h3>))*<\/h3>/i);
-    return m ? m[0].replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").trim() : "";
-  })();
   const liveMusicParts = liveMusicPage ? extractLiveMusicHubParts() : null;
   const liveScalesContent = liveScalesPage ? extractLiveScalesContent(page.bodyHtml || "") : null;
   const rehearsalHallContent = rehearsalHallPage ? extractRehearsalHallContent(page.bodyHtml || "") : null;
@@ -855,6 +821,9 @@ export async function MirroredPage({
             joinHref={joinHref}
             heroHomeConfig={heroHomeConfig}
             homeHeroTextConfig={homeHeroTextConfig}
+            homeHeroContentConfig={homeHeroContentConfig}
+            homePanelsConfig={homePanelsConfig}
+            homeValueStripConfig={homeValueStripConfig}
           />
         ) : (
           <PageHeaderWithCallout
@@ -873,97 +842,52 @@ export async function MirroredPage({
           <div className="recording-page recording-sidebar-layout">
             <div className="recording-body-grid">
               <div className="recording-video-area">
-                {recordingContent?.videoEmbedSrc ? (
-                  <RecordingVideo embedSrc={recordingContent.videoEmbedSrc} />
+                {isAdmin && recordingPageConfig ? (
+                  <RecordingPageAdmin initialConfig={recordingPageConfig} target="video">
+                    {recordingPageConfig.videoEmbedSrc ? (
+                      <RecordingVideo
+                        embedSrc={recordingPageConfig.videoEmbedSrc}
+                        thumbnailSrc={recordingPageConfig.thumbnailSrc}
+                        youtubeKicker={recordingPageConfig.youtubeKicker}
+                        captionTitle={recordingPageConfig.videoHeadline}
+                      />
+                    ) : (
+                      <div className="recording-page-editable__empty">No recording video configured.</div>
+                    )}
+                  </RecordingPageAdmin>
+                ) : recordingPageConfig?.videoEmbedSrc ? (
+                  <RecordingVideo
+                    embedSrc={recordingPageConfig.videoEmbedSrc}
+                    thumbnailSrc={recordingPageConfig.thumbnailSrc}
+                    youtubeKicker={recordingPageConfig.youtubeKicker}
+                    captionTitle={recordingPageConfig.videoHeadline}
+                  />
                 ) : null}
               </div>
               <aside className="recording-sidebar">
                 <RecordingSidebarPanel boxes={recordingSidebarBoxes} pageRoute="/recording" isAdmin={isAdmin} />
               </aside>
-              <section
-                className="page-content recording-content"
-                dangerouslySetInnerHTML={{ __html: recordingContent?.flowHtml || "" }}
-              />
+              {isAdmin && recordingPageConfig ? (
+                <RecordingPageAdmin initialConfig={recordingPageConfig} target="main">
+                  <section
+                    className="page-content recording-content"
+                    dangerouslySetInnerHTML={{ __html: recordingMainHtml }}
+                  />
+                </RecordingPageAdmin>
+              ) : (
+                <section
+                  className="page-content recording-content"
+                  dangerouslySetInnerHTML={{ __html: recordingMainHtml }}
+                />
+              )}
             </div>
           </div>
         ) : null}
 
         {page.kind === "mirror-page" && !homeRoute && scalesFormsPage ? (
-          <div className="recording-page recording-sidebar-layout">
-            <div className="recording-body-grid recording-body-grid--scales">
-              <section className="recording-content">
-                <ScalesMasterDetail sections={scalesContent?.sections} />
-
-                {scalesContent?.introHtml ? (
-                  <div
-                    className="recording-flow recording-scales-intro recording-scales-intro--after-accordion"
-                    dangerouslySetInnerHTML={{ __html: scalesContent.introHtml }}
-                  />
-                ) : null}
-              </section>
-
-              <aside className="recording-sidebar">
-                <div className="recording-contact-box">
-                  <h3 className="recording-sidebar-heading">Recording Department</h3>
-                  <a href="tel:+16152449514" className="recording-phone">
-                    615-244-9514
-                  </a>
-                  <p className="recording-contact-cta">Call for contract guidance or paperwork help</p>
-                  <div className="recording-staff">
-                    <div className="recording-staff-member">
-                      <a href="mailto:billy@nashvillemusicians.org">Billy Lynn</a>
-                      <span>Director of Recording</span>
-                    </div>
-                    <div className="recording-staff-member">
-                      <a href="mailto:william@nashvillemusicians.org">William Sansbury</a>
-                    </div>
-                    <div className="recording-staff-member">
-                      <a href="mailto:paige@nashvillemusicians.org">Paige Conners</a>
-                    </div>
-                  </div>
-                </div>
-                {rateUpdateText ? (
-                  <div className="recording-callout recording-rate-callout">
-                    <h3 className="recording-sidebar-heading">Rate Update</h3>
-                    <p>{rateUpdateText}</p>
-                  </div>
-                ) : null}
-
-                <div className="recording-cta-box">
-                  <a
-                    href="https://nashvillemusicians.org/sites/default/files/RECORDINGSCALESUMMARYSHEET0203%202025A.pdf"
-                    className="recording-cta-item"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <strong>Scales Summary</strong>
-                    <span>One-sheet of current SRLA, Demo, and Limited Pressing rates</span>
-                  </a>
-                  <a
-                    href="https://nashvillemusicians.org/sites/default/files/Local257TimeCard8.pdf"
-                    className="recording-cta-item"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <strong>Time Card</strong>
-                    <span>Download the latest Local 257 time card</span>
-                  </a>
-                  <Link href="/recording" className="recording-cta-item">
-                    <strong>Recording Overview</strong>
-                    <span>Return to the recording homepage</span>
-                  </Link>
-                </div>
-
-                <Link href="/scales-forms-agreements" className="recording-callout recording-bforms-callout">
-                  <h3 className="recording-bforms-title">B Forms</h3>
-                  <p>
-                    B-4 (SRLA), B-5 (Demo), and B-9 (Limited Pressing) fillable PDFs — choose <strong>B Forms</strong> in the section list.
-                  </p>
-                  <span className="recording-callout-link">Open B Forms section ↓</span>
-                </Link>
-              </aside>
-            </div>
-          </div>
+          <section className="page-content scales-forms-links-page">
+            <ScalesMasterDetail links={scalesFormsLinks} isAdmin={isAdmin} />
+          </section>
         ) : null}
 
         {page.kind === "mirror-page" && !homeRoute && !isMainRecordingPage && !scalesFormsPage ? (
@@ -1434,6 +1358,15 @@ export async function MirroredPage({
                   className="page-content event-detail-content"
                   dangerouslySetInnerHTML={{ __html: bodyHtml }}
                 />
+              ) : pageTypeClass.includes("pg-faq") ? (
+                <>
+                  <FaqSearch targetId="faq-search-target" />
+                  <section
+                    id="faq-search-target"
+                    className="page-content"
+                    dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                  />
+                </>
               ) : (
                 <section
                   className={`page-content ${recordingRoute ? "recording-content" : ""}`}
@@ -1441,7 +1374,7 @@ export async function MirroredPage({
                 />
               )}
               {profilePage ? <ProfilePageEnhancer /> : null}
-              {page.pageAssets?.length && !eventDetailRoute && !recordingRoute && !profilePage ? (
+              {page.pageAssets?.length && !eventDetailRoute && !recordingRoute && !profilePage && !magazinePage ? (
                 <aside className="page-sidebar">
                   <AssetGallery title="Unique Page Assets" assets={page.pageAssets} />
                 </aside>

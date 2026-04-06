@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7]><html class="iem7"  lang="en" dir="ltr"><![endif]-->
+<!--[if lte IE 6]><html class="lt-ie9 lt-ie8 lt-ie7"  lang="en" dir="ltr"><![endif]-->
+<!--[if (IE 7)&(!IEMobile)]><html class="lt-ie9 lt-ie8"  lang="en" dir="ltr"><![endif]-->
+<!--[if IE 8]><html class="lt-ie9"  lang="en" dir="ltr"><![endif]-->
+<!--[if (gte IE 9)|(gt IEMobile 7)]><!--><html  lang="en" dir="ltr" prefix="fb: http://www.facebook.com/2008/fbml content: http://purl.org/rss/1.0/modules/content/ dc: http://purl.org/dc/terms/ foaf: http://xmlns.com/foaf/0.1/ rdfs: http://www.w3.org/2000/01/rdf-schema# sioc: http://rdfs.org/sioc/ns# sioct: http://rdfs.org/sioc/types# skos: http://www.w3.org/2004/02/skos/core# xsd: http://www.w3.org/2001/XMLSchema#"><!--<![endif]-->
+
+<head>
+  <meta charset="utf-8" />
+<link rel="shortcut icon" href="https://nashvillemusicians.org/sites/default/themes/musicians/images/favicon.ico" type="image/vnd.microsoft.icon" />
+<meta name="generator" content="Drupal 7 (https://www.drupal.org)" />
+<link rel="canonical" href="https://nashvillemusicians.org/member-pages" />
+<link rel="shortlink" href="https://nashvillemusicians.org/member-pages" />
+<meta property="og:site_name" content="Nashville Musicians Association" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://nashvillemusicians.org/member-pages" />
+<meta property="og:title" content="Member Profile Pages (Public)" />
+  <title>Member Profile Pages (Public) | Nashville Musicians Association</title>
+
+    <!--[if IEMobile]><meta http-equiv="cleartype" content="on"><![endif]-->
+
+  <link type="text/css" rel="stylesheet" href="https://nashvillemusicians.org/sites/default/files/css/css_kShW4RPmRstZ3SpIC-ZvVGNFVAi0WEMuCnI0ZkYIaFw.css" media="all" />
+<link type="text/css" rel="stylesheet" href="https://nashvillemusicians.org/sites/default/files/css/css_NZkuhuRpmuk3P_0sw-S9AWDqSwJ_w2WqQPOWLNOb6m8.css" media="all" />
+<link type="text/css" rel="stylesheet" href="https://nashvillemusicians.org/sites/default/files/css/css__2KoCb96521zeFRuvHwo82tb-dtZqO80yL5wLNBirLo.css" media="0" />
+<link type="text/css" rel="stylesheet" href="https://nashvillemusicians.org/sites/default/files/css/css_AjN_WTDVJj1u0KJfUYhzI8fdYQJ2xeRk7ct4pI1RKoE.css" media="all" />
+<link type="text/css" rel="stylesheet" href="https://nashvillemusicians.org/sites/default/files/css/css_Zw7hJJjN2c2aH6NjHgtb-nsiOWtfGIELAkeIF8aB1HE.css" media="all" />
+<link type="text/css" rel="stylesheet" href="https://nashvillemusicians.org/sites/default/files/css/css_9cBisoZBX_u20dL1EzLykItuFlD5kz8ycdOV5VklCFw.css" media="all" />
+<link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Anton:regular|Patua+One:regular|Lato:900&amp;subset=latin" media="all" />
+  <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+<script>window.jQuery || document.write("<script src='/sites/all/modules/contrib/jquery_update/replace/jquery/1.12/jquery.min.js'>\x3C/script>")</script>
+<script src="https://nashvillemusicians.org/sites/default/files/js/js_GOikDsJOX04Aww72M-XK1hkq4qiL_1XgGsRdkL0XlDo.js"></script>
+<script src="https://nashvillemusicians.org/sites/default/files/js/js_NaWnmLRn_oLakq5a60IFTfYZm_LJr7QZfBZkBPCRDXY.js"></script>
+<script src="https://nashvillemusicians.org/sites/default/files/js/js_S0wBYNnlYV2gyrYb7eX9VAxOQV2WjFLYIXueOMF21H4.js"></script>
+<script src="https://nashvillemusicians.org/sites/default/files/js/js_QV8-ZgXo2TNdnzk2Y9Qz7k_3p9lyWrTNcc3sGOWm0Ys.js"></script>
+<script src="https://www.googletagmanager.com/gtag/js?id=UA-19488158-1"></script>
+<script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments)};gtag("js", new Date());gtag("set", "developer_id.dMDhkMT", true);gtag("config", "UA-19488158-1", {"groups":"default","anonymize_ip":true});</script>
+<script src="https://nashvillemusicians.org/sites/default/files/js/js_eiOP8yzjJfwiVuXRs8-sKXpI2QmOcsZddDTWY8JR7l4.js"></script>
+<script src="https://nashvillemusicians.org/sites/default/files/js/js_o3gisxbw66MIvhpfN0ZnboqdOvj2v2iquG0NNuLag0M.js"></script>
+<script>jQuery.extend(Drupal.settings, {"basePath":"\/","pathPrefix":"","setHasJsCookie":0,"ajaxPageState":{"theme":"musicians","theme_token":"4txzt1bl2UJLh8njPqH07yQ1HI3g1B_lVW6ZUNg5gns","jquery_version":"1.12","jquery_version_token":"czEl4ByOHye1sjBILM-VfGXRFhlDzcRAClfTK-jDrkY","js":{"\/\/code.jquery.com\/jquery-1.12.4.min.js":1,"0":1,"misc\/jquery-extend-3.4.0.js":1,"misc\/jquery-html-prefilter-3.5.0-backport.js":1,"misc\/jquery.once.js":1,"misc\/drupal.js":1,"sites\/all\/modules\/contrib\/jquery_update\/js\/jquery_browser.js":1,"sites\/all\/modules\/contrib\/jquery_update\/replace\/ui\/external\/jquery.cookie.js":1,"sites\/all\/modules\/contrib\/jquery_update\/replace\/jquery.form\/4\/jquery.form.min.js":1,"misc\/form-single-submit.js":1,"misc\/ajax.js":1,"sites\/all\/modules\/contrib\/jquery_update\/js\/jquery_update.js":1,"sites\/default\/modules\/features\/my_gigs\/js\/my_gigs.js":1,"sites\/all\/modules\/contrib\/fb\/fb.js":1,"sites\/default\/modules\/hg\/nma_misc\/js\/nma_misc.js":1,"sites\/default\/modules\/features\/nma_user_list\/js\/nma_user_list.js":1,"sites\/all\/modules\/contrib\/fb\/fb_stream.js":1,"sites\/all\/modules\/contrib\/colorbox\/js\/colorbox.js":1,"sites\/all\/modules\/contrib\/colorbox\/styles\/default\/colorbox_style.js":1,"sites\/all\/modules\/contrib\/colorbox\/js\/colorbox_load.js":1,"sites\/all\/modules\/contrib\/colorbox\/js\/colorbox_inline.js":1,"sites\/all\/modules\/contrib\/views\/js\/base.js":1,"misc\/progress.js":1,"sites\/all\/modules\/contrib\/views\/js\/ajax_view.js":1,"sites\/all\/modules\/google_analytics\/googleanalytics.js":1,"https:\/\/www.googletagmanager.com\/gtag\/js?id=UA-19488158-1":1,"1":1,"sites\/all\/libraries\/superfish\/jquery.hoverIntent.minified.js":1,"sites\/all\/libraries\/superfish\/sfsmallscreen.js":1,"sites\/all\/libraries\/superfish\/superfish.js":1,"sites\/all\/libraries\/superfish\/supersubs.js":1,"sites\/all\/modules\/contrib\/superfish\/superfish.js":1,"sites\/default\/themes\/musicians\/js\/musicians.js":1,"sites\/default\/themes\/musicians\/..\/..\/libraries\/qtip\/jquery.qtip.min.js":1,"sites\/default\/themes\/musicians\/..\/..\/modules\/hg\/hg_calendar_qtip\/js\/hg_calendar_qtip.js":1},"css":{"modules\/system\/system.base.css":1,"modules\/system\/system.menus.css":1,"modules\/system\/system.messages.css":1,"modules\/system\/system.theme.css":1,"sites\/default\/modules\/hg\/calendar\/css\/calendar_multiday.css":1,"modules\/comment\/comment.css":1,"sites\/all\/modules\/date\/date_repeat_field\/date_repeat_field.css":1,"modules\/field\/theme\/field.css":1,"sites\/default\/modules\/field_hidden\/field_hidden.css":1,"sites\/default\/modules\/features\/my_gigs\/css\/my_gigs.css":1,"sites\/default\/modules\/features\/nma_artists_bands\/css\/nma_artists_bands.css":1,"sites\/default\/modules\/hg\/nma_misc\/css\/nma_misc.css":1,"sites\/default\/modules\/features\/nma_user_list\/css\/nma_user_list.css":1,"modules\/node\/node.css":1,"modules\/search\/search.css":1,"modules\/user\/user.css":1,"sites\/all\/modules\/contrib\/nodeorder\/css\/nodeorder.css":1,"sites\/all\/modules\/contrib\/views\/css\/views.css":1,"sites\/all\/modules\/contrib\/media\/modules\/media_wysiwyg\/css\/media_wysiwyg.base.css":1,"sites\/all\/modules\/contrib\/colorbox\/styles\/default\/colorbox_style.css":1,"sites\/all\/modules\/contrib\/ctools\/css\/ctools.css":1,"sites\/all\/modules\/archived\/hg_slideshow_with_pager\/hg_slideshow_with_pager.css":1,"sites\/all\/modules\/contrib\/panels\/css\/panels.css":1,"sites\/all\/modules\/contrib\/panels\/plugins\/layouts\/flexible\/flexible.css":1,"public:\/\/ctools\/css\/2f3c0bc078ae4275423e38516f8ce308.css":1,"sites\/default\/files\/css\/follow.css":1,"sites\/all\/libraries\/superfish\/css\/superfish.css":1,"sites\/all\/libraries\/superfish\/style\/default.css":1,"sites\/default\/themes\/musicians\/system.menus.css":1,"sites\/default\/themes\/musicians\/css\/normalize.css":1,"sites\/default\/themes\/musicians\/css\/wireframes.css":1,"sites\/default\/themes\/musicians\/css\/layouts\/responsive-sidebars.css":1,"sites\/default\/themes\/musicians\/css\/page-backgrounds.css":1,"sites\/default\/themes\/musicians\/css\/tabs.css":1,"sites\/default\/themes\/musicians\/css\/pages.css":1,"sites\/default\/themes\/musicians\/css\/blocks.css":1,"sites\/default\/themes\/musicians\/css\/navigation.css":1,"sites\/default\/themes\/musicians\/css\/views-styles.css":1,"sites\/default\/themes\/musicians\/css\/nodes.css":1,"sites\/default\/themes\/musicians\/css\/comments.css":1,"sites\/default\/themes\/musicians\/css\/forms.css":1,"sites\/default\/themes\/musicians\/css\/fields.css":1,"sites\/default\/themes\/musicians\/css\/print.css":1,"sites\/default\/themes\/musicians\/css\/fixed-width.css":1,"sites\/default\/themes\/musicians\/css\/local.css":1,"sites\/default\/themes\/musicians\/css\/member.css":1,"sites\/default\/themes\/musicians\/..\/..\/libraries\/qtip\/jquery.qtip.min.css":1,"sites\/default\/themes\/musicians\/..\/..\/modules\/hg\/hg_calendar_qtip\/css\/hg_calendar_qtip.css":1,"https:\/\/fonts.googleapis.com\/css?family=Anton:regular|Patua+One:regular|Lato:900\u0026subset=latin":1}},"colorbox":{"opacity":"0.85","current":"{current} of {total}","previous":"\u00ab Prev","next":"Next \u00bb","close":"Close","maxWidth":"98%","maxHeight":"98%","fixed":true,"mobiledetect":true,"mobiledevicewidth":"480px","file_public_path":"\/sites\/default\/files","specificPagesDefaultValue":"admin*\nimagebrowser*\nimg_assist*\nimce*\nnode\/add\/*\nnode\/*\/edit\nprint\/*\nprintpdf\/*\nsystem\/ajax\nsystem\/ajax\/*"},"urlIsAjaxTrusted":{"\/member-pages":true,"\/views\/ajax":true},"views":{"ajax_path":"\/views\/ajax","ajaxViews":{"views_dom_id:5782116cf1381134f836353f320dc72c":{"view_name":"member_pages","view_display_id":"page","view_args":"","view_path":"member-pages","view_base_path":"member-pages","view_dom_id":"5782116cf1381134f836353f320dc72c","pager_element":0}}},"googleanalytics":{"account":["UA-19488158-1"],"trackOutbound":1,"trackMailto":1,"trackDownload":1,"trackDownloadExtensions":"7z|aac|arc|arj|asf|asx|avi|bin|csv|doc(x|m)?|dot(x|m)?|exe|flv|gif|gz|gzip|hqx|jar|jpe?g|js|mp(2|3|4|e?g)|mov(ie)?|msi|msp|pdf|phps|png|ppt(x|m)?|pot(x|m)?|pps(x|m)?|ppam|sld(x|m)?|thmx|qtm?|ra(m|r)?|sea|sit|tar|tgz|torrent|txt|wav|wma|wmv|wpd|xls(x|m|b)?|xlt(x|m)|xlam|xml|z|zip","trackColorbox":1},"superfish":{"1":{"id":"1","sf":{"animation":{"opacity":"show"},"speed":"\u0027fast\u0027","autoArrows":false,"dropShadows":true,"disableHI":false},"plugins":{"smallscreen":{"mode":"window_width","addSelected":false,"menuClasses":false,"hyperlinkClasses":false,"title":"Main menu"},"supposition":false,"bgiframe":false,"supersubs":{"minWidth":"12","maxWidth":"27","extraWidth":1}}}}});</script>
+      <!--[if lt IE 9]>
+    <script src="/sites/all/themes/archived/zen/js/html5-respond.js"></script>
+    <![endif]-->
+  </head>
+<body class="html not-front not-logged-in no-sidebars page-member-pages section-member-pages page-views" >
+      <p id="skip-link">
+      <a href="#main-menu" class="element-invisible element-focusable">Jump to navigation</a>
+    </p>
+      
+<div id="page">
+  <header id="header" role="banner">
+	<div class="header-inner">
+          <a href="/" title="Home" rel="home" id="logo"><img src="https://nashvillemusicians.org/sites/default/themes/musicians/images/nma-logo.png" alt="Home" /></a>
+    
+    
+    
+      <div class="header__region region region-header">
+    <div id="block-superfish-1" class="block block-superfish first odd">
+
+      
+  <ul id="superfish-1" class="menu sf-menu sf-main-menu sf-horizontal sf-style-default sf-total-items-7 sf-parent-items-6 sf-single-items-1"><li id="menu-781-1" class="first odd sf-item-1 sf-depth-1 sf-no-children"><a href="/news-and-events" title="View News &amp; Events" class="sf-depth-1">News &amp; Events</a></li><li id="menu-664-1" class="middle even sf-item-2 sf-depth-1 sf-total-children-3 sf-parent-children-0 sf-single-children-3 menuparent"><a href="/recording" class="sf-depth-1 menuparent">Recording</a><ul><li id="menu-783-1" class="first odd sf-item-1 sf-depth-2 sf-no-children"><a href="/scales-forms-agreements" title="View Recording Scales, Forms, Agreements, etc." class="sf-depth-2">Scales, Forms &amp; Agreements</a></li><li id="menu-1428-1" class="middle even sf-item-2 sf-depth-2 sf-no-children"><a href="/new-use-reuse" class="sf-depth-2">New Use / Reuse</a></li><li id="menu-784-1" class="last odd sf-item-3 sf-depth-2 sf-no-children"><a href="/signatory-information" class="sf-depth-2">Signatory Information</a></li></ul></li><li id="menu-1432-1" class="middle odd sf-item-3 sf-depth-1 sf-total-children-5 sf-parent-children-0 sf-single-children-5 menuparent"><a href="/live-music" class="sf-depth-1 menuparent">Live Music</a><ul><li id="menu-592-1" class="first odd sf-item-1 sf-depth-2 sf-no-children"><a href="/gigs" class="sf-depth-2">Gig Calendar</a></li><li id="menu-1468-1" class="middle even sf-item-2 sf-depth-2 sf-no-children"><a href="/find-an-artist-or-band" title="" class="sf-depth-2">Find an Artist or Band</a></li><li id="menu-672-1" class="middle odd sf-item-3 sf-depth-2 sf-no-children"><a href="/live-scales-contracts-pension" class="sf-depth-2">Live Scales, Contracts, Pension</a></li><li id="menu-673-1" class="middle even sf-item-4 sf-depth-2 sf-no-children"><a href="/afm-entertainment" target="_blank" class="sf-depth-2">AFM Entertainment</a></li><li id="menu-674-1" class="last odd sf-item-5 sf-depth-2 sf-no-children"><a href="/form-ls1-qa" class="sf-depth-2">Form LS1 Q&amp;A</a></li></ul></li><li id="menu-780-1" class="middle even sf-item-4 sf-depth-1 sf-total-children-7 sf-parent-children-2 sf-single-children-5 menuparent"><a href="/member-services" class="sf-depth-1 menuparent">Member Services</a><ul><li id="menu-1470-1" class="first odd sf-item-1 sf-depth-2 sf-no-children"><a href="http://soundhealthcare.org" target="_blank" class="sf-depth-2">Sound Healthcare &amp; Financial</a></li><li id="menu-3144-1" class="middle even sf-item-2 sf-depth-2 sf-no-children"><a href="http://www.nashvillemusicians.org/sites/default/files/Media%20Root/300210%20TTCU%20Look%20Services_MAIN.pdf" class="sf-depth-2">The Tennessee Credit Union</a></li><li id="menu-1471-1" class="middle odd sf-item-3 sf-depth-2 sf-no-children"><a href="http://afm-epf.org" target="_blank" class="sf-depth-2">AFM Pension Info</a></li><li id="menu-1472-1" class="middle even sf-item-4 sf-depth-2 sf-no-children"><a href="/free-rehearsal-hall" class="sf-depth-2">Free Rehearsal Hall</a></li><li id="menu-1475-1" class="middle odd sf-item-5 sf-depth-2 sf-total-children-1 sf-parent-children-0 sf-single-children-1 menuparent"><a href="/benefits-union-members" target="_blank" class="sf-depth-2 menuparent">Instrument Insurance</a><ul><li id="menu-1479-1" class="firstandlast odd sf-item-1 sf-depth-3 sf-no-children"><a href="https://nashvillemusicians.org/sites/default/files/Media%20Root/HUBInstrumentInsurance2024.pdf" class="sf-depth-3">HUB Insurance</a></li></ul></li><li id="menu-3130-1" class="middle even sf-item-6 sf-depth-2 sf-total-children-1 sf-parent-children-0 sf-single-children-1 menuparent"><a href="/benefits-union-members" target="_blank" class="sf-depth-2 menuparent">Other AFM 257 Discounts</a><ul><li id="menu-1477-1" class="firstandlast odd sf-item-1 sf-depth-3 sf-no-children"><a href="/union-plus-program" class="sf-depth-3">Union Plus Program</a></li></ul></li><li id="menu-1476-1" class="last odd sf-item-7 sf-depth-2 sf-no-children"><a href="/member-site-links" class="sf-depth-2">Member Site Links</a></li></ul></li><li id="menu-779-1" class="middle odd sf-item-5 sf-depth-1 sf-total-children-3 sf-parent-children-0 sf-single-children-3 menuparent"><a href="/media" title="View Media, Videos, Photos, Magazines, etc." class="sf-depth-1 menuparent">Media</a><ul><li id="menu-1481-1" class="first odd sf-item-1 sf-depth-2 sf-no-children"><a href="/what-sound-exchange" class="sf-depth-2">Featured Video</a></li><li id="menu-1859-1" class="middle even sf-item-2 sf-depth-2 sf-no-children"><a href="/photo-and-video-gallery" class="sf-depth-2">Photo and Video Gallery</a></li><li id="menu-1860-1" class="last odd sf-item-3 sf-depth-2 sf-no-children"><a href="/nashville-musician-magazine" class="sf-depth-2">Magazine</a></li></ul></li><li id="menu-1864-1" class="active-trail middle even sf-item-6 sf-depth-1 sf-total-children-2 sf-parent-children-0 sf-single-children-2 menuparent"><a href="/directory" class="sf-depth-1 menuparent">Directory</a><ul><li id="menu-1873-1" class="first odd sf-item-1 sf-depth-2 sf-no-children"><a href="/members-only-directory" target="_blank" class="sf-depth-2">Members Only Directory</a></li><li id="menu-1874-1" class="active-trail last even sf-item-2 sf-depth-2 sf-no-children"><a href="/member-pages" title="" class="sf-depth-2 active">Member Profile Pages (Public)</a></li></ul></li><li id="menu-662-1" class="last odd sf-item-7 sf-depth-1 sf-total-children-2 sf-parent-children-0 sf-single-children-2 menuparent"><a href="/about-us" class="sf-depth-1 menuparent">About Us</a><ul><li id="menu-1940-1" class="first odd sf-item-1 sf-depth-2 sf-no-children"><a href="https://nashvillemusicians.org/sites/default/files/Media%20Root/257Bylaws2024_0.pdf" target="_blank" class="sf-depth-2">Constitution and By-Laws</a></li><li id="menu-1939-1" class="last even sf-item-2 sf-depth-2 sf-no-children"><a href="/mission-statement" class="sf-depth-2">Mission Statement</a></li></ul></li></ul>
+</div>
+<div id="block-panels-mini-header-blocks" class="block block-panels-mini last even">
+
+      
+  <div class="panel-flexible panels-flexible-2 clearfix" id="mini-panel-header_blocks">
+<div class="panel-flexible-inside panels-flexible-2-inside">
+<div class="panels-flexible-row panels-flexible-row-2-main-row panels-flexible-row-first clearfix header-row-top">
+  <div class="inside panels-flexible-row-inside panels-flexible-row-2-main-row-inside panels-flexible-row-inside-first clearfix">
+<div class="panels-flexible-region panels-flexible-region-2-center panels-flexible-region-first panels-flexible-region-last header-menu">
+  <div class="inside panels-flexible-region-inside panels-flexible-region-2-center-inside panels-flexible-region-inside-first panels-flexible-region-inside-last">
+<div class="panel-pane pane-block pane-menu-menu-header-menu"  >
+  
+      
+  
+  <ul class="menu"><li class="menu__item is-leaf first leaf"><a href="/join-nashville-musicians-association" title="" class="menu__link">Join Now</a></li>
+<li class="menu__item is-leaf last leaf"><a href="/user" title="Sign In" class="menu__link">Sign In</a></li>
+</ul>
+  
+  </div>
+  </div>
+</div>
+  </div>
+</div>
+<div class="panels-flexible-row panels-flexible-row-2-1 panels-flexible-row-last clearfix header-row-bottom">
+  <div class="inside panels-flexible-row-inside panels-flexible-row-2-1-inside panels-flexible-row-inside-last clearfix">
+<div class="panels-flexible-region panels-flexible-region-2-left panels-flexible-region-first header-social-icons">
+  <div class="inside panels-flexible-region-inside panels-flexible-region-2-left-inside panels-flexible-region-inside-first">
+<div class="panel-pane pane-block pane-block-15"  >
+  
+      
+  
+  <div id="sprite-social"><div class="sprite-social-facebook"><a href="https://www.facebook.com/NashvilleMusicians" target="_blank">&nbsp;</a></div></div>
+<div id="sprite-social"><div class="sprite-social-twitter"><a href="https://twitter.com/nashmusicians" target="_blank">&nbsp;</a></div></div>
+<div id="sprite-social"><div class="sprite-social-wordpress"><a href="http://nashmusicians.wordpress.com/" target="_blank">&nbsp;</a></div></div>
+  
+  </div>
+  </div>
+</div>
+<div class="panels-flexible-region panels-flexible-region-2-right panels-flexible-region-last header-search">
+  <div class="inside panels-flexible-region-inside panels-flexible-region-2-right-inside panels-flexible-region-inside-last">
+<div class="panel-pane pane-block pane-search-form"  >
+  
+      
+  
+  <form action="/member-pages" method="post" id="search-block-form" accept-charset="UTF-8"><div><div class="container-inline">
+      <h2 class="element-invisible">Search form</h2>
+    <div class="form-item form-type-textfield form-item-search-block-form">
+  <label class="element-invisible" for="edit-search-block-form--2">Search </label>
+ <input title="Enter the terms you wish to search for." type="text" id="edit-search-block-form--2" name="search_block_form" value="" size="15" maxlength="128" class="form-text" />
+</div>
+<div class="form-actions form-wrapper" id="edit-actions"><input type="submit" id="edit-submit" name="op" value="Search" class="form-submit" /></div><input type="hidden" name="form_build_id" value="form-c5Rg76piFhfx-bCQX_Q1HhMjZFi9ZYXUVDHKGajKydc" />
+<input type="hidden" name="form_id" value="search_block_form" />
+</div>
+</div></form>
+  
+  </div>
+  </div>
+</div>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+  </div>
+	</div>
+  </header>
+  
+   <div id="bannerwrap">
+  	<div class="banner">
+  		   	</div>
+  	
+  </div>
+  
+   <div id="bannerwrap-mid">
+  	<div class="banner-mid">
+  		   	</div>
+  	
+  </div>
+  
+   <div id="bannerwrap-bottom">
+  	<div class="banner-bottom">
+  		   	</div>
+  	
+  </div>
+
+  <div id="main">
+
+    <div id="content" class="column" role="main">
+                  <a id="main-content"></a>
+                    <h1 class="title" id="page-title">Member Profile Pages (Public)</h1>
+                                          
+
+
+<div class="view view-member-pages view-id-member_pages view-display-id-page view-dom-id-5782116cf1381134f836353f320dc72c">
+            <div class="view-header">
+      <div class="search-by"><a href="/search-by-instrument">Search by Instrument</a>  ||  <a href="/search-by-category">Search by Category</a>
+</div>
+    </div>
+  
+      <div class="view-filters">
+      <form action="/member-pages" method="get" id="views-exposed-form-member-pages-page" accept-charset="UTF-8"><div><div class="views-exposed-form">
+  <div class="views-exposed-widgets clearfix">
+          <div id="edit-field-first-name-value-wrapper" class="views-exposed-widget views-widget-filter-field_first_name_value">
+                  <label for="edit-field-first-name-value">
+            First Name          </label>
+                        <div class="views-widget">
+          <div class="form-item form-type-textfield form-item-field-first-name-value">
+ <input type="text" id="edit-field-first-name-value" name="field_first_name_value" value="" size="30" maxlength="128" class="form-text" />
+</div>
+        </div>
+              </div>
+          <div id="edit-field-last-name-value-wrapper" class="views-exposed-widget views-widget-filter-field_last_name_value">
+                  <label for="edit-field-last-name-value">
+            Last Name          </label>
+                        <div class="views-widget">
+          <div class="form-item form-type-textfield form-item-field-last-name-value">
+ <input type="text" id="edit-field-last-name-value" name="field_last_name_value" value="" size="30" maxlength="128" class="form-text" />
+</div>
+        </div>
+              </div>
+          <div id="edit-field-primary-instruments-tid-wrapper" class="views-exposed-widget views-widget-filter-field_primary_instruments_tid">
+                  <label for="edit-field-primary-instruments-tid">
+            Primary Instrument(s)          </label>
+                        <div class="views-widget">
+          <div class="form-item form-type-select form-item-field-primary-instruments-tid">
+ <select id="edit-field-primary-instruments-tid" name="field_primary_instruments_tid" class="form-select"><option value="All" selected="selected">- Any -</option><option value="67">Accordion</option><option value="68">Acoustic Bass</option><option value="69">Afro-Latin</option><option value="70">Alphorn</option><option value="71">Alto Clarinet</option><option value="72">Alto Flute</option><option value="73">Alto Horn</option><option value="74">Alto Sax</option><option value="75">Arranger</option><option value="76">Autoharp</option><option value="77">Bagpipes</option><option value="78">Balalaika</option><option value="79">Banjo</option><option value="80">Baritone Horn</option><option value="81">Baritone Saxophone</option><option value="82">Bass Clarinet</option><option value="83">Bass Flute</option><option value="84">Bass Guitar</option><option value="85">Bass Trombone</option><option value="86">Bass Trumpet</option><option value="87">Bassoon</option><option value="88">Bodhran</option><option value="89">Bouzouki</option><option value="90">Button Accordian</option><option value="91">C2P2</option><option value="92">Celeste</option><option value="94">Cello</option><option value="93">Celtic Harp</option><option value="95">Clarinet</option><option value="96">Classical Guitar</option><option value="97">Composer</option><option value="98">Concertina</option><option value="99">Conductor</option><option value="101">Conga Drums</option><option value="102">Contra Bassoon</option><option value="100">Contractor</option><option value="103">Copyist</option><option value="104">Cornet COR</option><option value="105">Didgeridoo</option><option value="106">Dobro</option><option value="108">Drum Programmer</option><option value="107">Drums</option><option value="109">Dulcimer</option><option value="110">Early Instruments</option><option value="111">Effers</option><option value="112">Electric Upright Bass</option><option value="113">Electronic Percussion</option><option value="114">Electronic Wind Synth</option><option value="115">Engineer</option><option value="116">English Horn</option><option value="117">Euphonium</option><option value="118">Fiddle</option><option value="119">Fluegelhorn</option><option value="120">Flute</option><option value="121">French Horn</option><option value="122">Guitar</option><option value="123">Hamboner</option><option value="124">Hammered Dulcimer</option><option value="125">Harmonica</option><option value="126">Harp</option><option value="127">Harpsichord</option><option value="128">Irish Flute</option><option value="129">Jew&#039;s Harp</option><option value="130">Kalimba</option><option value="131">Kazoo</option><option value="132">Keyboards</option><option value="133">Lap Steel</option><option value="134">Latin Percussion</option><option value="135">Lute</option><option value="136">Mallet Percussion</option><option value="137">Mandolin</option><option value="139">Mellophone</option><option value="138">Melodica</option><option value="140">Oboe</option><option value="141">Ophicleide</option><option value="142">Orchestra Librarian</option><option value="143">Organ</option><option value="144">Pennywhistle</option><option value="145">Percussion</option><option value="146">Piano</option><option value="147">Piccolo</option><option value="148">Piccolo Trumpet</option><option value="149">Pipe Organ</option><option value="150">Programmer</option><option value="152">Recorder</option><option value="151">Rhythm Guitar</option><option value="153">Saxophone</option><option value="154">Scrub (Wash) Board</option><option value="155">Sitar</option><option value="156">Soprano Saxophone</option><option value="157">Sousaphone</option><option value="158">Steel (Pan) Drums</option><option value="159">Steel Guitar</option><option value="160">Synthesizer</option><option value="161">Tabla</option><option value="163">Tamboura</option><option value="162">Tambourine</option><option value="164">Teacher</option><option value="165">Tenor Saxophone</option><option value="166">Theremin</option><option value="167">Timbales</option><option value="171">Timpany</option><option value="168">Trombone</option><option value="169">Trumpet</option><option value="170">Tuba</option><option value="172">Uilleann Pipes</option><option value="173">Ukelele</option><option value="174">Valve Trombone</option><option value="175">Vibes</option><option value="176">Viola</option><option value="177">Viola Da Gamba</option><option value="178">Violin</option><option value="179">Vocals</option><option value="180">Wagner Tuba</option><option value="181">Woodwinds</option><option value="182">Xylophone</option><option value="183">Zither</option></select>
+</div>
+        </div>
+              </div>
+                    <div class="views-exposed-widget views-submit-button">
+      <input type="submit" id="edit-submit-member-pages" value="Search" class="form-submit" />    </div>
+      </div>
+</div>
+</div></form>    </div>
+  
+  
+      <div class="view-content">
+      <table  class="views-table cols-5">
+         <thead>
+      <tr>
+                  <th  class="views-field views-field-field-last-name active" scope="col">
+            <a href="/member-pages?order=field_last_name&amp;sort=desc" title="sort by Last Name" class="active">Last Name<img typeof="foaf:Image" src="https://nashvillemusicians.org/misc/arrow-desc.png" width="13" height="13" alt="sort descending" title="sort descending" /></a>          </th>
+                  <th  class="views-field views-field-field-first-name" scope="col">
+            <a href="/member-pages?order=field_first_name&amp;sort=asc" title="sort by First Name" class="active">First Name</a>          </th>
+                  <th  class="views-field views-field-field-primary-instruments" scope="col">
+            Primary Instrument(s)          </th>
+                  <th  class="views-field views-field-field-website-link" scope="col">
+            Website          </th>
+                  <th  class="views-field views-field-view-user" scope="col">
+            Options          </th>
+              </tr>
+    </thead>
+    <tbody>
+          <tr  class="odd views-row-first">
+                  <td  class="views-field views-field-field-last-name active">
+            N/A          </td>
+                  <td  class="views-field views-field-field-first-name">
+            N/A          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Autoharp          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/user/14911">View Profile</a><a href="/user/14911/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            N/A          </td>
+                  <td  class="views-field views-field-field-first-name">
+            N/A          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/user/15074">View Profile</a><a href="/user/15074/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            N/A          </td>
+                  <td  class="views-field views-field-field-first-name">
+            N/A          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Keyboards, Piano          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/user/15141">View Profile</a><a href="/user/15141/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            N/A          </td>
+                  <td  class="views-field views-field-field-first-name">
+            N/A          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Viola          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/user/15168">View Profile</a><a href="/user/15168/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            N/A          </td>
+                  <td  class="views-field views-field-field-first-name">
+            N/A          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/user/15073">View Profile</a><a href="/user/15073/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            N/A          </td>
+                  <td  class="views-field views-field-field-first-name">
+            javon          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Composer, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="https://visionz2turnt.com" target="_blank">https://visionz2turnt.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/javon">View Profile</a><a href="/user/15197/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            A.K.A. Eric Wayne          </td>
+                  <td  class="views-field views-field-field-first-name">
+            &quot;CORNBREAD&quot;          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass, Bass Guitar, Guitar, Teacher, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.cornbreadofficial.com" target="_blank">http://www.cornbreadofficial.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/cornbread-aka-eric-wayne">View Profile</a><a href="/user/13874/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Abdo          </td>
+                  <td  class="views-field views-field-field-first-name">
+            David          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass, Bass Guitar, Electric Upright Bass, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://davidabdomusic.com" target="_blank">http://davidabdomusic.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/david-abdo">View Profile</a><a href="/user/13116/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Ablon          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Judith          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Viola          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/judith-ablon">View Profile</a><a href="/user/10927/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Ackerman          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Trey          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/trey-ackerman">View Profile</a><a href="/user/13903/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Adams          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Richard          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Composer, Copyist, Drum Programmer, Drums, Percussion          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.richardscottadams.com" target="_blank">http://www.richardscottadams.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/richard-adams">View Profile</a><a href="/user/10930/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Adams          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Jeff          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Trombone, Didgeridoo, Euphonium, Trombone          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.SlideAdams.com" target="_blank">http://www.SlideAdams.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/jeff-adams">View Profile</a><a href="/user/13484/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Adcock          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Martha          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/martha-adcock">View Profile</a><a href="/user/10932/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Addleman          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Wayne          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Steel Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/wayne-addleman">View Profile</a><a href="/user/10934/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Agee          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Roy          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Arranger, Bass Trombone, Trombone          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/roy-agee">View Profile</a><a href="/user/10935/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Agresta-Copely          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Kirsten          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Arranger, Harp          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.kirstenagresta.com" target="_blank">http://www.kirstenagresta.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/kirsten-agresta-copely">View Profile</a><a href="/user/11204/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Ai          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Tianpei          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Violin          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/tianpei-ai">View Profile</a><a href="/user/14704/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Ainlay          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Chuck          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Engineer          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://chuckainlay.com" target="_blank">http://chuckainlay.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/chuck-ainlay">View Profile</a><a href="/user/14560/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Alan          </td>
+                  <td  class="views-field views-field-field-first-name">
+            David          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Accordion, Keyboards, Melodica, Organ, Piano, Synthesizer          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="https://musicrowcreative.com" target="_blank">https://musicrowcreative.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/david-alan">View Profile</a><a href="/user/14509/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Albert          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Kenneth          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Steel Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/kenneth-albert">View Profile</a><a href="/user/14143/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Albin          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Brad          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass, Bass Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/brad-albin">View Profile</a><a href="/user/10941/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Albrecht          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Carl          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Composer, Conga Drums, Drum Programmer, Drums, Electronic Percussion, Engineer, Guitar, Latin Percussion, Percussion, Tambourine, Teacher, Timbales, Timpany          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://carlalbrecht.com/" target="_blank">http://carlalbrecht.com/</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/carl-albrecht">View Profile</a><a href="/user/10942/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Alexander          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Chrissy          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/chrissy-alexander">View Profile</a><a href="/user/14981/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Aliquo          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Don          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Alto Sax, Baritone Saxophone, Bass Clarinet, Clarinet, Flute, Saxophone, Soprano Saxophone, Teacher, Tenor Saxophone, Woodwinds          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/don-aliquo">View Profile</a><a href="/user/10947/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Allen          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Mark          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Arranger, Bass Guitar, Drum Programmer, Engineer, Guitar, Keyboards, Mandolin, Pennywhistle, Percussion, Piano, Programmer, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="https://www.markallennashville.com" target="_blank">https://www.markallennashville.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/mark-allen">View Profile</a><a href="/user/10949/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Allen          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Brian          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass, Bass Guitar, Cello          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.brianallenonbass.com" target="_blank">http://www.brianallenonbass.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/brian-allen">View Profile</a><a href="/user/10948/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Allen          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Timothy (Seph)          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Drums, Percussion          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.quindarmedia.com" target="_blank">http://www.quindarmedia.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/timothy-seph-allen">View Profile</a><a href="/user/13247/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Allen          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Kate          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Piano, Ukelele          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://k8allen.com" target="_blank">http://k8allen.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/kate-allen">View Profile</a><a href="/user/14572/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Alpher          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Victor          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Banjo, Button Accordian, Fiddle, Guitar, Mandolin, Piano, Rhythm Guitar, Teacher, Viola, Violin, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/victor-alpher">View Profile</a><a href="/user/10954/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Alvey          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Michael          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Piano          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/michael-alvey">View Profile</a><a href="/user/10957/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Amundson          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Monti          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.bigmonti.com" target="_blank">http://www.bigmonti.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/monti-amundson">View Profile</a><a href="/user/13838/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Anderson          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Kenneth          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Alto Sax, Arranger, Baritone Saxophone, Clarinet, Flute, Latin Percussion, Piano, Piccolo, Saxophone, Teacher, Tenor Saxophone, Woodwinds          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/kenneth-anderson">View Profile</a><a href="/user/10961/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Anderson          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Muriel          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Classical Guitar, Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://murielanderson.com" target="_blank">http://murielanderson.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/muriel-anderson">View Profile</a><a href="/user/10963/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Anderson          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Travis          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass, Bass Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="https://www.travisandersonmusic.com" target="_blank">https://www.travisandersonmusic.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/travis-anderson">View Profile</a><a href="/user/13866/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Angelico          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Ellen          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://ellenangelico.com" target="_blank">http://ellenangelico.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/ellen-angelico">View Profile</a><a href="/user/14266/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Angello          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Robert          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar, Dobro, Guitar, Rhythm Guitar, Steel Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.angellosoundstudio.com" target="_blank">http://www.angellosoundstudio.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/robert-angello">View Profile</a><a href="/user/13026/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            ANGER          </td>
+                  <td  class="views-field views-field-field-first-name">
+            DAROL          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Fiddle, Mandolin, Teacher          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://darolanger.com" target="_blank">http://darolanger.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/darol-anger">View Profile</a><a href="/user/14355/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Annie          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Rattlesnake          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar, Keyboards          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/rattlesnake-annie">View Profile</a><a href="/user/10968/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Apter          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Aaron          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Drum Programmer, Drums, Mallet Percussion, Percussion          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://youtube.com/aaronapter" target="_blank">http://youtube.com/aaronapter</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/aaron-apter">View Profile</a><a href="/user/14657/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Archer          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Randy          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Rhythm Guitar, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/randy-archer">View Profile</a><a href="/user/10970/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Arlowm          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Ark D.          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Drums, Percussion          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://arkdarlowm.net" target="_blank">http://arkdarlowm.net</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/ark-d-arlowm">View Profile</a><a href="/user/12866/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Arnn          </td>
+                  <td  class="views-field views-field-field-first-name">
+            John          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Piano          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/john-arnn">View Profile</a><a href="/user/10974/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Arnold          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Zack          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Banjo, Guitar, Mandolin          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/zack-arnold">View Profile</a><a href="/user/14422/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Arnold          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Gus          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Alto Flute, Alto Sax, Arranger, Baritone Saxophone, Bass Clarinet, Clarinet, Composer, Copyist, Flute, Piccolo, Saxophone, Soprano Saxophone, Teacher, Tenor Saxophone, Woodwinds          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.gusarnold.com" target="_blank">http://www.gusarnold.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/gus-arnold">View Profile</a><a href="/user/14279/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Arnold          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Stephen (Steve)           </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.human-radio.com" target="_blank">http://www.human-radio.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/stephen-steve-arnold">View Profile</a><a href="/user/10977/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Arnold          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Phil          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar, Engineer          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/phil-arnold">View Profile</a><a href="/user/10975/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Arrowood          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Brian          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Fiddle, Violin          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.brianarrowood.com/" target="_blank">http://www.brianarrowood.com/</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/brian-arrowood">View Profile</a><a href="/user/10978/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Arrowsmith          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Kevin          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass, Bass Guitar, Fiddle, Guitar, Mandolin, Programmer, Teacher, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/kevin-arrowsmith">View Profile</a><a href="/user/10979/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Arroyo          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Ernie          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar, Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.ernietunes.com" target="_blank">http://www.ernietunes.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/ernie-arroyo">View Profile</a><a href="/user/15049/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Arrucci          </td>
+                  <td  class="views-field views-field-field-first-name">
+            John          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Afro-Latin, Composer, Conga Drums, Drums, Latin Percussion, Mallet Percussion, Percussion, Vibes          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="https://www.johnarrucci.com" target="_blank">https://www.johnarrucci.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/john-arrucci">View Profile</a><a href="/user/14119/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Arthur          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Rob          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Keyboards, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.robarthur.com" target="_blank">http://www.robarthur.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/rob-arthur">View Profile</a><a href="/user/13264/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Avci          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Benan          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Keyboards, Piano, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/benan-avci">View Profile</a><a href="/user/15051/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Avey          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Norman(Gene)          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar, Piano          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.reverbnation.com/normanavey" target="_blank">http://www.reverbnation.com/normanavey</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/normangene-avey">View Profile</a><a href="/user/10984/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bachari          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Alex          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar, Composer, Guitar, Rhythm Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://akexbachari.com" target="_blank">http://akexbachari.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/alex-bachari">View Profile</a><a href="/user/13829/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Back          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Kelly          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Classical Guitar, Guitar, Rhythm Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/kelly-back">View Profile</a><a href="/user/10988/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bailey          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Preston          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Trumpet          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/preston-bailey">View Profile</a><a href="/user/10990/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Bailey          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Carolyn (Carrie)          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Violin          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/carolyn-carrie-bailey">View Profile</a><a href="/user/10993/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Balph          </td>
+                  <td  class="views-field views-field-field-first-name">
+            David          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Fluegelhorn, Teacher, Trombone, Trumpet, Valve Trombone          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.DavidBalph.com" target="_blank">http://www.DavidBalph.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/david-balph">View Profile</a><a href="/user/11003/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Balut          </td>
+                  <td  class="views-field views-field-field-first-name">
+            John          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Alto Sax, Baritone Saxophone, Bass Clarinet, Clarinet, Flute, Guitar, Piccolo, Soprano Saxophone, Tenor Saxophone          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/john-balut">View Profile</a><a href="/user/13893/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Banks          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Victoria          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.victoriabanks.net" target="_blank">http://www.victoriabanks.net</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/victoria-banks">View Profile</a><a href="/user/11004/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Barken          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Ken          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Arranger, Composer, Conga Drums, Euphonium, Fluegelhorn, Latin Percussion, Piccolo Trumpet, Trumpet, Valve Trombone          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.masterrecs.com" target="_blank">http://www.masterrecs.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/ken-barken">View Profile</a><a href="/user/13467/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Barnes          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Larry          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/larry-barnes">View Profile</a><a href="/user/11010/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Barnett          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Adrian          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Alto Sax, Arranger, Baritone Saxophone, Bass Clarinet, Clarinet, Composer, Conductor, Contractor, Flute, Saxophone, Soprano Saxophone, Teacher, Tenor Saxophone, Woodwinds          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.adrianbarnett.com" target="_blank">http://www.adrianbarnett.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/adrian-barnett">View Profile</a><a href="/user/13151/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Barranco          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Vince          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Drums, Electronic Percussion, Keyboards, Percussion, Piano, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.msgrammy.com/downloads/2008_program.pdf" target="_blank">http://www.msgrammy.com/downloads/2008_program.pdf</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/vince-barranco">View Profile</a><a href="/user/11013/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Barrett          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Patterson          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar, Guitar, Keyboards, Lap Steel, Organ, Piano, Rhythm Guitar, Steel Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://pattersonbarrett.com/" target="_blank">http://pattersonbarrett.com/</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/patterson-barrett">View Profile</a><a href="/user/13218/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Barron          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Jay          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/jay-barron">View Profile</a><a href="/user/13452/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Barrow          </td>
+                  <td  class="views-field views-field-field-first-name">
+            William          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Accordion, Keyboards, Piano, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/william-barrow">View Profile</a><a href="/user/11015/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bartles          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Isabel          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Violin          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/isabel-bartles">View Profile</a><a href="/user/11018/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Barton          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Dave          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass, Bass Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/dave-barton">View Profile</a><a href="/user/13756/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bartram          </td>
+                  <td  class="views-field views-field-field-first-name">
+            James          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass, Bass Guitar, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/james-bartram">View Profile</a><a href="/user/11019/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Bate          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Kevin          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Cello          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.kevinbate.com" target="_blank">http://www.kevinbate.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/kevin-bate">View Profile</a><a href="/user/12778/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bayers          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Edward          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Drums          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://eddiebayers.com" target="_blank">http://eddiebayers.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/edward-bayers">View Profile</a><a href="/user/11021/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Beard          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Adam          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar, Engineer, Trumpet          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://beardwithabeard.com" target="_blank">http://beardwithabeard.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/adam-beard">View Profile</a><a href="/user/11026/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Beaver          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Stan          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar, Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://stanbeaver.com" target="_blank">http://stanbeaver.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/stan-beaver">View Profile</a><a href="/user/11028/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Beckett          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Mark          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Conga Drums, Drums, Percussion          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/mark-beckett">View Profile</a><a href="/user/11030/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bedell          </td>
+                  <td  class="views-field views-field-field-first-name">
+            David          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Drums          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/david-bedell">View Profile</a><a href="/user/14519/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Bellavance          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Sam          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/sam-bellavance">View Profile</a><a href="/user/15090/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Belote          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Doug          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Drums          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://dougbelote.com" target="_blank">http://dougbelote.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/doug-belote">View Profile</a><a href="/user/13237/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Bennett          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Richard          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.richard-bennett.com/" target="_blank">http://www.richard-bennett.com/</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/richard-bennett">View Profile</a><a href="/user/11039/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bennett          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Elena          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Piano          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/elena-bennett">View Profile</a><a href="/user/11038/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Benoit          </td>
+                  <td  class="views-field views-field-field-first-name">
+            C.J.          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Alto Sax, Banjo, Bass Guitar, Drums, Guitar, Harmonica, Jew&#039;s Harp, Lap Steel, Mandolin, Rhythm Guitar, Scrub (Wash) Board, Tambourine, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/cj-benoit">View Profile</a><a href="/user/13631/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Benson          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Edwin          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar, Guitar, Keyboards, Piano, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/edwin-benson">View Profile</a><a href="/user/11040/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Bergeson          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Patrick          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Guitar, Harmonica, Mandolin          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://patbergeson.com" target="_blank">http://patbergeson.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/patrick-bergeson">View Profile</a><a href="/user/11041/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bey          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Daniel          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Alto Flute, Alto Sax, Arranger, Baritone Saxophone, Clarinet, Composer, Conductor, Contractor, Copyist, Flute, Recorder, Saxophone, Soprano Saxophone, Teacher, Tenor Saxophone, Woodwinds          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/daniel-bey">View Profile</a><a href="/user/11046/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Bietry          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Brad          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Arranger, Composer, Keyboards, Organ, Piano, Programmer, Synthesizer          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://bradbietry.com" target="_blank">http://bradbietry.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/brad-bietry">View Profile</a><a href="/user/13841/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bifano          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Jenny          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Violin          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/jenny-bifano">View Profile</a><a href="/user/12983/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Bikales          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Eric          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Alto Flute, Bass Flute, Flute, Keyboards, Melodica, Organ, Piano, Synthesizer, Teacher          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.ericbikales.com" target="_blank">http://www.ericbikales.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/eric-bikales">View Profile</a><a href="/user/11047/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Billingslea          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Matthew          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Drums          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.mattbillingslea.com" target="_blank">http://www.mattbillingslea.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/matthew-billingslea">View Profile</a><a href="/user/11048/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Biltonen          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Justin          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass, Bass Guitar, Guitar, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/justin-biltonen">View Profile</a><a href="/user/13000/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bingham          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Emelyne          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass, Bagpipes, Electric Upright Bass, Piano, Tuba          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/emelyne-bingham">View Profile</a><a href="/user/11049/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Binkley          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Paul Carrol          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Arranger, Composer, Conductor, Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.paulcarrolbinkley.com" target="_blank">http://www.paulcarrolbinkley.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/paul-carrol-binkley">View Profile</a><a href="/user/14139/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bisagno          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Oliver          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass, Bass Guitar, Fiddle          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/oliver-bisagno">View Profile</a><a href="/user/14317/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Bish          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Evan          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Acoustic Bass          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/evan-bish">View Profile</a><a href="/user/14376/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Bissell          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Roger          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Arranger, Baritone Horn, Bass Trombone, Composer, Conductor, Copyist, Euphonium, Trombone, Tuba, Valve Trombone, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.rogerbissell.com" target="_blank">http://www.rogerbissell.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/roger-bissell">View Profile</a><a href="/user/11052/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Bissell          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Shelton          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Alto Sax, Arranger, Baritone Saxophone          </td>
+                  <td  class="views-field views-field-field-website-link">
+            <a href="http://www.sheltonbissell.com" target="_blank">http://www.sheltonbissell.com</a>          </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/shelton-bissell">View Profile</a><a href="/user/11051/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Black          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Brittini          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/brittini-black">View Profile</a><a href="/user/14836/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Blackstock          </td>
+                  <td  class="views-field views-field-field-first-name">
+            John          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/john-blackstock">View Profile</a><a href="/user/15186/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even">
+                  <td  class="views-field views-field-field-last-name active">
+            Blazek          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Alec          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Cornet COR, Fluegelhorn, Piccolo Trumpet, Trumpet          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/alec-blazek">View Profile</a><a href="/user/13133/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="odd">
+                  <td  class="views-field views-field-field-last-name active">
+            Bogan          </td>
+                  <td  class="views-field views-field-field-first-name">
+            Lee          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Bass Guitar, Drums, Engineer, Guitar, Keyboards, Organ, Piano, Rhythm Guitar, Vocals          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/lee-bogan">View Profile</a><a href="/user/11060/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+          <tr  class="even views-row-last">
+                  <td  class="views-field views-field-field-last-name active">
+            Bohlinger          </td>
+                  <td  class="views-field views-field-field-first-name">
+            John          </td>
+                  <td  class="views-field views-field-field-primary-instruments">
+            Dobro, Guitar, Harmonica, Mandolin, Steel Guitar          </td>
+                  <td  class="views-field views-field-field-website-link">
+                      </td>
+                  <td  class="views-field views-field-view-user">
+            <a href="/users/john-bohlinger">View Profile</a><a href="/user/11061/contact?destination=member-pages">Contact</a>           </td>
+              </tr>
+      </tbody>
+</table>
+    </div>
+  
+      <h2 class="element-invisible">Pages</h2><div class="item-list"><ul class="pager"><li class="pager-current first">1</li>
+<li class="pager-item"><a title="Go to page 2" href="/member-pages?page=1">2</a></li>
+<li class="pager-item"><a title="Go to page 3" href="/member-pages?page=2">3</a></li>
+<li class="pager-item"><a title="Go to page 4" href="/member-pages?page=3">4</a></li>
+<li class="pager-item"><a title="Go to page 5" href="/member-pages?page=4">5</a></li>
+<li class="pager-item"><a title="Go to page 6" href="/member-pages?page=5">6</a></li>
+<li class="pager-item"><a title="Go to page 7" href="/member-pages?page=6">7</a></li>
+<li class="pager-item"><a title="Go to page 8" href="/member-pages?page=7">8</a></li>
+<li class="pager-item"><a title="Go to page 9" href="/member-pages?page=8">9</a></li>
+<li class="pager-ellipsis">…</li>
+<li class="pager-next"><a title="Go to next page" href="/member-pages?page=1">next ›</a></li>
+<li class="pager-last last"><a title="Go to last page" href="/member-pages?page=12">last »</a></li>
+</ul></div>  
+  
+  
+  
+  
+</div>          </div><!-- /#content -->
+
+    <div id="navigation">
+
+      
+      
+    </div><!-- /#navigation -->
+
+    
+    
+  </div><!-- /#main -->
+
+    <footer id="footer" class="region region-footer">
+    <div id="block-block-16" class="block block-block first odd">
+
+      
+  <div><a href="http://www.musicares.org"><img alt="" class="media-element file-default" data-file_info="%7B%22fid%22:%221437%22,%22view_mode%22:%22default%22,%22fields%22:%7B%22format%22:%22default%22,%22field_file_image_alt_text%5Bund%5D%5B0%5D%5Bvalue%5D%22:%22%22,%22field_file_image_title_text%5Bund%5D%5B0%5D%5Bvalue%5D%22:%22%22,%22field_folder%5Bund%5D%22:%2264%22%7D,%22type%22:%22media%22%7D" src="/sites/default/files/MC2color_clearbkgnd3.png" typeof="foaf:Image" /></a><a href="http://www.afm.org"><img alt="" class="media-element file-hg-media-image-medium" data-file_info="%7B%22fid%22:%223512%22,%22view_mode%22:%22hg_media_image_medium%22,%22fields%22:%7B%22format%22:%22hg_media_image_medium%22,%22field_file_image_alt_text%5Bund%5D%5B0%5D%5Bvalue%5D%22:%22%22,%22field_file_image_title_text%5Bund%5D%5B0%5D%5Bvalue%5D%22:%22%22,%22field_folder%5Bund%5D%22:%2264%22%7D,%22type%22:%22media%22%7D" src="/sites/default/files/styles/hg_media_image_medium/public/AFMLogo_new.png?itok=mltqeU-A" style="width: 125px; height: 141px;" title="" typeof="foaf:Image" /></a>     <a href="http://www.musiciansofthenashvillesymphony.org">  <img alt="" class="media-element file-default" data-file_info="%7B%22fid%22:%221438%22,%22view_mode%22:%22default%22,%22fields%22:%7B%22format%22:%22default%22,%22field_file_image_alt_text%5Bund%5D%5B0%5D%5Bvalue%5D%22:%22%22,%22field_file_image_title_text%5Bund%5D%5B0%5D%5Bvalue%5D%22:%22%22,%22field_folder%5Bund%5D%22:%2264%22%7D,%22type%22:%22media%22%7D" src="/sites/default/files/MONSO2.png" typeof="foaf:Image" /></a><a href="http://www.afm-epf.org"><img alt="" class="media-element file-default" data-file_info="%7B%22fid%22:%221441%22,%22view_mode%22:%22default%22,%22fields%22:%7B%22format%22:%22default%22,%22field_file_image_alt_text%5Bund%5D%5B0%5D%5Bvalue%5D%22:%22%22,%22field_file_image_title_text%5Bund%5D%5B0%5D%5Bvalue%5D%22:%22%22,%22field_folder%5Bund%5D%22:%2264%22%7D,%22type%22:%22media%22%7D" src="/sites/default/files/AFM-EPF_Logo3_0.png" style="margin-top: 2px; margin-bottom: 2px;" typeof="foaf:Image" /></a></div>
+
+</div>
+<div id="block-menu-menu-footer-menu" class="block block-menu even" role="navigation">
+
+      
+  <ul class="menu"><li class="menu__item is-leaf first leaf"><a href="/faq-page" title="" class="menu__link">FAQ </a></li>
+<li class="menu__item is-leaf leaf"><a href="/member-services-catalog" title="" class="menu__link">Member Services Catalog</a></li>
+<li class="menu__item is-leaf leaf"><a href="https://www.afm.org/for-members/find-my-local/" class="menu__link">Full Local Listing</a></li>
+<li class="menu__item is-leaf last leaf"><a href="https://www.afm.org/auth/login/" title="" class="menu__link">My AFM</a></li>
+</ul>
+</div>
+<div id="block-block-20" class="block block-block last odd">
+
+      
+  <div class="copyright-footer"><span class='copyright'>© Copyright 2009-2026 Nashville Musicians Association</span>
+</div>
+  </footer>
+
+</div><!-- /#page -->
+
+    <div class="region region-page-bottom">
+    <div id="fb-root" class="fb_module"></div>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+  jQuery.extend(Drupal.settings, {"fb":{"base_url":"https:\/\/nashvillemusicians.org","ajax_event_url":"https:\/\/nashvillemusicians.org\/fb\/ajax","is_anonymous":true,"fb_init_settings":{"xfbml":false,"status":false,"oauth":true,"cookie":true,"channelUrl":"https:\/\/nashvillemusicians.org\/fb\/channel"},"test_login_status":true,"get_login_status":true,"controls":"","js_sdk_url":"https:\/\/connect.facebook.net\/en_US\/all.js"}});
+
+if (typeof(FB) == 'undefined') {
+  var e = document.createElement('script');
+  e.async = true;
+  e.src = Drupal.settings.fb.js_sdk_url;
+  document.getElementById('fb-root').appendChild(e);
+}
+
+
+//--><!]]>
+
+</script>
+  </div>
+</body>
+</html>

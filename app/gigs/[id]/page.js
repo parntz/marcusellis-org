@@ -24,7 +24,8 @@ function getDisplayNotes(notes) {
 }
 
 export async function generateMetadata({ params }) {
-  const id = parseGigId(params);
+  const resolvedParams = await params;
+  const id = parseGigId(resolvedParams);
   const gig = id ? await getGigById(id) : null;
   if (!gig) {
     return {
@@ -39,7 +40,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function GigDetailPage({ params }) {
-  const id = parseGigId(params);
+  const resolvedParams = await params;
+  const id = parseGigId(resolvedParams);
   if (!id) notFound();
 
   const gig = await getGigById(id);

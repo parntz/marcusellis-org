@@ -651,6 +651,128 @@ function buildMirrorPages(htmlFiles, knownRoutes, assetRecordsByPath) {
   });
 }
 
+function buildCustomMirrorPages() {
+  return [
+    {
+      kind: "mirror-page",
+      route: "/terms-of-use",
+      sourcePath: "/terms-of-use/",
+      title: "Terms of Use",
+      summary:
+        "Terms governing use of the Nashville Musicians Association website and related services.",
+      metaDescription:
+        "Terms of Use for the Nashville Musicians Association website.",
+      bodyHtml: `
+<h1>Terms of Use</h1>
+<p>Last updated: April 5, 2026</p>
+<p>
+  By accessing or using this website, you agree to these Terms of Use. If you do not
+  agree, please discontinue use of the site.
+</p>
+<h2>Use of Site Content</h2>
+<p>
+  Unless otherwise indicated, site content is provided for informational purposes related
+  to Nashville Musicians Association and its services. You may view and print content for
+  personal, non-commercial use.
+</p>
+<h2>Acceptable Use</h2>
+<p>
+  You agree not to misuse the site, attempt unauthorized access, interfere with normal
+  operation, or submit malicious code.
+</p>
+<h2>External Links</h2>
+<p>
+  This site may link to third-party websites. Nashville Musicians Association is not
+  responsible for the content, practices, or availability of those external sites.
+</p>
+<h2>Disclaimer</h2>
+<p>
+  Site content is provided on an "as is" and "as available" basis without warranties of
+  any kind, express or implied, to the fullest extent permitted by law.
+</p>
+<h2>Limitation of Liability</h2>
+<p>
+  Nashville Musicians Association is not liable for damages arising from use of, or
+  inability to use, this site, except where prohibited by law.
+</p>
+<h2>Changes to These Terms</h2>
+<p>
+  We may update these terms from time to time. Continued use of the site after updates
+  constitutes acceptance of the revised terms.
+</p>
+<h2>Contact</h2>
+<p>
+  Questions about these terms may be directed through the contact information available on
+  this website.
+</p>
+      `.trim(),
+      pageAssetPaths: [],
+      pageAssets: [],
+    },
+    {
+      kind: "mirror-page",
+      route: "/privacy-policy",
+      sourcePath: "/privacy-policy/",
+      title: "Privacy Policy",
+      summary:
+        "How Nashville Musicians Association collects, uses, and protects information collected through this website.",
+      metaDescription:
+        "Privacy Policy for the Nashville Musicians Association website.",
+      bodyHtml: `
+<h1>Privacy Policy</h1>
+<p>Last updated: April 5, 2026</p>
+<p>
+  This Privacy Policy describes how Nashville Musicians Association may collect, use, and
+  safeguard information when you use this website.
+</p>
+<h2>Information We Collect</h2>
+<p>
+  We may collect information you provide directly (for example, through forms or account
+  registration) and technical information such as browser type, device information, and
+  usage data.
+</p>
+<h2>How Information Is Used</h2>
+<p>
+  Information may be used to provide services, respond to inquiries, improve site
+  functionality, and support union-related communications.
+</p>
+<h2>Cookies and Analytics</h2>
+<p>
+  The site may use cookies or similar technologies to remember preferences and understand
+  site traffic patterns.
+</p>
+<h2>Data Sharing</h2>
+<p>
+  We do not sell personal information. Information may be shared with service providers or
+  as required by law.
+</p>
+<h2>Data Security</h2>
+<p>
+  We use reasonable administrative and technical safeguards to protect information, but no
+  method of transmission or storage is completely secure.
+</p>
+<h2>Your Choices</h2>
+<p>
+  You may contact us to request updates or corrections to information you have submitted
+  through this site, where applicable.
+</p>
+<h2>Policy Updates</h2>
+<p>
+  We may revise this policy from time to time. The updated version will be posted on this
+  page with a revised effective date.
+</p>
+<h2>Contact</h2>
+<p>
+  For privacy-related questions, please use the contact information provided on this
+  website.
+</p>
+      `.trim(),
+      pageAssetPaths: [],
+      pageAssets: [],
+    },
+  ];
+}
+
 function buildDownloadedAssetPages(assetRecords, mirroredPageCount) {
   const groups = [
     ["images", "Images"],
@@ -746,15 +868,6 @@ function buildSiteMeta(analysis, homepageHtml, assetRecordsByPath) {
   };
 }
 
-function addDownloadedAssetsNav(primaryNav) {
-  const alreadyPresent = primaryNav.some((item) => item.href === "/downloaded-assets");
-  if (alreadyPresent) {
-    return primaryNav;
-  }
-
-  return [...primaryNav, { label: "Downloaded Assets", href: "/downloaded-assets" }];
-}
-
 function generateModuleSource(data) {
   return `export const primaryNav = ${JSON.stringify(data.primaryNav, null, 2)};
 
@@ -792,7 +905,7 @@ const htmlFiles = walkDir(mirrorDir)
 
 const knownRoutes = new Set(htmlFiles.map(routeFromHtmlFile));
 const homepageHtml = fs.readFileSync(path.join(mirrorDir, "index.html"), "utf8");
-const primaryNav = addDownloadedAssetsNav(buildNavigation(homepageHtml, analysis, knownRoutes));
+const primaryNav = buildNavigation(homepageHtml, analysis, knownRoutes);
 const utilityNav = buildUtilityNav(analysis, knownRoutes);
 const mirroredPages = buildMirrorPages(htmlFiles, knownRoutes, assetRecordsByPath);
 const siteMeta = buildSiteMeta(analysis, homepageHtml, assetRecordsByPath);
@@ -817,16 +930,22 @@ const enrichedMirrorPages = mirroredPages.map((page) => ({
       label: asset.name,
     })),
 }));
+const customMirrorPages = buildCustomMirrorPages();
+const mirrorPageMap = new Map(enrichedMirrorPages.map((page) => [page.route, page]));
+for (const page of customMirrorPages) {
+  mirrorPageMap.set(page.route, page);
+}
+const mergedMirrorPages = Array.from(mirrorPageMap.values());
 
 const downloadedAssetPages = buildDownloadedAssetPages(
   assetRecords.map((asset) => ({
     ...asset,
     pageCount: assetUsageCounts.get(asset.path) || 0,
   })),
-  enrichedMirrorPages.length
+  mergedMirrorPages.length
 );
 
-const pages = [...enrichedMirrorPages, ...downloadedAssetPages].sort((left, right) =>
+const pages = [...mergedMirrorPages, ...downloadedAssetPages].sort((left, right) =>
   left.route.localeCompare(right.route)
 );
 const pageMap = Object.fromEntries(pages.map((page) => [page.route, page]));
@@ -838,7 +957,7 @@ const data = {
   siteMeta,
   siteTheme: buildSiteTheme(analysis, homepageHtml),
   siteStats: {
-    mirroredPageCount: enrichedMirrorPages.length,
+    mirroredPageCount: mergedMirrorPages.length,
     pageCount: pages.length,
     assetCount: assetRecords.length,
   },

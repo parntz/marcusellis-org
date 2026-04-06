@@ -29,7 +29,8 @@ async function resolvePageForRoute(route) {
 }
 
 export async function generateMetadata({ params }) {
-  const route = normalizeRouteFromSegments(params.slug);
+  const resolvedParams = await params;
+  const route = normalizeRouteFromSegments(resolvedParams?.slug);
   const page = await resolvePageForRoute(route);
 
   if (!page) {
@@ -45,12 +46,14 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function CatchAllPage({ params, searchParams }) {
-  const route = normalizeRouteFromSegments(params.slug);
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+  const route = normalizeRouteFromSegments(resolvedParams?.slug);
   const page = await resolvePageForRoute(route);
 
   if (!page) {
     notFound();
   }
 
-  return <MirroredPage page={page} searchParams={searchParams} />;
+  return <MirroredPage page={page} searchParams={resolvedSearchParams} />;
 }

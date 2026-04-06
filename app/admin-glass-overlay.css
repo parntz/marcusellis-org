@@ -12,7 +12,8 @@
 .gig-card__admin-overlay,
 .news-events-item__admin-overlay,
 .member-links-card__admin-overlay,
-.hero-image-content__admin-overlay {
+.hero-image-content__admin-overlay,
+.recording-page-edit-overlay {
   position: absolute;
   inset: 0;
   z-index: 3;
@@ -20,8 +21,19 @@
   align-items: stretch;
   justify-content: stretch;
   overflow: hidden;
-  pointer-events: none;
   isolation: isolate;
+}
+
+.gig-card__admin-overlay,
+.news-events-item__admin-overlay,
+.member-links-card__admin-overlay,
+.hero-image-content__admin-overlay {
+  pointer-events: none;
+}
+
+.recording-page-edit-overlay {
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .recording-sidebar-box__admin-overlay,
@@ -55,6 +67,7 @@
 /* “EDIT” chip (omit news/events — screen readers use the row button label) */
 .gig-card__admin-overlay::after,
 .member-links-card__admin-overlay::after,
+.recording-page-edit-overlay::after,
 .recording-sidebar-box__admin-overlay::after,
 .page-header-callout .callout-admin-overlay::after,
 .page-header-text-admin-overlay::after {
@@ -78,6 +91,7 @@
 .gig-card__admin-overlay::before,
 .news-events-item__admin-overlay::before,
 .hero-image-content__admin-overlay::before,
+.recording-page-edit-overlay::before,
 .member-links-card__admin-overlay::before,
 .recording-sidebar-box__admin-overlay::before,
 .page-header-callout .callout-admin-overlay::before,
@@ -96,6 +110,7 @@
 .gig-card__admin-overlay__wash,
 .news-events-item__admin-overlay__wash,
 .hero-image-content__admin-overlay__wash,
+.recording-page-edit-overlay__wash,
 .member-links-card__admin-overlay__wash,
 .page-header-callout .callout-admin-overlay__wash,
 .page-header-text-admin-overlay__wash {
@@ -132,6 +147,7 @@
 .gig-card__admin-overlay__wash::before,
 .news-events-item__admin-overlay__wash::before,
 .hero-image-content__admin-overlay__wash::before,
+.recording-page-edit-overlay__wash::before,
 .member-links-card__admin-overlay__wash::before,
 .recording-sidebar-box__admin-overlay__wash::before,
 .page-header-callout .callout-admin-overlay__wash::before,
@@ -150,6 +166,7 @@
 .gig-card__admin-overlay__glass,
 .news-events-item__admin-overlay__glass,
 .hero-image-content__admin-overlay__glass,
+.recording-page-edit-overlay__glass,
 .member-links-card__admin-overlay__glass,
 .recording-sidebar-box__admin-overlay__glass,
 .page-header-callout .callout-admin-overlay__glass,
@@ -164,6 +181,7 @@
 .gig-card__admin-overlay__glass--sweep,
 .news-events-item__admin-overlay__glass--sweep,
 .hero-image-content__admin-overlay__glass--sweep,
+.recording-page-edit-overlay__glass--sweep,
 .member-links-card__admin-overlay__glass--sweep,
 .recording-sidebar-box__admin-overlay__glass--sweep,
 .page-header-callout .callout-admin-overlay__glass--sweep,
@@ -176,6 +194,7 @@
 .gig-card__admin-overlay__glass--prism,
 .news-events-item__admin-overlay__glass--prism,
 .hero-image-content__admin-overlay__glass--prism,
+.recording-page-edit-overlay__glass--prism,
 .member-links-card__admin-overlay__glass--prism,
 .recording-sidebar-box__admin-overlay__glass--prism,
 .page-header-callout .callout-admin-overlay__glass--prism,
@@ -189,6 +208,7 @@
 .gig-card__admin-overlay__glass--ripple,
 .news-events-item__admin-overlay__glass--ripple,
 .hero-image-content__admin-overlay__glass--ripple,
+.recording-page-edit-overlay__glass--ripple,
 .member-links-card__admin-overlay__glass--ripple,
 .recording-sidebar-box__admin-overlay__glass--ripple,
 .page-header-callout .callout-admin-overlay__glass--ripple,
@@ -202,6 +222,7 @@
 .gig-card__admin-overlay__glass--flare,
 .news-events-item__admin-overlay__glass--flare,
 .hero-image-content__admin-overlay__glass--flare,
+.recording-page-edit-overlay__glass--flare,
 .member-links-card__admin-overlay__glass--flare,
 .recording-sidebar-box__admin-overlay__glass--flare,
 .page-header-callout .callout-admin-overlay__glass--flare,
@@ -218,6 +239,8 @@
 .news-events-item__admin-overlay:focus-visible .news-events-item__admin-overlay__wash,
 .hero-image-content__admin-overlay[data-active="true"] .hero-image-content__admin-overlay__wash,
 .hero-image-content__admin-overlay:focus-visible .hero-image-content__admin-overlay__wash,
+.recording-page-edit-overlay[data-active="true"] .recording-page-edit-overlay__wash,
+.recording-page-edit-overlay:focus-visible .recording-page-edit-overlay__wash,
 .member-links-card__admin-overlay[data-active="true"] .member-links-card__admin-overlay__wash,
 .member-links-card__admin-overlay:focus-visible .member-links-card__admin-overlay__wash,
 .recording-sidebar-box__admin-overlay[data-active="true"] .recording-sidebar-box__admin-overlay__wash,
@@ -235,6 +258,8 @@
 .news-events-item__admin-overlay:focus-visible::before,
 .hero-image-content__admin-overlay[data-active="true"]::before,
 .hero-image-content__admin-overlay:focus-visible::before,
+.recording-page-edit-overlay[data-active="true"]::before,
+.recording-page-edit-overlay:focus-visible::before,
 .member-links-card__admin-overlay[data-active="true"]::before,
 .member-links-card__admin-overlay:focus-visible::before,
 .recording-sidebar-box__admin-overlay[data-active="true"]::before,
@@ -253,6 +278,8 @@
 
 .gig-card__admin-overlay[data-active="true"]::after,
 .gig-card__admin-overlay:focus-visible::after,
+.recording-page-edit-overlay[data-active="true"]::after,
+.recording-page-edit-overlay:focus-visible::after,
 .member-links-card__admin-overlay[data-active="true"]::after,
 .member-links-card__admin-overlay:focus-visible::after,
 .recording-sidebar-box__admin-overlay[data-active="true"]::after,

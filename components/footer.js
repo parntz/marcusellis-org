@@ -1,41 +1,35 @@
-import Image from "next/image";
 import Link from "next/link";
-import { primaryNav, siteMeta, utilityNav } from "../lib/site-data";
+import { siteMeta, utilityNav } from "../lib/site-data";
 
-/** Legacy Drupal promo tiles from `public/images/` (same art as nashvillemusicians.org). */
-const FOOTER_LOGO_LINKS = [
+const FOOTER_PARTNER_LINKS = [
   {
-    href: "/donate-here-plus-assistance-info-musicians",
-    label: "Donate",
-    src: "/images/slide-donate.jpeg",
-    width: 160,
-    height: 80,
+    href: "https://www.musicares.org",
+    label: "MusiCares",
+    src: "https://nashvillemusicians.org/sites/default/files/MC2color_clearbkgnd3.png",
   },
   {
-    href: "/live-music",
-    label: "Live music",
-    src: "/images/slide-live-music.jpg",
-    width: 160,
-    height: 80,
+    href: "https://www.afm.org",
+    label: "American Federation of Musicians",
+    src: "https://nashvillemusicians.org/sites/default/files/styles/hg_media_image_medium/public/AFMLogo_new.png?itok=mltqeU-A",
   },
   {
-    href: "/nashville-musician-magazine",
-    label: "Magazine",
-    src: "/images/slide-magazine.png",
-    width: 160,
-    height: 80,
+    href: "https://www.musiciansofthenashvillesymphony.org",
+    label: "Musicians of the Nashville Symphony",
+    src: "https://nashvillemusicians.org/sites/default/files/MONSO2.png",
   },
   {
-    href: null,
-    label: "Join",
-    src: "/images/slide-join.jpeg",
-    width: 160,
-    height: 80,
+    href: "https://www.afm-epf.org",
+    label: "AFM Employers Pension Fund",
+    src: "https://nashvillemusicians.org/sites/default/files/AFM-EPF_Logo3_0.png",
   },
 ];
 
+const FOOTER_LEGAL_LINKS = [
+  { href: "/terms-of-use", label: "Terms of Use" },
+  { href: "/privacy-policy", label: "Privacy Policy" },
+];
+
 export function Footer() {
-  const quickNav = primaryNav.slice(0, 6);
   const memberAction =
     utilityNav.find((item) => item.label.toLowerCase().includes("join"))?.href ||
     "/join-nashville-musicians-association";
@@ -49,33 +43,36 @@ export function Footer() {
           <Link href={memberAction} className="btn btn-primary footer-cta">
             Join the Union
           </Link>
+          <nav className="footer-legal-nav" aria-label="Legal">
+            {FOOTER_LEGAL_LINKS.map((item) => (
+              <Link key={item.href} href={item.href} className="footer-legal-link">
+                {item.label}
+              </Link>
+            ))}
+          </nav>
         </div>
 
-        <nav className="footer-nav" aria-label="Footer">
-          {quickNav.map((item) => (
-            <Link key={item.href} href={item.href} className="footer-link">
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <nav className="footer-promo-logos" aria-label="Featured links">
-          {FOOTER_LOGO_LINKS.map((item) => {
-            const href = item.href ?? memberAction;
+        <nav className="footer-promo-logos" aria-label="Partner links">
+          {FOOTER_PARTNER_LINKS.map((item) => {
             return (
-              <Link key={href} href={href} className="footer-promo-logo-link" aria-label={item.label}>
+              <a
+                key={item.href}
+                href={item.href}
+                className="footer-promo-logo-link"
+                aria-label={item.label}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <span className="footer-promo-logo-frame">
-                  <Image
+                  <img
                     src={item.src}
-                    alt=""
-                    width={item.width}
-                    height={item.height}
+                    alt={item.label}
                     className="footer-promo-logo-img"
-                    sizes="80px"
+                    loading="lazy"
                   />
                 </span>
-                <span className="footer-promo-logo-label">{item.label}</span>
-              </Link>
+                <span className="sr-only">{item.label}</span>
+              </a>
             );
           })}
         </nav>

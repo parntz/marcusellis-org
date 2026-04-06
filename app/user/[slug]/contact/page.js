@@ -26,14 +26,16 @@ function buildStatus(searchParams) {
 }
 
 export default async function ContactMemberPage({ params, searchParams }) {
-  const target = await resolveMemberContactTarget(params.slug);
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+  const target = await resolveMemberContactTarget(resolvedParams?.slug);
   if (!target) notFound();
 
   const canSend = hasDefaultInboxRecipients();
-  const status = buildStatus(searchParams);
+  const status = buildStatus(resolvedSearchParams);
   const title = decodeHtmlEntities(target.title);
   const profileHref = `/users/${target.memberSlug}`;
-  const returnTo = `/user/${params.slug}/contact`;
+  const returnTo = `/user/${resolvedParams?.slug}/contact`;
 
   return (
     <article className="page-frame member-profile-shell">

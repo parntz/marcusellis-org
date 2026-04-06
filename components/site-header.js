@@ -10,21 +10,20 @@ import { ModalLightbox } from "./modal-lightbox";
 
 /** Static brand logo (see public/images/nma-logo.png) */
 const BRAND_LOGO_SRC = "/images/nma-logo.png";
+const HIDDEN_PRIMARY_NAV_HREFS = new Set(["/downloaded-assets"]);
 
 function normalizeNavHref(href = "") {
-  if (href.startsWith("/sites/default/files/")) {
-    return `/_downloaded${href}`;
+  const normalizedHref = String(href || "").trim();
+
+  if (normalizedHref.startsWith("/sites/default/files/")) {
+    return `/_downloaded${normalizedHref}`;
   }
 
-  return href;
+  return normalizedHref;
 }
 
 function isAppRouteHref(href = "") {
-  if (!href.startsWith("/")) {
-    return false;
-  }
-
-  if (href.startsWith("/")) {
+  if (!href.startsWith("/") || href.startsWith("//")) {
     return false;
   }
 
@@ -83,6 +82,10 @@ function SmartNavLink({ href, className, children, onNavigate, onPdfLightbox }) 
     onNavigate?.();
   }
 
+  if (!normalizedHref) {
+    return <span className={className}>{children}</span>;
+  }
+
   if (isAppRouteHref(normalizedHref)) {
     return (
       <Link href={normalizedHref} className={className} onClick={handleClick}>
@@ -139,6 +142,7 @@ export function SiteHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [pdfLightbox, setPdfLightbox] = useState(null);
   const joinItem = utilityNav.find((item) => item.label.toLowerCase().includes("join"));
+  const visiblePrimaryNav = primaryNav.filter((item) => !HIDDEN_PRIMARY_NAV_HREFS.has(item.href));
 
   const renderUtilityItems = (onNavigate) => (
     <>
@@ -245,7 +249,7 @@ export function SiteHeader() {
             {renderUtilityItems(() => setMenuOpen(false))}
           </nav>
         ) : null}
-        {primaryNav.length ? (
+        {visiblePrimaryNav.length ? (
           <nav
             className="main-nav"
             aria-label="Primary"
@@ -257,7 +261,7 @@ export function SiteHeader() {
             }}
           >
             <NavList
-              items={primaryNav}
+              items={visiblePrimaryNav}
               onNavigate={() => setMenuOpen(false)}
               onPdfLightbox={(payload) => {
                 setPdfLightbox(payload);

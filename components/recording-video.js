@@ -1,8 +1,9 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useCallback, useState } from "react";
-import Image from "next/image";
 import { ModalLightbox } from "./modal-lightbox";
+import { extractYouTubeId, normalizeYouTubeEmbedUrl } from "../lib/youtube.js";
 
 const RECORDING_THUMB_PATH =
   "/images/Dave_Pomeroy_and_friends-copy-jpeg-e1707492091763-2087x1256.webp";
@@ -11,11 +12,6 @@ const CUSTOM_THUMBNAILS = {
   NLsFpMEDcF0: RECORDING_THUMB_PATH,
 };
 
-function extractYouTubeId(url) {
-  const match = url.match(/\/embed\/([^?/]+)/);
-  return match ? match[1] : null;
-}
-
 const DEFAULT_CAPTION = {
   headline: "Single song overdub scale",
   kicker: "YouTube video",
@@ -23,13 +19,16 @@ const DEFAULT_CAPTION = {
 
 export function RecordingVideo({
   embedSrc,
+  thumbnailSrc = "",
   captionTitle = DEFAULT_CAPTION.headline,
   captionSubtitle = "",
   youtubeKicker = DEFAULT_CAPTION.kicker,
 }) {
   const [open, setOpen] = useState(false);
-  const videoId = extractYouTubeId(embedSrc);
+  const normalizedEmbedSrc = normalizeYouTubeEmbedUrl(embedSrc);
+  const videoId = extractYouTubeId(normalizedEmbedSrc);
   const thumbUrl =
+    String(thumbnailSrc || "").trim() ||
     (videoId && CUSTOM_THUMBNAILS[videoId]) ||
     (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : null);
 
@@ -37,9 +36,9 @@ export function RecordingVideo({
 
   if (!thumbUrl) return null;
 
-  const autoplaySrc = embedSrc.includes("?")
-    ? `${embedSrc}&autoplay=1`
-    : `${embedSrc}?autoplay=1`;
+  const autoplaySrc = normalizedEmbedSrc.includes("?")
+    ? `${normalizedEmbedSrc}&autoplay=1`
+    : `${normalizedEmbedSrc}?autoplay=1`;
 
   const label = captionTitle
     ? `Play YouTube video: ${captionTitle}`
@@ -53,13 +52,7 @@ export function RecordingVideo({
         onClick={() => setOpen(true)}
         aria-label={label}
       >
-        <Image
-          src={thumbUrl}
-          alt=""
-          fill
-          sizes="(min-width: 1100px) min(900px, 72vw), 100vw"
-          className="recording-video-thumb__fill"
-        />
+        <img src={thumbUrl} alt="" className="recording-video-thumb__fill" />
         {captionTitle || captionSubtitle || youtubeKicker ? (
           <span className="recording-video-thumb-caption">
             {youtubeKicker ? (

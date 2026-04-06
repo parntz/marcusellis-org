@@ -24,7 +24,8 @@ async function fetchPage(route) {
 }
 
 export default async function EventDetailPage({ params }) {
-  const slug = params.slug || [];
+  const resolvedParams = await params;
+  const slug = resolvedParams?.slug || [];
   const route = `/event/${slug.join("/")}`;
 
   const { page, item } = await fetchPage(route);

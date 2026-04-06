@@ -1,5 +1,6 @@
 import "./load-env.mjs";
 import { DEFAULT_HERO_IMAGES } from "../lib/hero-home-defaults.mjs";
+import { DEFAULT_SCALES_FORMS_LINKS } from "../lib/scales-forms-links-defaults.mjs";
 import { closeDb, dbPath, getClient } from "../lib/sqlite.mjs";
 
 const client = getClient();
@@ -180,9 +181,80 @@ const defaultHeroPayload = JSON.stringify({
   transitionSeconds: 0.8,
   growSlider: 50,
 });
+const defaultHomePanelsPayload = JSON.stringify({
+  parking: {
+    kicker: "Member Notice",
+    title: "Free Downtown Parking",
+    body: "Active members can park free in designated downtown garages. Open the parking map to see participating locations.",
+    ctaLabel: "Open Parking Map",
+    ctaHref: "/file/parkingmappng",
+  },
+  travel: {
+    kicker: "Member Notice",
+    title: "Flying soon?",
+    body: "Click Travel Tips for Musicians to get the lowdown on carrying on your instrument.",
+    ctaLabel: "Travel Tips for Musicians",
+    ctaHref: "/news-and-events",
+  },
+});
+const defaultHomeHeroContentPayload = JSON.stringify({
+  eyebrow: "AFM Local 257 Nashville",
+  titleLine1: "Built for the musicians",
+  titleLine2: "who keep Nashville moving.",
+  body: "Contracts, advocacy, benefits, and community for session players, gigging artists, educators, and working professionals across Music City.",
+  primaryCta: {
+    label: "Become a Member",
+    href: "/join-nashville-musicians-association",
+  },
+  secondaryCta: {
+    label: "Explore Benefits",
+    href: "/member-benefits",
+  },
+});
+const defaultHomeValueStripPayload = JSON.stringify({
+  advocacy: {
+    label: "Advocacy",
+    headline: "Representation where negotiations happen.",
+  },
+  protection: {
+    label: "Protection",
+    headline: "Contracts and standards that back your work.",
+  },
+  community: {
+    label: "Community",
+    headline: "A network of professionals in your local scene.",
+  },
+  opportunity: {
+    label: "Opportunity",
+    headline: "Events, benefits, and pathways for growth.",
+  },
+});
+const defaultScalesFormsLinksPayload = JSON.stringify(
+  DEFAULT_SCALES_FORMS_LINKS.map((item, index) => ({
+    title: item.title,
+    href: item.href,
+    displayOrder: index + 1,
+  }))
+);
 await client.execute({
   sql: `INSERT OR IGNORE INTO site_config (key, value, updated_at) VALUES (?, ?, datetime('now'))`,
   args: ["hero_home", defaultHeroPayload],
+});
+await client.execute({
+  sql: `INSERT OR IGNORE INTO site_config (key, value, updated_at) VALUES (?, ?, datetime('now'))`,
+  args: ["home_panels", defaultHomePanelsPayload],
+});
+await client.execute({
+  sql: `INSERT OR IGNORE INTO site_config (key, value, updated_at) VALUES (?, ?, datetime('now'))`,
+  args: ["home_hero_content", defaultHomeHeroContentPayload],
+});
+await client.execute({
+  sql: `INSERT OR IGNORE INTO site_config (key, value, updated_at) VALUES (?, ?, datetime('now'))`,
+  args: ["home_value_strip", defaultHomeValueStripPayload],
+});
+await client.execute({
+  sql: `INSERT OR IGNORE INTO site_config (key, value, updated_at) VALUES (?, ?, datetime('now'))`,
+  args: ["scales_forms_links", defaultScalesFormsLinksPayload],
 });
 
 console.log(`Database initialized at ${dbPath}`);

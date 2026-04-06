@@ -19,7 +19,8 @@ async function fetchMember(slug) {
 }
 
 export default async function MemberProfilePage({ params }) {
-  const member = await fetchMember(params.slug);
+  const resolvedParams = await params;
+  const member = await fetchMember(resolvedParams?.slug);
 
   if (!member) {
     notFound();

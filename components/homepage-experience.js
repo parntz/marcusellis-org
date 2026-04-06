@@ -17,7 +17,10 @@ import {
   DEFAULT_HERO_HOME,
   growSliderToDurationSeconds,
 } from "../lib/hero-home-defaults.mjs";
+import { DEFAULT_HOME_HERO_CONTENT } from "../lib/home-hero-content-defaults";
+import { DEFAULT_HOME_VALUE_STRIP } from "../lib/home-value-strip-defaults";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
+import { DEFAULT_HOME_PANELS } from "../lib/home-panels-defaults";
 
 /** After moving one item from `from` to `to`, map an index that pointed at a slide before the move. */
 function mapIndexAfterReorder(oldIndex, from, to) {
@@ -177,10 +180,74 @@ const HeroImageWithGrow = forwardRef(function HeroImageWithGrow(
 HeroImageWithGrow.displayName = "HeroImageWithGrow";
 
 const HERO_TEXT_GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
+const HOME_PANEL_KEYS = ["parking", "travel"];
+const HOME_VALUE_KEYS = ["advocacy", "protection", "community", "opportunity"];
 
 function pickRandomHeroTextGlassVariant(current = HERO_TEXT_GLASS_VARIANTS[0]) {
   const options = HERO_TEXT_GLASS_VARIANTS.filter((variant) => variant !== current);
   return options[Math.floor(Math.random() * options.length)] || current;
+}
+
+function normalizeHomePanels(config) {
+  return {
+    parking: {
+      ...DEFAULT_HOME_PANELS.parking,
+      ...(config?.parking || {}),
+    },
+    travel: {
+      ...DEFAULT_HOME_PANELS.travel,
+      ...(config?.travel || {}),
+    },
+  };
+}
+
+function normalizeHomeValueStrip(config) {
+  return {
+    advocacy: {
+      ...DEFAULT_HOME_VALUE_STRIP.advocacy,
+      ...(config?.advocacy || {}),
+    },
+    protection: {
+      ...DEFAULT_HOME_VALUE_STRIP.protection,
+      ...(config?.protection || {}),
+    },
+    community: {
+      ...DEFAULT_HOME_VALUE_STRIP.community,
+      ...(config?.community || {}),
+    },
+    opportunity: {
+      ...DEFAULT_HOME_VALUE_STRIP.opportunity,
+      ...(config?.opportunity || {}),
+    },
+  };
+}
+
+function HomePanelButton({ href, className, children }) {
+  if (href?.startsWith("/")) {
+    return (
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <a href={href} className={className}>
+      {children}
+    </a>
+  );
+}
+
+function heroPanelBackgroundStyle(backgroundImageSrc, fallbackUrl, position = "center") {
+  const imageUrl = backgroundImageSrc || fallbackUrl;
+  return {
+    backgroundImage:
+      `linear-gradient(135deg, rgba(2, 6, 18, 0.6) 0%, rgba(3, 9, 24, 0.6) 46%, rgba(4, 10, 24, 0.6) 100%),` +
+      `url("${imageUrl}")`,
+    backgroundPosition: `${position}, ${position}`,
+    backgroundSize: "cover, cover",
+    backgroundRepeat: "no-repeat, no-repeat",
+  };
 }
 
 export function HomepageExperience({
@@ -189,6 +256,9 @@ export function HomepageExperience({
   joinHref,
   heroHomeConfig,
   homeHeroTextConfig,
+  homeHeroContentConfig,
+  homePanelsConfig,
+  homeValueStripConfig,
 }) {
   const { data: session, status } = useSession();
   const isAdmin = status === "authenticated" && Boolean(session?.user);
@@ -246,6 +316,31 @@ export function HomepageExperience({
     titleLine2: String(homeHeroTextConfig?.titleLine2 || "Association"),
     subheading: String(homeHeroTextConfig?.subheading || "AFM Local 257 — Since 1902"),
   };
+  const initialHomePanels = normalizeHomePanels(homePanelsConfig);
+  const initialHomeValueStrip = normalizeHomeValueStrip(homeValueStripConfig);
+  const initialHeroContent = {
+    eyebrow: String(homeHeroContentConfig?.eyebrow || DEFAULT_HOME_HERO_CONTENT.eyebrow),
+    titleLine1: String(homeHeroContentConfig?.titleLine1 || DEFAULT_HOME_HERO_CONTENT.titleLine1),
+    titleLine2: String(homeHeroContentConfig?.titleLine2 || DEFAULT_HOME_HERO_CONTENT.titleLine2),
+    body: String(homeHeroContentConfig?.body || DEFAULT_HOME_HERO_CONTENT.body),
+    primaryCta: {
+      label: String(
+        homeHeroContentConfig?.primaryCta?.label || DEFAULT_HOME_HERO_CONTENT.primaryCta.label
+      ),
+      href: String(
+        homeHeroContentConfig?.primaryCta?.href || DEFAULT_HOME_HERO_CONTENT.primaryCta.href
+      ),
+    },
+    secondaryCta: {
+      label: String(
+        homeHeroContentConfig?.secondaryCta?.label ||
+          DEFAULT_HOME_HERO_CONTENT.secondaryCta.label
+      ),
+      href: String(
+        homeHeroContentConfig?.secondaryCta?.href || DEFAULT_HOME_HERO_CONTENT.secondaryCta.href
+      ),
+    },
+  };
   const [heroTitleLine1, setHeroTitleLine1] = useState(initialHeroText.titleLine1);
   const [heroTitleLine2, setHeroTitleLine2] = useState(initialHeroText.titleLine2);
   const [heroSubheading, setHeroSubheading] = useState(initialHeroText.subheading);
@@ -256,19 +351,78 @@ export function HomepageExperience({
   const [heroTextGlassVariant, setHeroTextGlassVariant] = useState(HERO_TEXT_GLASS_VARIANTS[0]);
   const [heroTextGlassCycle, setHeroTextGlassCycle] = useState(0);
   const [heroTextEditorPortalReady, setHeroTextEditorPortalReady] = useState(false);
+  const [homePanels, setHomePanels] = useState(initialHomePanels);
+  const [homePanelsDraft, setHomePanelsDraft] = useState(initialHomePanels);
+  const [homePanelsEditorOpen, setHomePanelsEditorOpen] = useState(false);
+  const [homePanelsSaveBusy, setHomePanelsSaveBusy] = useState(false);
+  const [homePanelsError, setHomePanelsError] = useState("");
+  const [activeHomePanelKey, setActiveHomePanelKey] = useState("parking");
+  const [heroContent, setHeroContent] = useState(initialHeroContent);
+  const [heroContentDraft, setHeroContentDraft] = useState(initialHeroContent);
+  const [heroContentEditorOpen, setHeroContentEditorOpen] = useState(false);
+  const [heroContentSaveBusy, setHeroContentSaveBusy] = useState(false);
+  const [heroContentError, setHeroContentError] = useState("");
+  const [heroContentOverlayActive, setHeroContentOverlayActive] = useState(false);
+  const [heroContentGlassVariant, setHeroContentGlassVariant] = useState(HERO_TEXT_GLASS_VARIANTS[0]);
+  const [heroContentGlassCycle, setHeroContentGlassCycle] = useState(0);
+  const [homeValueStrip, setHomeValueStrip] = useState(initialHomeValueStrip);
+  const [homeValueStripDraft, setHomeValueStripDraft] = useState(initialHomeValueStrip);
+  const [homeValueEditorOpen, setHomeValueEditorOpen] = useState(false);
+  const [homeValueSaveBusy, setHomeValueSaveBusy] = useState(false);
+  const [homeValueError, setHomeValueError] = useState("");
+  const [activeHomeValueKey, setActiveHomeValueKey] = useState("advocacy");
+  const [homeValueOverlayActive, setHomeValueOverlayActive] = useState({
+    advocacy: false,
+    protection: false,
+    community: false,
+    opportunity: false,
+  });
+  const [homeValueGlassVariant, setHomeValueGlassVariant] = useState({
+    advocacy: HERO_TEXT_GLASS_VARIANTS[0],
+    protection: HERO_TEXT_GLASS_VARIANTS[0],
+    community: HERO_TEXT_GLASS_VARIANTS[0],
+    opportunity: HERO_TEXT_GLASS_VARIANTS[0],
+  });
+  const [homeValueGlassCycle, setHomeValueGlassCycle] = useState({
+    advocacy: 0,
+    protection: 0,
+    community: 0,
+    opportunity: 0,
+  });
+  const [homePanelOverlayActive, setHomePanelOverlayActive] = useState({
+    parking: false,
+    travel: false,
+  });
+  const [homePanelGlassVariant, setHomePanelGlassVariant] = useState({
+    parking: HERO_TEXT_GLASS_VARIANTS[0],
+    travel: HERO_TEXT_GLASS_VARIANTS[0],
+  });
+  const [homePanelGlassCycle, setHomePanelGlassCycle] = useState({
+    parking: 0,
+    travel: 0,
+  });
+  const parkingBgUploadInputRef = useRef(null);
+  const travelBgUploadInputRef = useRef(null);
 
   useEffect(() => {
     setHeroTextEditorPortalReady(true);
   }, []);
 
   useEffect(() => {
-    if (!heroTextEditorOpen) return undefined;
+    if (
+      !heroTextEditorOpen &&
+      !homePanelsEditorOpen &&
+      !heroContentEditorOpen &&
+      !homeValueEditorOpen
+    ) {
+      return undefined;
+    }
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prevOverflow;
     };
-  }, [heroTextEditorOpen]);
+  }, [heroTextEditorOpen, homePanelsEditorOpen, heroContentEditorOpen, homeValueEditorOpen]);
 
   useEffect(() => {
     visibleRef.current = visibleIndex;
@@ -562,9 +716,279 @@ export function HomepageExperience({
     [heroSubheadingDraft, heroTitleLine1Draft, heroTitleLine2Draft]
   );
 
+  const updateHomePanelDraft = useCallback((panelKey, field, value) => {
+    setHomePanelsDraft((current) => ({
+      ...current,
+      [panelKey]: {
+        ...current[panelKey],
+        [field]: value,
+      },
+    }));
+  }, []);
+
+  const updateHomeValueDraft = useCallback((valueKey, field, value) => {
+    setHomeValueStripDraft((current) => ({
+      ...current,
+      [valueKey]: {
+        ...current[valueKey],
+        [field]: value,
+      },
+    }));
+  }, []);
+
+  const updateHeroContentDraft = useCallback((field, value) => {
+    setHeroContentDraft((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }, []);
+
+  const updateHeroContentCtaDraft = useCallback((ctaKey, field, value) => {
+    setHeroContentDraft((current) => ({
+      ...current,
+      [ctaKey]: {
+        ...current[ctaKey],
+        [field]: value,
+      },
+    }));
+  }, []);
+
+  const uploadHomePanelBackground = useCallback(async (panelKey, file) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    setHomePanelsSaveBusy(true);
+    setHomePanelsError("");
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/site-config/home-panels/upload", {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data.error || "Could not upload homepage panel image.";
+        setHomePanelsError(msg);
+        showDbToastError("Database update failed.");
+        return;
+      }
+      if (data?.url) {
+        updateHomePanelDraft(panelKey, "backgroundImageSrc", String(data.url));
+        showDbToastSuccess();
+      }
+    } catch (err) {
+      setHomePanelsError(
+        err instanceof Error ? err.message : "Could not upload homepage panel image."
+      );
+      showDbToastError("Database update failed.");
+    } finally {
+      setHomePanelsSaveBusy(false);
+    }
+  }, [updateHomePanelDraft]);
+
+  const openHomePanelsEditor = useCallback(
+    async (panelKey = "parking") => {
+      setActiveHomePanelKey(panelKey);
+      setHomePanelsError("");
+      try {
+        const res = await fetch("/api/site-config/home-panels", { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || "Could not load homepage notice cards.");
+        }
+        const nextPanels = normalizeHomePanels(data);
+        setHomePanels(nextPanels);
+        setHomePanelsDraft(nextPanels);
+      } catch (err) {
+        setHomePanelsError(
+          err instanceof Error ? err.message : "Could not load homepage notice cards."
+        );
+        setHomePanelsDraft(homePanels);
+      } finally {
+        setHomePanelsEditorOpen(true);
+      }
+    },
+    [homePanels]
+  );
+
+  const openHeroContentEditor = useCallback(async () => {
+    setHeroContentError("");
+    try {
+      const res = await fetch("/api/site-config/home-hero-content", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Could not load homepage hero content.");
+      }
+      setHeroContent(data);
+      setHeroContentDraft(data);
+    } catch (err) {
+      setHeroContentError(
+        err instanceof Error ? err.message : "Could not load homepage hero content."
+      );
+      setHeroContentDraft(heroContent);
+    } finally {
+      setHeroContentEditorOpen(true);
+    }
+  }, [heroContent]);
+
+  const saveHeroContent = useCallback(
+    async (event) => {
+      event.preventDefault();
+      setHeroContentSaveBusy(true);
+      setHeroContentError("");
+      try {
+        const res = await fetch("/api/site-config/home-hero-content", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(heroContentDraft),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = data.error || "Could not save homepage hero content.";
+          setHeroContentError(msg);
+          showDbToastError(data.error || "Database update failed.");
+          return;
+        }
+        setHeroContent(data);
+        setHeroContentDraft(data);
+        setHeroContentEditorOpen(false);
+        showDbToastSuccess();
+      } catch (err) {
+        setHeroContentError(
+          err instanceof Error ? err.message : "Could not save homepage hero content."
+        );
+        showDbToastError("Database update failed.");
+      } finally {
+        setHeroContentSaveBusy(false);
+      }
+    },
+    [heroContentDraft]
+  );
+
+  const saveHomePanels = useCallback(
+    async (event) => {
+      event.preventDefault();
+      setHomePanelsSaveBusy(true);
+      setHomePanelsError("");
+      try {
+        const res = await fetch("/api/site-config/home-panels", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(homePanelsDraft),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = data.error || "Could not save homepage notice cards.";
+          setHomePanelsError(msg);
+          showDbToastError(data.error || "Database update failed.");
+          return;
+        }
+        const nextPanels = normalizeHomePanels(data);
+        setHomePanels(nextPanels);
+        setHomePanelsDraft(nextPanels);
+        setHomePanelsEditorOpen(false);
+        showDbToastSuccess();
+      } catch (err) {
+        setHomePanelsError(
+          err instanceof Error ? err.message : "Could not save homepage notice cards."
+        );
+        showDbToastError("Database update failed.");
+      } finally {
+        setHomePanelsSaveBusy(false);
+      }
+    },
+    [homePanelsDraft]
+  );
+
+  const openHomeValueEditor = useCallback(
+    async (valueKey = "advocacy") => {
+      setActiveHomeValueKey(valueKey);
+      setHomeValueError("");
+      try {
+        const res = await fetch("/api/site-config/home-value-strip", { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || "Could not load homepage value card.");
+        }
+        const nextValues = normalizeHomeValueStrip(data);
+        setHomeValueStrip(nextValues);
+        setHomeValueStripDraft(nextValues);
+      } catch (err) {
+        setHomeValueError(
+          err instanceof Error ? err.message : "Could not load homepage value card."
+        );
+        setHomeValueStripDraft(homeValueStrip);
+      } finally {
+        setHomeValueEditorOpen(true);
+      }
+    },
+    [homeValueStrip]
+  );
+
+  const saveHomeValueStrip = useCallback(
+    async (event) => {
+      event.preventDefault();
+      setHomeValueSaveBusy(true);
+      setHomeValueError("");
+      try {
+        const res = await fetch("/api/site-config/home-value-strip", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(homeValueStripDraft),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = data.error || "Could not save homepage value card.";
+          setHomeValueError(msg);
+          showDbToastError(data.error || "Database update failed.");
+          return;
+        }
+        const nextValues = normalizeHomeValueStrip(data);
+        setHomeValueStrip(nextValues);
+        setHomeValueStripDraft(nextValues);
+        setHomeValueEditorOpen(false);
+        showDbToastSuccess();
+      } catch (err) {
+        setHomeValueError(
+          err instanceof Error ? err.message : "Could not save homepage value card."
+        );
+        showDbToastError("Database update failed.");
+      } finally {
+        setHomeValueSaveBusy(false);
+      }
+    },
+    [homeValueStripDraft]
+  );
+
+  const triggerHomePanelGlass = useCallback((panelKey) => {
+    setHomePanelGlassVariant((current) => ({
+      ...current,
+      [panelKey]: pickRandomHeroTextGlassVariant(current[panelKey]),
+    }));
+    setHomePanelGlassCycle((current) => ({
+      ...current,
+      [panelKey]: current[panelKey] + 1,
+    }));
+  }, []);
+
+  const triggerHomeValueGlass = useCallback((valueKey) => {
+    setHomeValueGlassVariant((current) => ({
+      ...current,
+      [valueKey]: pickRandomHeroTextGlassVariant(current[valueKey]),
+    }));
+    setHomeValueGlassCycle((current) => ({
+      ...current,
+      [valueKey]: current[valueKey] + 1,
+    }));
+  }, []);
+
   const triggerHeroTextGlass = useCallback(() => {
     setHeroTextGlassVariant((current) => pickRandomHeroTextGlassVariant(current));
     setHeroTextGlassCycle((n) => n + 1);
+  }, []);
+
+  const triggerHeroContentGlass = useCallback(() => {
+    setHeroContentGlassVariant((current) => pickRandomHeroTextGlassVariant(current));
+    setHeroContentGlassCycle((n) => n + 1);
   }, []);
 
   useEffect(() => {
@@ -573,6 +997,63 @@ export function HomepageExperience({
     const id = window.setInterval(triggerHeroTextGlass, 5000);
     return () => window.clearInterval(id);
   }, [isAdmin, heroTextOverlayActive, triggerHeroTextGlass]);
+
+  useEffect(() => {
+    if (!isAdmin || !heroContentOverlayActive) return undefined;
+    triggerHeroContentGlass();
+    const id = window.setInterval(triggerHeroContentGlass, 5000);
+    return () => window.clearInterval(id);
+  }, [isAdmin, heroContentOverlayActive, triggerHeroContentGlass]);
+
+  useEffect(() => {
+    if (!isAdmin) return undefined;
+    const activeKeys = HOME_PANEL_KEYS.filter((key) => homePanelOverlayActive[key]);
+    if (!activeKeys.length) return undefined;
+    activeKeys.forEach((key) => triggerHomePanelGlass(key));
+    const id = window.setInterval(() => {
+      activeKeys.forEach((key) => triggerHomePanelGlass(key));
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [isAdmin, homePanelOverlayActive, triggerHomePanelGlass]);
+
+  useEffect(() => {
+    if (!isAdmin) return undefined;
+    const activeKeys = HOME_VALUE_KEYS.filter((key) => homeValueOverlayActive[key]);
+    if (!activeKeys.length) return undefined;
+    activeKeys.forEach((key) => triggerHomeValueGlass(key));
+    const id = window.setInterval(() => {
+      activeKeys.forEach((key) => triggerHomeValueGlass(key));
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [isAdmin, homeValueOverlayActive, triggerHomeValueGlass]);
+
+  useEffect(() => {
+    if (!homePanelsEditorOpen || !activeHomePanelKey) return undefined;
+    const id = window.requestAnimationFrame(() => {
+      const section = document.querySelector(`[data-home-panel-key="${activeHomePanelKey}"]`);
+      if (!(section instanceof HTMLElement)) return;
+      section.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      const input = section.querySelector("input");
+      if (input instanceof HTMLInputElement) {
+        input.focus();
+      }
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [activeHomePanelKey, homePanelsEditorOpen]);
+
+  useEffect(() => {
+    if (!homeValueEditorOpen || !activeHomeValueKey) return undefined;
+    const id = window.requestAnimationFrame(() => {
+      const section = document.querySelector(`[data-home-value-key="${activeHomeValueKey}"]`);
+      if (!(section instanceof HTMLElement)) return;
+      section.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      const input = section.querySelector("input");
+      if (input instanceof HTMLInputElement) {
+        input.focus();
+      }
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [activeHomeValueKey, homeValueEditorOpen]);
 
   const handleHeroDragStart = useCallback((e, index) => {
     e.dataTransfer.effectAllowed = "move";
@@ -905,29 +1386,450 @@ export function HomepageExperience({
           )
         : null}
 
+      {heroTextEditorPortalReady && homePanelsEditorOpen
+        ? createPortal(
+            <div
+              className="page-header-editor-backdrop"
+              role="presentation"
+              onClick={() => !homePanelsSaveBusy && setHomePanelsEditorOpen(false)}
+            >
+              <div
+                className="page-header-editor-modal page-header-editor-modal--wide"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Edit homepage notice cards"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="page-header-editor-modal__header">
+                  <p className="gigs-admin__eyebrow">Admin</p>
+                  <h3>Edit Homepage Notice Cards</h3>
+                </div>
+                <form className="page-header-editor-form" onSubmit={saveHomePanels}>
+                  {(() => {
+                    const panelKey = activeHomePanelKey;
+                    const panel = homePanelsDraft[panelKey];
+                    const heading = panelKey === "parking" ? "Parking Card" : "Travel Card";
+                    const inputRef =
+                      panelKey === "parking" ? parkingBgUploadInputRef : travelBgUploadInputRef;
+                    return (
+                      <section
+                        className="home-panels-editor-card"
+                        data-home-panel-key={panelKey}
+                      >
+                        <div className="home-panels-editor-card__header">
+                          <p className="gigs-admin__eyebrow">{heading}</p>
+                          <h4>{panel.title || heading}</h4>
+                        </div>
+                        <div className="home-panels-editor-grid">
+                          <label>
+                            Eyebrow
+                            <input
+                              type="text"
+                              value={panel.kicker}
+                              onChange={(event) =>
+                                updateHomePanelDraft(panelKey, "kicker", event.target.value)
+                              }
+                              maxLength={80}
+                              required
+                            />
+                          </label>
+                          <label>
+                            Title
+                            <input
+                              type="text"
+                              value={panel.title}
+                              onChange={(event) =>
+                                updateHomePanelDraft(panelKey, "title", event.target.value)
+                              }
+                              maxLength={160}
+                              required
+                            />
+                          </label>
+                          <label className="home-panels-editor-grid__wide">
+                            Body
+                            <textarea
+                              value={panel.body}
+                              onChange={(event) =>
+                                updateHomePanelDraft(panelKey, "body", event.target.value)
+                              }
+                              rows={4}
+                              maxLength={320}
+                              required
+                            />
+                          </label>
+                          <label>
+                            Button label
+                            <input
+                              type="text"
+                              value={panel.ctaLabel}
+                              onChange={(event) =>
+                                updateHomePanelDraft(panelKey, "ctaLabel", event.target.value)
+                              }
+                              maxLength={120}
+                              required
+                            />
+                          </label>
+                          <label>
+                            Button link
+                            <input
+                              type="text"
+                              value={panel.ctaHref}
+                              onChange={(event) =>
+                                updateHomePanelDraft(panelKey, "ctaHref", event.target.value)
+                              }
+                              maxLength={500}
+                              required
+                            />
+                          </label>
+                          <label className="home-panels-editor-grid__wide">
+                            Background image URL
+                            <input
+                              type="text"
+                              value={panel.backgroundImageSrc}
+                              onChange={(event) =>
+                                updateHomePanelDraft(panelKey, "backgroundImageSrc", event.target.value)
+                              }
+                              maxLength={1000}
+                              placeholder="/images/example.jpg"
+                            />
+                          </label>
+                          <div className="home-panels-editor-upload-row home-panels-editor-grid__wide">
+                            <input
+                              ref={inputRef}
+                              type="file"
+                              accept="image/*"
+                              className="sr-only"
+                              tabIndex={-1}
+                              onChange={(event) => {
+                                const file = event.target.files?.[0];
+                                event.target.value = "";
+                                if (file) {
+                                  void uploadHomePanelBackground(panelKey, file);
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              onClick={() => inputRef.current?.click()}
+                              disabled={homePanelsSaveBusy}
+                            >
+                              Upload background image
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-ghost"
+                              onClick={() =>
+                                updateHomePanelDraft(
+                                  panelKey,
+                                  "backgroundImageSrc",
+                                  DEFAULT_HOME_PANELS[panelKey].backgroundImageSrc
+                                )
+                              }
+                              disabled={homePanelsSaveBusy}
+                            >
+                              Reset default background
+                            </button>
+                          </div>
+                        </div>
+                      </section>
+                    );
+                  })()}
+                  {homePanelsError ? <p className="hero-admin-error">{homePanelsError}</p> : null}
+                  <div className="page-header-editor-actions">
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => setHomePanelsEditorOpen(false)}
+                      disabled={homePanelsSaveBusy}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary" disabled={homePanelsSaveBusy}>
+                      {homePanelsSaveBusy ? "Saving..." : "Save Notice Cards"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
+
+      {heroTextEditorPortalReady && homeValueEditorOpen
+        ? createPortal(
+            <div
+              className="page-header-editor-backdrop"
+              role="presentation"
+              onClick={() => !homeValueSaveBusy && setHomeValueEditorOpen(false)}
+            >
+              <div
+                className="page-header-editor-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Edit homepage value card"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="page-header-editor-modal__header">
+                  <p className="gigs-admin__eyebrow">Admin</p>
+                  <h3>Edit Homepage Value Card</h3>
+                </div>
+                <form className="page-header-editor-form" onSubmit={saveHomeValueStrip}>
+                  {(() => {
+                    const valueKey = activeHomeValueKey;
+                    const item = homeValueStripDraft[valueKey];
+                    return (
+                      <section className="home-panels-editor-card" data-home-value-key={valueKey}>
+                        <div className="home-panels-editor-card__header">
+                          <p className="gigs-admin__eyebrow">Value Strip Card</p>
+                          <h4>{item.label || "Homepage value card"}</h4>
+                        </div>
+                        <div className="home-panels-editor-grid">
+                          <label>
+                            Label
+                            <input
+                              type="text"
+                              value={item.label}
+                              onChange={(event) =>
+                                updateHomeValueDraft(valueKey, "label", event.target.value)
+                              }
+                              maxLength={80}
+                              required
+                            />
+                          </label>
+                          <label className="home-panels-editor-grid__wide">
+                            Headline
+                            <input
+                              type="text"
+                              value={item.headline}
+                              onChange={(event) =>
+                                updateHomeValueDraft(valueKey, "headline", event.target.value)
+                              }
+                              maxLength={180}
+                              required
+                            />
+                          </label>
+                        </div>
+                      </section>
+                    );
+                  })()}
+                  {homeValueError ? <p className="hero-admin-error">{homeValueError}</p> : null}
+                  <div className="page-header-editor-actions">
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => setHomeValueEditorOpen(false)}
+                      disabled={homeValueSaveBusy}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary" disabled={homeValueSaveBusy}>
+                      {homeValueSaveBusy ? "Saving..." : "Save Value Card"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
+
+      {heroTextEditorPortalReady && heroContentEditorOpen
+        ? createPortal(
+            <div
+              className="page-header-editor-backdrop"
+              role="presentation"
+              onClick={() => !heroContentSaveBusy && setHeroContentEditorOpen(false)}
+            >
+              <div
+                className="page-header-editor-modal page-header-editor-modal--wide"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Edit homepage hero content"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="page-header-editor-modal__header">
+                  <p className="gigs-admin__eyebrow">Admin</p>
+                  <h3>Edit Homepage Hero Content</h3>
+                </div>
+                <form className="page-header-editor-form" onSubmit={saveHeroContent}>
+                  <div className="home-panels-editor-list">
+                    <section className="home-panels-editor-card">
+                      <div className="home-panels-editor-card__header">
+                        <p className="gigs-admin__eyebrow">Hero Copy</p>
+                        <h4>Main home-page introduction</h4>
+                      </div>
+                      <div className="home-panels-editor-grid">
+                        <label>
+                          Eyebrow
+                          <input
+                            type="text"
+                            value={heroContentDraft.eyebrow}
+                            onChange={(event) => updateHeroContentDraft("eyebrow", event.target.value)}
+                            maxLength={120}
+                            required
+                          />
+                        </label>
+                        <label>
+                          Title line 1
+                          <input
+                            type="text"
+                            value={heroContentDraft.titleLine1}
+                            onChange={(event) =>
+                              updateHeroContentDraft("titleLine1", event.target.value)
+                            }
+                            maxLength={180}
+                            required
+                          />
+                        </label>
+                        <label>
+                          Title line 2
+                          <input
+                            type="text"
+                            value={heroContentDraft.titleLine2}
+                            onChange={(event) =>
+                              updateHeroContentDraft("titleLine2", event.target.value)
+                            }
+                            maxLength={180}
+                            required
+                          />
+                        </label>
+                        <label className="home-panels-editor-grid__wide">
+                          Body
+                          <textarea
+                            value={heroContentDraft.body}
+                            onChange={(event) => updateHeroContentDraft("body", event.target.value)}
+                            rows={4}
+                            maxLength={360}
+                            required
+                          />
+                        </label>
+                        <label>
+                          Primary button label
+                          <input
+                            type="text"
+                            value={heroContentDraft.primaryCta.label}
+                            onChange={(event) =>
+                              updateHeroContentCtaDraft("primaryCta", "label", event.target.value)
+                            }
+                            maxLength={120}
+                            required
+                          />
+                        </label>
+                        <label>
+                          Primary button link
+                          <input
+                            type="text"
+                            value={heroContentDraft.primaryCta.href}
+                            onChange={(event) =>
+                              updateHeroContentCtaDraft("primaryCta", "href", event.target.value)
+                            }
+                            maxLength={500}
+                            required
+                          />
+                        </label>
+                        <label>
+                          Secondary button label
+                          <input
+                            type="text"
+                            value={heroContentDraft.secondaryCta.label}
+                            onChange={(event) =>
+                              updateHeroContentCtaDraft("secondaryCta", "label", event.target.value)
+                            }
+                            maxLength={120}
+                            required
+                          />
+                        </label>
+                        <label>
+                          Secondary button link
+                          <input
+                            type="text"
+                            value={heroContentDraft.secondaryCta.href}
+                            onChange={(event) =>
+                              updateHeroContentCtaDraft("secondaryCta", "href", event.target.value)
+                            }
+                            maxLength={500}
+                            required
+                          />
+                        </label>
+                      </div>
+                    </section>
+                  </div>
+                  {heroContentError ? <p className="hero-admin-error">{heroContentError}</p> : null}
+                  <div className="page-header-editor-actions">
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => setHeroContentEditorOpen(false)}
+                      disabled={heroContentSaveBusy}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary" disabled={heroContentSaveBusy}>
+                      {heroContentSaveBusy ? "Saving..." : "Save Hero Content"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
+
       <section className="hero-block" data-reveal>
         <div className="hero-noise" aria-hidden />
         <div className="hero-glow hero-glow-a" aria-hidden />
         <div className="hero-glow hero-glow-b" aria-hidden />
         <div className="hero-gridline" aria-hidden />
 
-        <div className="hero-content">
-          <p className="eyebrow">AFM Local 257 Nashville</p>
+        <div
+          className={`hero-content${isAdmin ? " hero-content--admin-editable" : ""}`}
+          role={isAdmin ? "button" : undefined}
+          tabIndex={isAdmin ? 0 : undefined}
+          aria-label={isAdmin ? "Edit homepage hero content" : undefined}
+          onClick={isAdmin ? () => void openHeroContentEditor() : undefined}
+          onKeyDown={
+            isAdmin
+              ? (event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    void openHeroContentEditor();
+                  }
+                }
+              : undefined
+          }
+          onMouseEnter={() => {
+            if (isAdmin) setHeroContentOverlayActive(true);
+          }}
+          onMouseLeave={() => setHeroContentOverlayActive(false)}
+          onFocusCapture={() => {
+            if (isAdmin) setHeroContentOverlayActive(true);
+          }}
+          onBlurCapture={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) {
+              setHeroContentOverlayActive(false);
+            }
+          }}
+        >
+          <p className="eyebrow">{heroContent.eyebrow}</p>
           <h1 className="hero-title">
-            Built for the musicians
-            <span>who keep Nashville moving.</span>
+            {heroContent.titleLine1}
+            <span>{heroContent.titleLine2}</span>
           </h1>
-          <p className="hero-text">
-            Contracts, advocacy, benefits, and community for session players, gigging artists,
-            educators, and working professionals across Music City.
-          </p>
+          <p className="hero-text">{heroContent.body}</p>
           <div className="hero-actions">
-            <Link href={joinHref} className="btn btn-primary">
-              Become a Member
-            </Link>
-            <Link href="/member-benefits" className="btn btn-secondary">
-              Explore Benefits
-            </Link>
+            <HomePanelButton
+              href={heroContent.primaryCta.href || joinHref}
+              className="btn btn-primary"
+            >
+              {heroContent.primaryCta.label}
+            </HomePanelButton>
+            <HomePanelButton
+              href={heroContent.secondaryCta.href || "/member-benefits"}
+              className="btn btn-secondary"
+            >
+              {heroContent.secondaryCta.label}
+            </HomePanelButton>
           </div>
           <div className="hero-tags">
             <span>Fair Pay</span>
@@ -935,50 +1837,160 @@ export function HomepageExperience({
             <span>Local Community</span>
             <span>Professional Growth</span>
           </div>
+          {isAdmin ? (
+            <span
+              className="hero-image-content__admin-overlay"
+              aria-hidden="true"
+              data-active={heroContentOverlayActive ? "true" : "false"}
+            >
+              <span className="hero-image-content__admin-overlay__wash">
+                {heroContentOverlayActive ? (
+                  <span
+                    key={`hero-content-glass-${heroContentGlassVariant}-${heroContentGlassCycle}`}
+                    className={`hero-image-content__admin-overlay__glass hero-image-content__admin-overlay__glass--${heroContentGlassVariant}`}
+                  />
+                ) : null}
+              </span>
+            </span>
+          ) : null}
         </div>
 
         <div className="hero-panels">
-          <article className="hero-panel hero-panel--promo hero-panel--parking">
-            <p className="panel-kicker">Member Notice</p>
-            <h3 className="parking-panel-title">Free Downtown Parking</h3>
+          <article
+            className="hero-panel hero-panel--promo hero-panel--parking"
+            style={heroPanelBackgroundStyle(
+              homePanels.parking.backgroundImageSrc,
+              DEFAULT_HOME_PANELS.parking.backgroundImageSrc,
+              "right bottom"
+            )}
+          >
+            <p className="panel-kicker">{homePanels.parking.kicker}</p>
+            <h3 className="parking-panel-title">{homePanels.parking.title}</h3>
             <p className="parking-panel-copy">
-              Active members can park free in designated downtown garages. Open the parking map
-              to see participating locations.
+              {homePanels.parking.body}
             </p>
-            <Link href="/file/parkingmappng" className="btn btn-primary parking-panel-cta">
-              Open Parking Map
-            </Link>
+            <HomePanelButton href={homePanels.parking.ctaHref} className="btn btn-primary parking-panel-cta">
+              {homePanels.parking.ctaLabel}
+            </HomePanelButton>
+            {isAdmin ? (
+              <button
+                type="button"
+                className="recording-page-edit-overlay"
+                aria-label="Edit homepage parking card"
+                data-active={homePanelOverlayActive.parking ? "true" : "false"}
+                onClick={() => void openHomePanelsEditor("parking")}
+                onMouseEnter={() =>
+                  setHomePanelOverlayActive((current) => ({ ...current, parking: true }))
+                }
+                onMouseLeave={() =>
+                  setHomePanelOverlayActive((current) => ({ ...current, parking: false }))
+                }
+                onFocus={() =>
+                  setHomePanelOverlayActive((current) => ({ ...current, parking: true }))
+                }
+                onBlur={() =>
+                  setHomePanelOverlayActive((current) => ({ ...current, parking: false }))
+                }
+              >
+                <span className="recording-page-edit-overlay__wash" aria-hidden="true">
+                  {homePanelOverlayActive.parking ? (
+                    <span
+                      key={`home-panel-parking-${homePanelGlassVariant.parking}-${homePanelGlassCycle.parking}`}
+                      className={`recording-page-edit-overlay__glass recording-page-edit-overlay__glass--${homePanelGlassVariant.parking}`}
+                    />
+                  ) : null}
+                </span>
+              </button>
+            ) : null}
           </article>
-          <article className="hero-panel hero-panel--promo hero-panel--travel">
-            <p className="panel-kicker">Member Notice</p>
-            <h3 className="parking-panel-title">Flying soon?</h3>
-            <p className="parking-panel-copy">
-              Click Travel Tips for Musicians to get the lowdown on carrying on your instrument.
-            </p>
-            <Link href="/news-and-events" className="btn btn-primary parking-panel-cta">
-              Travel Tips for Musicians
-            </Link>
+          <article
+            className="hero-panel hero-panel--promo hero-panel--travel"
+            style={heroPanelBackgroundStyle(
+              homePanels.travel.backgroundImageSrc,
+              DEFAULT_HOME_PANELS.travel.backgroundImageSrc,
+              "center"
+            )}
+          >
+            <p className="panel-kicker">{homePanels.travel.kicker}</p>
+            <h3 className="parking-panel-title">{homePanels.travel.title}</h3>
+            <p className="parking-panel-copy">{homePanels.travel.body}</p>
+            <HomePanelButton href={homePanels.travel.ctaHref} className="btn btn-primary parking-panel-cta">
+              {homePanels.travel.ctaLabel}
+            </HomePanelButton>
+            {isAdmin ? (
+              <button
+                type="button"
+                className="recording-page-edit-overlay"
+                aria-label="Edit homepage travel card"
+                data-active={homePanelOverlayActive.travel ? "true" : "false"}
+                onClick={() => void openHomePanelsEditor("travel")}
+                onMouseEnter={() =>
+                  setHomePanelOverlayActive((current) => ({ ...current, travel: true }))
+                }
+                onMouseLeave={() =>
+                  setHomePanelOverlayActive((current) => ({ ...current, travel: false }))
+                }
+                onFocus={() =>
+                  setHomePanelOverlayActive((current) => ({ ...current, travel: true }))
+                }
+                onBlur={() =>
+                  setHomePanelOverlayActive((current) => ({ ...current, travel: false }))
+                }
+              >
+                <span className="recording-page-edit-overlay__wash" aria-hidden="true">
+                  {homePanelOverlayActive.travel ? (
+                    <span
+                      key={`home-panel-travel-${homePanelGlassVariant.travel}-${homePanelGlassCycle.travel}`}
+                      className={`recording-page-edit-overlay__glass recording-page-edit-overlay__glass--${homePanelGlassVariant.travel}`}
+                    />
+                  ) : null}
+                </span>
+              </button>
+            ) : null}
           </article>
         </div>
       </section>
 
       <section className="value-strip" data-reveal>
-        <article>
-          <p>Advocacy</p>
-          <h3>Representation where negotiations happen.</h3>
-        </article>
-        <article>
-          <p>Protection</p>
-          <h3>Contracts and standards that back your work.</h3>
-        </article>
-        <article>
-          <p>Community</p>
-          <h3>A network of professionals in your local scene.</h3>
-        </article>
-        <article>
-          <p>Opportunity</p>
-          <h3>Events, benefits, and pathways for growth.</h3>
-        </article>
+        {HOME_VALUE_KEYS.map((valueKey) => {
+          const item = homeValueStrip[valueKey];
+          return (
+            <article key={valueKey}>
+              <p>{item.label}</p>
+              <h3>{item.headline}</h3>
+              {isAdmin ? (
+                <button
+                  type="button"
+                  className="recording-page-edit-overlay"
+                  aria-label={`Edit homepage ${item.label || valueKey} value card`}
+                  data-active={homeValueOverlayActive[valueKey] ? "true" : "false"}
+                  onClick={() => void openHomeValueEditor(valueKey)}
+                  onMouseEnter={() =>
+                    setHomeValueOverlayActive((current) => ({ ...current, [valueKey]: true }))
+                  }
+                  onMouseLeave={() =>
+                    setHomeValueOverlayActive((current) => ({ ...current, [valueKey]: false }))
+                  }
+                  onFocus={() =>
+                    setHomeValueOverlayActive((current) => ({ ...current, [valueKey]: true }))
+                  }
+                  onBlur={() =>
+                    setHomeValueOverlayActive((current) => ({ ...current, [valueKey]: false }))
+                  }
+                >
+                  <span className="recording-page-edit-overlay__wash" aria-hidden="true">
+                    {homeValueOverlayActive[valueKey] ? (
+                      <span
+                        key={`home-value-${valueKey}-${homeValueGlassVariant[valueKey]}-${homeValueGlassCycle[valueKey]}`}
+                        className={`recording-page-edit-overlay__glass recording-page-edit-overlay__glass--${homeValueGlassVariant[valueKey]}`}
+                      />
+                    ) : null}
+                  </span>
+                </button>
+              ) : null}
+            </article>
+          );
+        })}
       </section>
 
     </div>

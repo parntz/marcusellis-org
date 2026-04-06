@@ -42,7 +42,8 @@ async function fetchNewsDetailPage(route) {
 }
 
 export async function generateMetadata({ params }) {
-  const slug = normalizeSlug(params);
+  const resolvedParams = await params;
+  const slug = normalizeSlug(resolvedParams);
   if (!slug.length) {
     return {
       title: `News & Events | ${siteMeta.title}`,
@@ -67,7 +68,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function NewsAndEventsPage({ params }) {
-  const slug = normalizeSlug(params);
+  const resolvedParams = await params;
+  const slug = normalizeSlug(resolvedParams);
   const session = await getServerSession(authOptions);
   const isAdmin = Boolean(session?.user);
   const newsSidebarBoxes = await resolveSidebarBoxes("/news-and-events");
