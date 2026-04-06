@@ -39,22 +39,16 @@ function buildCalendarDays(date) {
   const days = [];
 
   for (let index = 0; index < leadingEmptyDays; index += 1) {
-    days.push({ key: `empty-${index}`, dateKey: "", label: "", isCurrentMonth: false, isToday: false });
+    days.push({ key: `empty-${index}`, dateKey: "", label: "", isCurrentMonth: false });
   }
 
   for (let day = 1; day <= daysInMonth; day += 1) {
-    const dayDate = new Date(year, month, day);
     const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const today = new Date();
     days.push({
       key: `${year}-${month + 1}-${day}`,
       dateKey,
       label: String(day),
       isCurrentMonth: true,
-      isToday:
-        dayDate.getFullYear() === today.getFullYear() &&
-        dayDate.getMonth() === today.getMonth() &&
-        dayDate.getDate() === today.getDate(),
     });
   }
 
@@ -64,7 +58,6 @@ function buildCalendarDays(date) {
       dateKey: "",
       label: "",
       isCurrentMonth: false,
-      isToday: false,
     });
   }
 
@@ -140,6 +133,8 @@ export function GigsList({ gigs = [], isAdmin = false, onEditGig = null }) {
   const calendarAsideRef = useRef(null);
   const calLayoutObserverRef = useRef(null);
   const normalizedQuery = query.trim().toLowerCase();
+  const hasSearchQuery = normalizedQuery.length > 0;
+  const clearDateRelevant = Boolean(selectedDateRange.startKey) || hasSearchQuery;
   const isDraggingDateRange = Boolean(dragStartKey);
 
   const calendarPortaledToBody = useSyncExternalStore(
@@ -337,8 +332,10 @@ export function GigsList({ gigs = [], isAdmin = false, onEditGig = null }) {
                 setSelectedDateRange({ startKey: "", endKey: "" });
                 setDragRange({ startKey: "", endKey: "" });
                 setDragStartKey("");
+                setQuery("");
               }}
-              disabled={!selectedDateRange.startKey}
+              disabled={!clearDateRelevant}
+              aria-label="Clear calendar date filter and search text"
             >
               Clear Date
             </button>
@@ -358,7 +355,6 @@ export function GigsList({ gigs = [], isAdmin = false, onEditGig = null }) {
             const isInRange = day.dateKey ? isDateKeyInRange(day.dateKey, activeRange) : false;
             const isRangeStart = Boolean(day.dateKey && activeRange.startKey === day.dateKey);
             const isRangeEnd = Boolean(day.dateKey && activeRange.endKey === day.dateKey);
-            const isSingleSelected = isRangeStart && isRangeEnd;
             const isHovered = Boolean(day.dateKey && hoveredDateKey === day.dateKey);
             return (
               <button
@@ -371,7 +367,6 @@ export function GigsList({ gigs = [], isAdmin = false, onEditGig = null }) {
                   isInRange ? "is-selected" : "",
                   isRangeStart ? "is-range-start" : "",
                   isRangeEnd ? "is-range-end" : "",
-                  isSingleSelected ? "is-single-selected" : "",
                   isHovered ? "is-hovered" : "",
                 ]
                   .filter(Boolean)

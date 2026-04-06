@@ -1415,17 +1415,12 @@ export function HomepageExperience({
 
       {heroTextEditorPortalReady && heroTextEditorOpen
         ? createPortal(
-            <div
-              className="page-header-editor-backdrop"
-              role="presentation"
-              onClick={() => !heroTextSaveBusy && setHeroTextEditorOpen(false)}
-            >
+            <div className="page-header-editor-backdrop" role="presentation">
               <div
                 className="page-header-editor-modal"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Edit homepage hero text"
-                onClick={(event) => event.stopPropagation()}
               >
                 <div className="page-header-editor-modal__header">
                   <p className="gigs-admin__eyebrow">Admin</p>
@@ -1485,17 +1480,12 @@ export function HomepageExperience({
 
       {heroTextEditorPortalReady && homePanelsEditorOpen
         ? createPortal(
-            <div
-              className="page-header-editor-backdrop"
-              role="presentation"
-              onClick={() => !homePanelsSaveBusy && setHomePanelsEditorOpen(false)}
-            >
+            <div className="page-header-editor-backdrop" role="presentation">
               <div
                 className="page-header-editor-modal page-header-editor-modal--wide"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Edit homepage notice cards"
-                onClick={(event) => event.stopPropagation()}
               >
                 <div className="page-header-editor-modal__header">
                   <p className="gigs-admin__eyebrow">Admin</p>
@@ -1655,17 +1645,12 @@ export function HomepageExperience({
 
       {heroTextEditorPortalReady && homeValueEditorOpen
         ? createPortal(
-            <div
-              className="page-header-editor-backdrop"
-              role="presentation"
-              onClick={() => !homeValueSaveBusy && setHomeValueEditorOpen(false)}
-            >
+            <div className="page-header-editor-backdrop" role="presentation">
               <div
                 className="page-header-editor-modal"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Edit homepage value card"
-                onClick={(event) => event.stopPropagation()}
               >
                 <div className="page-header-editor-modal__header">
                   <p className="gigs-admin__eyebrow">Admin</p>
@@ -1733,17 +1718,12 @@ export function HomepageExperience({
 
       {heroTextEditorPortalReady && heroContentEditorOpen
         ? createPortal(
-            <div
-              className="page-header-editor-backdrop"
-              role="presentation"
-              onClick={() => !heroContentSaveBusy && setHeroContentEditorOpen(false)}
-            >
+            <div className="page-header-editor-backdrop" role="presentation">
               <div
                 className="page-header-editor-modal page-header-editor-modal--wide"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Edit homepage hero content"
-                onClick={(event) => event.stopPropagation()}
               >
                 <div className="page-header-editor-modal__header">
                   <p className="gigs-admin__eyebrow">Admin</p>

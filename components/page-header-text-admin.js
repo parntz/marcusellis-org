@@ -143,13 +143,12 @@ export function PageHeaderTextAdmin({ route: routeProp = "" }) {
 
   const editorModal =
     open ? (
-      <div className="page-header-editor-backdrop" role="presentation" onClick={() => !busy && setOpen(false)}>
+      <div className="page-header-editor-backdrop" role="presentation">
         <div
           className="page-header-editor-modal"
           role="dialog"
           aria-modal="true"
           aria-label="Edit page header"
-          onClick={(event) => event.stopPropagation()}
         >
           <div className="page-header-editor-modal__header">
             <p className="gigs-admin__eyebrow">Admin</p>

@@ -366,7 +366,7 @@
   width: min(1100px, calc(100vw - 32px));
   max-height: min(88dvh, 960px);
   overflow: auto;
-  padding: clamp(20px, 3vw, 28px);
+  padding: var(--admin-editor-modal-padding);
   background: linear-gradient(180deg, rgba(13, 18, 31, 0.98), rgba(10, 14, 24, 0.98));
   border: 1px solid rgba(115, 194, 255, 0.28);
   box-shadow: 0 28px 72px rgba(0, 0, 0, 0.46);
@@ -476,38 +476,22 @@
 .callout-admin-grid label {
   display: grid;
   gap: 6px;
-  font-family: var(--form-font);
-  font-size: var(--form-label-size);
+  font-family: var(--body);
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: var(--form-label-tracking);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(224, 235, 255, 0.88);
+  color: var(--accent-dark);
 }
 
-.callout-admin-grid input,
+.callout-admin-grid input:not([type="checkbox"]):not([type="range"]),
 .callout-admin-grid textarea {
   width: 100%;
   min-width: 0;
-  padding: 11px 12px;
-  border: 1px solid rgba(122, 178, 255, 0.2);
-  background: rgba(10, 15, 27, 0.88);
-  color: #f7fbff;
-  font-family: var(--form-font);
-  font-size: var(--form-field-size);
-  line-height: var(--form-field-leading);
-  font-weight: var(--form-field-weight);
-  letter-spacing: var(--form-field-tracking);
 }
 
 .callout-admin-grid textarea {
   resize: vertical;
-}
-
-.callout-admin-grid input:focus,
-.callout-admin-grid textarea:focus {
-  outline: none;
-  border-color: rgba(122, 178, 255, 0.38);
-  box-shadow: 0 0 0 3px rgba(36, 214, 255, 0.1);
 }
 
 .callout-admin-grid__wide {
@@ -554,7 +538,7 @@
   .callout-admin-modal {
     width: calc(100vw - 20px);
     max-height: calc(100dvh - 20px);
-    padding: 16px;
+    padding: var(--admin-editor-modal-padding-sm);
   }
 
   .callout-admin-modal__header,

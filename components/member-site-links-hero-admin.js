@@ -105,13 +105,12 @@ export function MemberSiteLinksHeroAdmin({ initialConfig, children }) {
   }
 
   const modal = open ? (
-    <div className="page-header-editor-backdrop" role="presentation" onClick={() => !busy && setOpen(false)}>
+    <div className="page-header-editor-backdrop" role="presentation">
       <div
         className="page-header-editor-modal"
         role="dialog"
         aria-modal="true"
         aria-label="Edit member directory intro"
-        onClick={(event) => event.stopPropagation()}
       >
         <div className="page-header-editor-modal__header">
           <p className="gigs-admin__eyebrow">Admin</p>

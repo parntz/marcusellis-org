@@ -45,14 +45,9 @@ export function ModalLightbox({
         : "modal-lightbox-inner";
 
   const modal = (
-    <div className="modal-lightbox" onClick={close}>
+    <div className="modal-lightbox">
       <div className="modal-lightbox-stage">
-        <div
-          className={innerClass}
-          onClick={(e) => e.stopPropagation()}
-          role="dialog"
-          aria-modal="true"
-        >
+        <div className={innerClass} role="dialog" aria-modal="true">
           {showCloseButton ? (
             <button
               type="button"

@@ -22,6 +22,7 @@ export function FilterableResourceGrid({ items }) {
         <label className="filter-field">
           <span>Search</span>
           <input
+            type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search"

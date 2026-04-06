@@ -179,6 +179,11 @@ function extractLiveMusicHubParts() {
       <span class="live-music-hub__cta-title">Scales, contracts &amp; pension</span>
       <p class="live-music-hub__cta-desc">Live AFM rates, agreements, and pension resources for covered work.</p>
     </a>
+    <a class="live-music-hub__cta" href="/gigs">
+      <span class="live-music-hub__cta-kicker">On the calendar</span>
+      <span class="live-music-hub__cta-title">Upcoming gigs</span>
+      <p class="live-music-hub__cta-desc">Where members are playing around town.</p>
+    </a>
   </div>`;
 
   return { mainHtml: LIVE_MUSIC_PAGE_MAIN_HTML, sidebarHtml };
@@ -910,9 +915,18 @@ export async function MirroredPage({
         ) : null}
 
         {page.kind === "mirror-page" && !homeRoute && scalesFormsPage ? (
-          <section className="page-content scales-forms-links-page">
-            <ScalesMasterDetail links={scalesFormsLinks} isAdmin={isAdmin} />
-          </section>
+          <div className={`recording-page recording-sidebar-layout ${pageTypeClass}`}>
+            <div className="recording-body-grid recording-body-grid--scales">
+              <section className="page-content scales-forms-links-page recording-content">
+                <ScalesMasterDetail links={scalesFormsLinks} isAdmin={isAdmin} />
+              </section>
+              {routeSidebarEnabled ? (
+                <aside className="recording-sidebar">
+                  <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                </aside>
+              ) : null}
+            </div>
+          </div>
         ) : null}
 
         {page.kind === "mirror-page" && !homeRoute && !isMainRecordingPage && !scalesFormsPage ? (
@@ -1253,11 +1267,16 @@ export async function MirroredPage({
                   className="page-content recording-content live-music-main"
                   dangerouslySetInnerHTML={{ __html: liveMusicParts.mainHtml }}
                 />
-                {routeSidebarEnabled ? (
-                  <aside className="recording-sidebar live-music-sidebar">
+                <aside className="recording-sidebar live-music-sidebar">
+                  {routeSidebarEnabled && sharedSidebarBoxes?.length ? (
                     <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
-                  </aside>
-                ) : null}
+                  ) : (
+                    <div
+                      className="live-music-sidebar-fallback"
+                      dangerouslySetInnerHTML={{ __html: liveMusicParts.sidebarHtml }}
+                    />
+                  )}
+                </aside>
               </div>
             </div>
           ) : findArtistPage ? (

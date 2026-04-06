@@ -169,7 +169,7 @@ export function SiteHeader() {
           >
             Sign Out
           </button>
-          <RouteSidebarToggle className="utility-sidebar-toggle" />
+          {pathname !== "/" ? <RouteSidebarToggle className="utility-sidebar-toggle" /> : null}
         </>
       ) : (
         <>

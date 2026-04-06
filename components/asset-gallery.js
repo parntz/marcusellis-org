@@ -37,8 +37,8 @@ function Lightbox({ item, onClose }) {
       : item.src;
 
   return (
-    <div className="asset-lightbox" onClick={onClose}>
-      <div className="asset-lightbox-inner" onClick={(e) => e.stopPropagation()}>
+    <div className="asset-lightbox">
+      <div className="asset-lightbox-inner">
         <button type="button" className="asset-lightbox-close" onClick={onClose} aria-label="Close">
           ×
         </button>

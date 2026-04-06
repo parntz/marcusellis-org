@@ -1,9 +1,16 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
 import { PageHeaderWithCallout } from "../../components/page-header-with-callout";
+import { RecordingSidebarPanel } from "../../components/recording-sidebar-panel";
+import { authOptions } from "../../lib/auth-options";
 import { decodeHtmlEntities, dedupeMembersByTitle } from "../../lib/decode-html-entities.js";
 import { resolveMemberWebsiteHref, rewriteLegacyNashvilleSiteInHtml } from "../../lib/legacy-site-url.js";
 import { INTERNAL_PAGE_DESCRIPTION } from "../../lib/internal-page-description.js";
+import { resolveSidebarBoxes } from "../../lib/resolve-sidebar-boxes.mjs";
+import { getRouteSidebarConfig } from "../../lib/site-config-route-sidebar";
 import { getClient } from "../../lib/sqlite.mjs";
+
+export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 24;
 
@@ -136,12 +143,16 @@ function MemberCard({ member }) {
 }
 
 export default async function MemberPages({ searchParams }) {
+  const session = await getServerSession(authOptions);
+  const isAdmin = Boolean(session?.user);
   const page = Math.max(1, Number(searchParams?.page || 1));
   const q = (searchParams?.q || "").trim();
   const instrument = (searchParams?.instrument || "").trim();
-  const [topInstruments, { members, total }] = await Promise.all([
+  const routeSidebarEnabled = Boolean((await getRouteSidebarConfig("/member-pages"))?.enabled);
+  const [topInstruments, { members, total }, memberPagesSidebarBoxes] = await Promise.all([
     fetchTopInstruments(40),
     fetchMembers({ page, q, instrument }),
+    routeSidebarEnabled ? resolveSidebarBoxes("/member-pages") : Promise.resolve([]),
   ]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -161,57 +172,72 @@ export default async function MemberPages({ searchParams }) {
         description={INTERNAL_PAGE_DESCRIPTION.MEMBER_PAGES}
       />
 
-      <section className="member-controls">
-        <form className="member-filters" action="/member-pages" method="get">
-          <div className="filter-group">
-            <label htmlFor="q">Search</label>
-            <input
-              id="q"
-              name="q"
-              type="text"
-              defaultValue={q}
-              placeholder="e.g. fiddle, guitar, engineer"
-            />
-          </div>
-          <div className="filter-group">
-            <label htmlFor="instrument">Primary instrument</label>
-            <select id="instrument" name="instrument" defaultValue={instrument}>
-              <option value="">Any</option>
-              {topInstruments.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
+      <div className="recording-page recording-sidebar-layout">
+        <div className="recording-body-grid recording-body-grid--scales">
+          <div className="recording-content member-pages-main-column">
+            <section className="member-controls">
+              <form className="member-filters" action="/member-pages" method="get">
+                <div className="filter-group">
+                  <label htmlFor="q">Search</label>
+                  <input
+                    id="q"
+                    name="q"
+                    type="search"
+                    defaultValue={q}
+                    placeholder="e.g. fiddle, guitar, engineer"
+                  />
+                </div>
+                <div className="filter-group">
+                  <label htmlFor="instrument">Primary instrument</label>
+                  <select id="instrument" name="instrument" defaultValue={instrument}>
+                    <option value="">Any</option>
+                    {topInstruments.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="filter-group filter-group--action">
+                  <button type="submit">Filter</button>
+                </div>
+              </form>
+              <p className="member-count">{total} members</p>
+            </section>
+
+            <section className="member-grid" aria-label="Member profiles">
+              {members.map((member) => (
+                <MemberCard key={member.slug} member={member} />
               ))}
-            </select>
-          </div>
-          <div className="filter-group filter-group--action">
-            <button type="submit">Filter</button>
-          </div>
-        </form>
-        <p className="member-count">{total} members</p>
-      </section>
+            </section>
 
-      <section className="member-grid" aria-label="Member profiles">
-        {members.map((member) => (
-          <MemberCard key={member.slug} member={member} />
-        ))}
-      </section>
-
-      <footer className="member-pagination" aria-label="Pagination">
-        <span>
-          Page {page} of {totalPages} ({total} members)
-        </span>
-        {page > 1 ? (
-          <Link href={`/member-pages?${buildParams(page - 1)}`} className="text-link">
-            ← Prev
-          </Link>
-        ) : null}
-        {page < totalPages ? (
-          <Link href={`/member-pages?${buildParams(page + 1)}`} className="text-link">
-            Next →
-          </Link>
-        ) : null}
-      </footer>
+            <footer className="member-pagination" aria-label="Pagination">
+              <span>
+                Page {page} of {totalPages} ({total} members)
+              </span>
+              {page > 1 ? (
+                <Link href={`/member-pages?${buildParams(page - 1)}`} className="text-link">
+                  ← Prev
+                </Link>
+              ) : null}
+              {page < totalPages ? (
+                <Link href={`/member-pages?${buildParams(page + 1)}`} className="text-link">
+                  Next →
+                </Link>
+              ) : null}
+            </footer>
+          </div>
+          {routeSidebarEnabled ? (
+            <aside className="recording-sidebar">
+              <RecordingSidebarPanel
+                boxes={memberPagesSidebarBoxes}
+                pageRoute="/member-pages"
+                isAdmin={isAdmin}
+              />
+            </aside>
+          ) : null}
+        </div>
+      </div>
     </article>
   );
 }

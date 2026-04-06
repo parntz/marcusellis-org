@@ -88,13 +88,12 @@ export function MemberSiteLinksIntroAdmin({ defaultHtml = "" }) {
   }
 
   const modal = open ? (
-    <div className="page-header-editor-backdrop" role="presentation" onClick={() => !busy && setOpen(false)}>
+    <div className="page-header-editor-backdrop" role="presentation">
       <div
         className="page-header-editor-modal page-header-editor-modal--wide"
         role="dialog"
         aria-modal="true"
         aria-label="Edit member site links intro"
-        onClick={(event) => event.stopPropagation()}
       >
         <div className="page-header-editor-modal__header">
           <p className="gigs-admin__eyebrow">Admin</p>

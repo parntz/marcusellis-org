@@ -33,6 +33,7 @@ export function FindArtistEnhancer() {
       titleLabel.style.display = "none";
     }
     if (titleInput) {
+      titleInput.type = "search";
       titleInput.placeholder = "Search artists, bands, styles, or instruments...";
       titleInput.autocomplete = "off";
       titleInput.setAttribute("aria-label", "Search artist, instrument, music style, or band name");
