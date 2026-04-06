@@ -167,7 +167,7 @@ async function downloadImage(imageUrl, productionSeasonId) {
     fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
   }
 
-  return `/uploads/gigs/${filename}`;
+  return `/api/gigs/asset/${encodeURIComponent(filename)}`;
 }
 
 async function ensureGigsSchema(client) {

@@ -52,7 +52,7 @@ export async function POST(request) {
     const dir = path.join(process.cwd(), "public", "uploads", "gigs");
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, id), buf);
-    return NextResponse.json({ url: `/uploads/gigs/${id}` });
+    return NextResponse.json({ url: `/api/gigs/asset/${encodeURIComponent(id)}` });
   }
 
   return NextResponse.json(

@@ -1114,12 +1114,6 @@ img {
   }
 }
 
-@media (min-width: 1180px) {
-  .live-music-newspaper {
-    column-count: 3;
-  }
-}
-
 .signatory-newspaper > *,
 .live-music-newspaper > * {
   break-inside: avoid;
