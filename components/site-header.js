@@ -7,6 +7,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { primaryNav, siteMeta, utilityNav } from "../lib/site-data";
 import { ModalLightbox } from "./modal-lightbox";
+import { RouteSidebarToggle } from "./route-sidebar-toggle";
 
 /** Static brand logo (see public/images/nma-logo.png) */
 const BRAND_LOGO_SRC = "/images/nma-logo.png";
@@ -168,6 +169,7 @@ export function SiteHeader() {
           >
             Sign Out
           </button>
+          <RouteSidebarToggle className="utility-sidebar-toggle" />
         </>
       ) : (
         <>

@@ -7,6 +7,7 @@ import { RecordingSidebarPanel } from "../../components/recording-sidebar-panel"
 import { authOptions } from "../../lib/auth-options";
 import { listUpcomingGigs } from "../../lib/gigs";
 import { resolveSidebarBoxes } from "../../lib/resolve-sidebar-boxes.mjs";
+import { getRouteSidebarConfig } from "../../lib/site-config-route-sidebar";
 import { siteMeta } from "../../lib/site-data";
 
 export const dynamic = "force-dynamic";
@@ -19,9 +20,10 @@ export const metadata = {
 export default async function GigsPage() {
   const session = await getServerSession(authOptions);
   const isAdmin = Boolean(session?.user);
+  const routeSidebarEnabled = Boolean((await getRouteSidebarConfig("/gigs"))?.enabled);
   const [upcomingGigs, gigsSidebarBoxes] = await Promise.all([
     listUpcomingGigs(150),
-    resolveSidebarBoxes("/gigs", "/recording"),
+    routeSidebarEnabled ? resolveSidebarBoxes("/gigs") : Promise.resolve([]),
   ]);
 
   return (
@@ -38,9 +40,11 @@ export default async function GigsPage() {
           <div className="recording-content">
             {isAdmin ? <GigsManager initialGigs={upcomingGigs} /> : <GigsList gigs={upcomingGigs} />}
           </div>
-          <aside className="recording-sidebar">
-            <RecordingSidebarPanel boxes={gigsSidebarBoxes} pageRoute="/gigs" isAdmin={isAdmin} />
-          </aside>
+          {routeSidebarEnabled ? (
+            <aside className="recording-sidebar">
+              <RecordingSidebarPanel boxes={gigsSidebarBoxes} pageRoute="/gigs" isAdmin={isAdmin} />
+            </aside>
+          ) : null}
         </div>
       </div>
     </article>

@@ -9,6 +9,7 @@ import { authOptions } from "../../../lib/auth-options";
 import { listNewsEventsItems } from "../../../lib/news-events-items";
 import { resolveSidebarBoxes } from "../../../lib/resolve-sidebar-boxes.mjs";
 import { INTERNAL_PAGE_DESCRIPTION } from "../../../lib/internal-page-description.js";
+import { getRouteSidebarConfig } from "../../../lib/site-config-route-sidebar";
 import { siteMeta } from "../../../lib/site-data";
 import { getEditablePageHeader } from "../../../lib/page-header-editor";
 import { getClient } from "../../../lib/sqlite.mjs";
@@ -72,9 +73,11 @@ export default async function NewsAndEventsPage({ params }) {
   const slug = normalizeSlug(resolvedParams);
   const session = await getServerSession(authOptions);
   const isAdmin = Boolean(session?.user);
-  const newsSidebarBoxes = await resolveSidebarBoxes("/news-and-events");
 
   if (!slug.length) {
+    const listRoute = "/news-and-events";
+    const routeSidebarEnabled = Boolean((await getRouteSidebarConfig(listRoute))?.enabled);
+    const newsSidebarBoxes = routeSidebarEnabled ? await resolveSidebarBoxes(listRoute) : [];
     const newsEventItems = await listNewsEventsItems(1000, "/news-and-events");
     const listHeader = await getEditablePageHeader("/news-and-events");
     const listTitle = listHeader?.title?.trim() || "News & Events";
@@ -100,13 +103,11 @@ export default async function NewsAndEventsPage({ params }) {
                 </section>
               )}
             </div>
-            <aside className="recording-sidebar">
-              <RecordingSidebarPanel
-                boxes={newsSidebarBoxes}
-                pageRoute="/news-and-events"
-                isAdmin={isAdmin}
-              />
-            </aside>
+            {routeSidebarEnabled ? (
+              <aside className="recording-sidebar">
+                <RecordingSidebarPanel boxes={newsSidebarBoxes} pageRoute={listRoute} isAdmin={isAdmin} />
+              </aside>
+            ) : null}
           </div>
         </div>
       </article>
@@ -118,6 +119,9 @@ export default async function NewsAndEventsPage({ params }) {
   if (!page) {
     notFound();
   }
+
+  const routeSidebarEnabled = Boolean((await getRouteSidebarConfig(route))?.enabled);
+  const newsSidebarBoxes = routeSidebarEnabled ? await resolveSidebarBoxes(route) : [];
 
   const evDate = item?.event_date_text ?? item?.eventDateText;
   const detailDescription =
@@ -152,13 +156,11 @@ export default async function NewsAndEventsPage({ params }) {
               <div className="richtext" dangerouslySetInnerHTML={{ __html: page.body_html }} />
             </section>
           </div>
-          <aside className="recording-sidebar">
-            <RecordingSidebarPanel
-              boxes={newsSidebarBoxes}
-              pageRoute="/news-and-events"
-              isAdmin={isAdmin}
-            />
-          </aside>
+          {routeSidebarEnabled ? (
+            <aside className="recording-sidebar">
+              <RecordingSidebarPanel boxes={newsSidebarBoxes} pageRoute={route} isAdmin={isAdmin} />
+            </aside>
+          ) : null}
         </div>
       </div>
     </article>

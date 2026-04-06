@@ -234,6 +234,34 @@ img {
   flex-wrap: wrap;
 }
 
+.route-sidebar-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.utility-sidebar-toggle {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+.route-sidebar-toggle__button {
+  display: block;
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  font: 700 0.82rem/1 var(--body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.utility-sidebar-toggle .route-sidebar-toggle__button {
+  font: 700 0.82rem/1 var(--body);
+}
+
 .utility-link,
 .nav-link,
 .sub-nav-link,
@@ -281,19 +309,6 @@ img {
   .main-nav {
     margin-left: 0;
   }
-}
-
-.main-nav-list,
-.sub-nav {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.main-nav-list {
-  display: flex;
-  flex-wrap: wrap;
-}
 
 .nav-item {
   position: relative;
@@ -324,9 +339,28 @@ img {
 .nav-link:focus-visible,
 .sub-nav-link:hover,
 .sub-nav-link:focus-visible,
-.nav-item.is-active > .nav-link {
+.nav-item.is-active > .nav-link,
+.route-sidebar-toggle__button:hover,
+.route-sidebar-toggle__button:focus-visible {
   color: var(--link-hover);
   background: rgba(36, 58, 100, 0.5);
+}
+
+.route-sidebar-toggle__button:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.main-nav-list,
+.sub-nav {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.main-nav-list {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .nav-item.is-active > .nav-link {
@@ -1578,6 +1612,10 @@ img {
     grid-template-rows: auto auto;
   }
 
+  .recording-body-grid:not(.recording-body-grid--scales):not(:has(.recording-sidebar)) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .recording-body-grid:not(.recording-body-grid--scales) .recording-video-area {
     grid-column: 1;
     grid-row: 1;
@@ -1638,6 +1676,10 @@ img {
   .recording-body-grid--scales {
     grid-template-columns: 1fr 350px;
     grid-template-rows: auto;
+  }
+
+  .recording-body-grid--scales:not(:has(.recording-sidebar)) {
+    grid-template-columns: 1fr;
   }
 
   .recording-body-grid--scales .recording-content {

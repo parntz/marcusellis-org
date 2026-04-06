@@ -26,6 +26,7 @@ import { listNewsEventsItems } from "../lib/news-events-items";
 import { getMemberSiteLinksHeroConfig } from "../lib/site-config-member-site-links-hero";
 import { getMemberSiteLinksIntroConfig } from "../lib/site-config-member-site-links-intro";
 import { getRecordingPageConfig } from "../lib/site-config-recording-page";
+import { getRouteSidebarConfig } from "../lib/site-config-route-sidebar";
 import { getScalesFormsLinksConfig } from "../lib/site-config-scales-forms-links";
 
 function AssetIndex({ page }) {
@@ -757,14 +758,10 @@ export async function MirroredPage({
   const newsEventItems = newsEventsRoute
     ? await listNewsEventsItems(1000, "/news-and-events")
     : [];
-  const recordingSidebarBoxes = isMainRecordingPage ? await resolveSidebarBoxes("/recording") : null;
-  const newsSidebarBoxes = newsEventsRoute ? await resolveSidebarBoxes("/news-and-events") : null;
-  const signatorySidebarBoxes = signatoryPage
-    ? await resolveSidebarBoxes("/signatory-information", "/news-and-events")
-    : null;
-  const findArtistSidebarBoxes = findArtistPage
-    ? await resolveSidebarBoxes("/find-an-artist-or-band", "/recording")
-    : null;
+  const routeSidebarConfig = page.kind === "mirror-page" ? await getRouteSidebarConfig(page.route) : null;
+  const routeSidebarEnabled = Boolean(routeSidebarConfig?.enabled);
+  const sharedSidebarBoxes =
+    page.kind === "mirror-page" && routeSidebarEnabled ? await resolveSidebarBoxes(page.route) : null;
   const recordingContent = isMainRecordingPage
     ? extractRecordingContent(page.bodyHtml || "")
     : null;
@@ -780,11 +777,12 @@ export async function MirroredPage({
   const recordingMainHtml = recordingPageConfig?.mainHtml
     ? `<div class="recording-flow">${recordingPageConfig.mainHtml}</div>`
     : "";
-  const recordingSidebarBoxesVisible = isMainRecordingPage
-    ? (recordingSidebarBoxes || []).filter(
-        (box) => recordingPageConfig?.showSidebarCtas !== false || box.kind !== "cta_group"
-      )
-    : recordingSidebarBoxes;
+  const recordingSidebarBoxesVisible =
+    isMainRecordingPage && routeSidebarEnabled
+      ? (sharedSidebarBoxes || []).filter(
+          (box) => recordingPageConfig?.showSidebarCtas !== false || box.kind !== "cta_group"
+        )
+      : null;
   const scalesFormsLinks = scalesFormsPage ? await getScalesFormsLinksConfig() : null;
   const signatoryContentHtml = signatoryPage
     ? enhanceSignatoryArticleHtml(extractContentEncodedHtml(page.bodyHtml || ""))
@@ -885,13 +883,15 @@ export async function MirroredPage({
                   />
                 ) : null}
               </div>
-              <aside className="recording-sidebar">
-                <RecordingSidebarPanel
-                  boxes={recordingSidebarBoxesVisible}
-                  pageRoute="/recording"
-                  isAdmin={isAdmin}
-                />
-              </aside>
+              {routeSidebarEnabled ? (
+                <aside className="recording-sidebar">
+                  <RecordingSidebarPanel
+                    boxes={recordingSidebarBoxesVisible}
+                    pageRoute="/recording"
+                    isAdmin={isAdmin}
+                  />
+                </aside>
+              ) : null}
               {isAdmin && recordingPageConfig ? (
                 <RecordingPageAdmin initialConfig={recordingPageConfig} target="main">
                   <section
@@ -929,13 +929,11 @@ export async function MirroredPage({
                     />
                   )}
                 </div>
-                <aside className="recording-sidebar">
-                  <RecordingSidebarPanel
-                    boxes={newsSidebarBoxes}
-                    pageRoute="/news-and-events"
-                    isAdmin={isAdmin}
-                  />
-                </aside>
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar">
+                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  </aside>
+                ) : null}
               </div>
             </div>
           ) : signatoryPage ? (
@@ -947,13 +945,11 @@ export async function MirroredPage({
                     dangerouslySetInnerHTML={{ __html: signatoryContentHtml }}
                   />
                 </section>
-                <aside className="recording-sidebar">
-                  <RecordingSidebarPanel
-                    boxes={signatorySidebarBoxes}
-                    pageRoute="/signatory-information"
-                    isAdmin={isAdmin}
-                  />
-                </aside>
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar">
+                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  </aside>
+                ) : null}
               </div>
             </div>
           ) : liveScalesPage ? (
@@ -1018,36 +1014,11 @@ export async function MirroredPage({
                     ) : null}
                   </div>
                 </section>
-                <aside className="recording-sidebar live-scales-sidebar">
-                  <div className="recording-contact-box">
-                    <h3 className="recording-sidebar-heading">Live Department</h3>
-                    <a href="tel:+16152449514" className="recording-phone">
-                      615-244-9514
-                    </a>
-                    <p className="recording-contact-cta">Questions about live scales, contracts, or pension paperwork.</p>
-                    <div className="recording-staff">
-                      <div className="recording-staff-member">
-                        <a href="mailto:michael@nashvillemusicians.org">Michael Minton</a>
-                        <span>Live and Touring Department</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="recording-cta-box">
-                    <Link href="/form-ls1-qa" className="recording-cta-item">
-                      <strong>LS-1 Q&amp;A</strong>
-                      <span>Read the detailed guide to pension contribution questions.</span>
-                    </Link>
-                    <Link href="/gigs" className="recording-cta-item">
-                      <strong>Gig Calendar</strong>
-                      <span>See where Local 257 musicians are playing right now.</span>
-                    </Link>
-                    <Link href="/find-an-artist-or-band" className="recording-cta-item">
-                      <strong>Find an Artist or Band</strong>
-                      <span>Search member listings when you need players or a full group.</span>
-                    </Link>
-                  </div>
-                </aside>
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar live-scales-sidebar">
+                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  </aside>
+                ) : null}
               </div>
             </div>
           ) : rehearsalHallPage ? (
@@ -1099,45 +1070,11 @@ export async function MirroredPage({
 
                   </div>
                 </section>
-                <aside className="recording-sidebar rehearsal-hall-sidebar">
-                  <div className="recording-contact-box">
-                    <h3 className="recording-sidebar-heading">Book The Hall</h3>
-                    <a href="tel:+16152449514" className="recording-phone">
-                      615-244-9514
-                    </a>
-                    <p className="recording-contact-cta">Call and ask for Michael or Alona to reserve the room.</p>
-                    <div className="recording-staff">
-                      <div className="recording-staff-member">
-                        <span>Hours</span>
-                        <span>9 a.m. to 11 p.m.</span>
-                      </div>
-                      <div className="recording-staff-member">
-                        <span>Eligibility</span>
-                        <span>Current Local 257 members</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="recording-callout recording-rate-callout rehearsal-hall-note">
-                    <h3 className="recording-sidebar-heading">Good For</h3>
-                    <p>Band rehearsals, stage prep, section run-throughs, and getting a room balance before the gig.</p>
-                  </div>
-
-                  <div className="recording-cta-box">
-                    <Link href="/member-services" className="recording-cta-item">
-                      <strong>Member Services</strong>
-                      <span>See other practical services available through Local 257.</span>
-                    </Link>
-                    <Link href="/gigs" className="recording-cta-item">
-                      <strong>Upcoming Gigs</strong>
-                      <span>Check the calendar and see where members are working.</span>
-                    </Link>
-                    <Link href="/live-scales-contracts-pension" className="recording-cta-item">
-                      <strong>Live Scales and Contracts</strong>
-                      <span>Handle the paperwork after the rehearsal turns into a show.</span>
-                    </Link>
-                  </div>
-                </aside>
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar rehearsal-hall-sidebar">
+                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  </aside>
+                ) : null}
               </div>
             </div>
           ) : benefitsHubPage ? (
@@ -1231,41 +1168,11 @@ export async function MirroredPage({
                     </section>
                   </div>
                 </section>
-                <aside className="recording-sidebar benefits-sidebar">
-                  <div className="recording-contact-box">
-                    <h3 className="recording-sidebar-heading">Need Help?</h3>
-                    <a href="tel:+16152449514" className="recording-phone">
-                      615-244-9514
-                    </a>
-                    <p className="recording-contact-cta">Call the Local 257 office for benefit questions, paperwork help, and program guidance.</p>
-                    <div className="recording-staff">
-                      <div className="recording-staff-member">
-                        <span>Member support</span>
-                        <span>Benefits, resources, and office assistance</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="recording-callout recording-rate-callout benefits-sidebar-note">
-                    <h3 className="recording-sidebar-heading">Worth Using</h3>
-                    <p>These benefits are most valuable when members actually use them, not just know they exist.</p>
-                  </div>
-
-                  <div className="recording-cta-box">
-                    <Link href="/free-rehearsal-hall" className="recording-cta-item">
-                      <strong>Book The Rehearsal Hall</strong>
-                      <span>Reserve the Cooper Rehearsal Hall as a current member.</span>
-                    </Link>
-                    <Link href="/member-site-links" className="recording-cta-item">
-                      <strong>Member Site Links</strong>
-                      <span>Jump to practical resources and member-facing tools.</span>
-                    </Link>
-                    <Link href="/union-plus-program" className="recording-cta-item">
-                      <strong>Union Plus Program</strong>
-                      <span>See additional discounts, savings, and member offers.</span>
-                    </Link>
-                  </div>
-                </aside>
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar benefits-sidebar">
+                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  </aside>
+                ) : null}
               </div>
             </div>
           ) : memberSiteLinksPage ? (
@@ -1332,31 +1239,11 @@ export async function MirroredPage({
                     </section>
                   </div>
                 </section>
-                <aside className="recording-sidebar member-links-sidebar">
-                  <div className="recording-callout recording-rate-callout member-links-sidebar-note">
-                    <h3 className="recording-sidebar-heading">Public Profiles</h3>
-                    <p>Need current profile listings instead of older standalone websites? Start with the public member pages.</p>
-                  </div>
-
-                  <div className="recording-cta-box">
-                    <Link href="/member-pages" className="recording-cta-item">
-                      <strong>Member Profile Pages</strong>
-                      <span>Browse the current public member profiles on this site.</span>
-                    </Link>
-                    <Link href="/find-an-artist-or-band" className="recording-cta-item">
-                      <strong>Find An Artist or Band</strong>
-                      <span>Search performers, bands, and instrumentation listings.</span>
-                    </Link>
-                    <Link href="/benefits-union-members" className="recording-cta-item">
-                      <strong>Member Benefits</strong>
-                      <span>Explore benefits, discounts, and other union support.</span>
-                    </Link>
-                    <Link href="/free-rehearsal-hall" className="recording-cta-item">
-                      <strong>Free Rehearsal Hall</strong>
-                      <span>Reserve the Cooper Rehearsal Hall as a current member.</span>
-                    </Link>
-                  </div>
-                </aside>
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar member-links-sidebar">
+                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  </aside>
+                ) : null}
               </div>
             </div>
           ) : liveMusicPage ? (
@@ -1366,9 +1253,11 @@ export async function MirroredPage({
                   className="page-content recording-content live-music-main"
                   dangerouslySetInnerHTML={{ __html: liveMusicParts.mainHtml }}
                 />
-                <aside className="recording-sidebar live-music-sidebar">
-                  <div dangerouslySetInnerHTML={{ __html: liveMusicParts.sidebarHtml }} />
-                </aside>
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar live-music-sidebar">
+                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  </aside>
+                ) : null}
               </div>
             </div>
           ) : findArtistPage ? (
@@ -1379,12 +1268,61 @@ export async function MirroredPage({
                   dangerouslySetInnerHTML={{ __html: bodyHtml }}
                 />
                 <FindArtistEnhancer />
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar">
+                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  </aside>
+                ) : null}
+              </div>
+            </div>
+          ) : routeSidebarEnabled ? (
+            <div className={`recording-page recording-sidebar-layout generic-shared-sidebar-layout ${pageTypeClass}`}>
+              <div className="recording-body-grid recording-body-grid--scales">
+                <div>
+                  {newUseReusePage && newUseReuseSections ? (
+                    <div className="new-use-grid">
+                      <section
+                        className="page-content new-use-copy"
+                        dangerouslySetInnerHTML={{ __html: newUseReuseSections.copyHtml }}
+                      />
+                      <section className="page-content new-use-form">
+                        {newUseStatus ? (
+                          <p className={`form-status form-status--${newUseStatus.tone}`}>
+                            {newUseStatus.message}
+                          </p>
+                        ) : null}
+                        <div dangerouslySetInnerHTML={{ __html: newUseReuseSections.formHtml }} />
+                      </section>
+                    </div>
+                  ) : eventDetailRoute ? (
+                    <section
+                      className="page-content event-detail-content"
+                      dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                    />
+                  ) : pageTypeClass.includes("pg-faq") ? (
+                    <>
+                      <FaqSearch targetId="faq-search-target" />
+                      <section
+                        id="faq-search-target"
+                        className="page-content"
+                        dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                      />
+                    </>
+                  ) : (
+                    <section
+                      className={`page-content ${recordingRoute ? "recording-content" : ""}`}
+                      dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                    />
+                  )}
+                  {profilePage ? <ProfilePageEnhancer /> : null}
+                  {page.pageAssets?.length && !eventDetailRoute && !recordingRoute && !profilePage && !magazinePage ? (
+                    <section className="page-content">
+                      <AssetGallery title="Unique Page Assets" assets={page.pageAssets} />
+                    </section>
+                  ) : null}
+                </div>
                 <aside className="recording-sidebar">
-                  <RecordingSidebarPanel
-                    boxes={findArtistSidebarBoxes}
-                    pageRoute="/find-an-artist-or-band"
-                    isAdmin={isAdmin}
-                  />
+                  <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
                 </aside>
               </div>
             </div>

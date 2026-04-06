@@ -3,7 +3,6 @@ import { closeDb, getClient } from "../lib/sqlite.mjs";
 import {
   DEFAULT_RECORDING_SIDEBAR_BOXES,
   RECORDING_SIDEBAR_FAMILY,
-  duplicateSidebarToPage,
   replaceSidebarBoxesForPage,
 } from "../lib/site-config-sidebar.mjs";
 
@@ -31,7 +30,6 @@ await client.executeMultiple(`
 `);
 
 await replaceSidebarBoxesForPage("/recording", RECORDING_SIDEBAR_FAMILY, DEFAULT_RECORDING_SIDEBAR_BOXES);
-await duplicateSidebarToPage("/recording", "/news-and-events", RECORDING_SIDEBAR_FAMILY);
 
-console.log("Seeded recording + news-and-events sidebar box sets in Turso.");
+console.log("Seeded /recording sidebar box set in Turso.");
 await closeDb();
