@@ -5,9 +5,27 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { ModalLightbox } from "./modal-lightbox";
+import { NewsEventsBodyEditor } from "./news-events-body-editor";
 
 const SIDEBAR_FAMILY = "recording_sidebar";
 const GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
+const SIDEBAR_LAYOUT_OPTIONS = [
+  {
+    value: "standard",
+    label: "Standard Stack",
+    description: "Balanced spacing for most sidebar panels.",
+  },
+  {
+    value: "compact",
+    label: "Compact Stack",
+    description: "Tighter spacing for denser informational callouts.",
+  },
+  {
+    value: "feature",
+    label: "Feature Panel",
+    description: "Roomier spacing for a more promotional panel treatment.",
+  },
+];
 const SIDEBAR_STYLE_OPTIONS = [
   {
     value: "glass-panel",
@@ -32,6 +50,38 @@ const SIDEBAR_ACCENT_OPTIONS = [
   { value: "gold", label: "Gold", hex: "#ffd54f", rgb: "255, 213, 79" },
   { value: "coral", label: "Coral", hex: "#ff7a6b", rgb: "255, 122, 107" },
 ];
+const SIDEBAR_BLOCK_TYPE_OPTIONS = [
+  {
+    value: "phone",
+    label: "Phone Callout",
+    description: "Large phone number with small supporting copy underneath.",
+  },
+  {
+    value: "person",
+    label: "Name + Title",
+    description: "One person row with a name, optional email link, and title line.",
+  },
+  {
+    value: "text",
+    label: "Plain Text",
+    description: "Simple paragraph copy.",
+  },
+  {
+    value: "html",
+    label: "Simple HTML",
+    description: "Rich text block using the inline HTML editor.",
+  },
+  {
+    value: "link",
+    label: "Accent Link",
+    description: "A text link with optional supporting note.",
+  },
+  {
+    value: "cta",
+    label: "CTA Card",
+    description: "A larger linked card with title and subtitle.",
+  },
+];
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -42,19 +92,53 @@ function pickRandomGlassVariant(current = GLASS_VARIANTS[0]) {
   return options[Math.floor(Math.random() * options.length)] || current;
 }
 
+function cleanText(value, max = 240) {
+  return String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+function cleanHref(value, max = 1000) {
+  return String(value || "").trim().slice(0, max);
+}
+
+function cleanHtml(value) {
+  return String(value || "").trim();
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function getAccentOption(value = "cyan") {
-  return (
-    SIDEBAR_ACCENT_OPTIONS.find((option) => option.value === value) ||
-    SIDEBAR_ACCENT_OPTIONS[0]
-  );
+  return SIDEBAR_ACCENT_OPTIONS.find((option) => option.value === value) || SIDEBAR_ACCENT_OPTIONS[0];
+}
+
+function getLayoutOption(value = "standard") {
+  return SIDEBAR_LAYOUT_OPTIONS.find((option) => option.value === value) || SIDEBAR_LAYOUT_OPTIONS[0];
+}
+
+function getStyleOption(value = "glass-panel") {
+  return SIDEBAR_STYLE_OPTIONS.find((option) => option.value === value) || SIDEBAR_STYLE_OPTIONS[0];
+}
+
+function getBlockTypeOption(value = "text") {
+  return SIDEBAR_BLOCK_TYPE_OPTIONS.find((option) => option.value === value) || SIDEBAR_BLOCK_TYPE_OPTIONS[0];
 }
 
 function normalizeAppearance(input = {}) {
+  const layoutName = SIDEBAR_LAYOUT_OPTIONS.some((option) => option.value === input?.layoutName)
+    ? input.layoutName
+    : "standard";
   const styleName = SIDEBAR_STYLE_OPTIONS.some((option) => option.value === input?.styleName)
     ? input.styleName
     : "glass-panel";
   const accent = getAccentOption(input?.accentColor);
   return {
+    layoutName,
     styleName,
     accentColor: accent.value,
     showAccentStrip: input?.showAccentStrip !== false,
@@ -68,70 +152,204 @@ function formatTelHref(phoneDisplay = "", phoneHref = "") {
   return digits ? `tel:${digits}` : "";
 }
 
-function normalizeContactPayload(payload = {}) {
+function emptyContentBlock(type = "text") {
+  switch (type) {
+    case "phone":
+      return {
+        type,
+        phoneDisplay: "",
+        phoneHref: "",
+        supportingText: "",
+      };
+    case "person":
+      return {
+        type,
+        name: "",
+        email: "",
+        title: "",
+      };
+    case "html":
+      return {
+        type,
+        html: "",
+      };
+    case "link":
+      return {
+        type,
+        label: "",
+        href: "",
+        external: false,
+        supportingText: "",
+      };
+    case "cta":
+      return {
+        type,
+        title: "",
+        subtitle: "",
+        href: "",
+        external: false,
+      };
+    case "text":
+    default:
+      return {
+        type: "text",
+        text: "",
+      };
+  }
+}
+
+function normalizeContentBlock(input = {}) {
+  const type = SIDEBAR_BLOCK_TYPE_OPTIONS.some((option) => option.value === input?.type)
+    ? input.type
+    : "text";
+
+  if (type === "phone") {
+    return {
+      type,
+      phoneDisplay: cleanText(input.phoneDisplay, 80),
+      phoneHref: cleanHref(input.phoneHref, 255),
+      supportingText: cleanText(input.supportingText, 240),
+    };
+  }
+
+  if (type === "person") {
+    return {
+      type,
+      name: cleanText(input.name, 120),
+      email: cleanText(input.email, 160),
+      title: cleanText(input.title, 160),
+    };
+  }
+
+  if (type === "html") {
+    return {
+      type,
+      html: cleanHtml(input.html),
+    };
+  }
+
+  if (type === "link") {
+    return {
+      type,
+      label: cleanText(input.label, 140),
+      href: cleanHref(input.href, 500),
+      external: Boolean(input.external),
+      supportingText: cleanText(input.supportingText, 240),
+    };
+  }
+
+  if (type === "cta") {
+    return {
+      type,
+      title: cleanText(input.title, 140),
+      subtitle: cleanText(input.subtitle, 240),
+      href: cleanHref(input.href, 500),
+      external: Boolean(input.external),
+    };
+  }
+
   return {
-    heading: String(payload.heading || "Recording Department"),
-    phoneDisplay: String(payload.phoneDisplay || ""),
-    phoneHref: String(payload.phoneHref || ""),
-    cta: String(payload.cta || ""),
-    staff: Array.isArray(payload.staff)
-      ? payload.staff.map((member) => ({
-          name: String(member?.name || ""),
-          email: String(member?.email || ""),
-          role: String(member?.role || ""),
-        }))
-      : [],
-    appearance: normalizeAppearance(payload.appearance),
+    type: "text",
+    text: cleanText(input.text, 600),
   };
 }
 
-function normalizeRatePayload(payload = {}) {
-  return {
-    heading: String(payload.heading || "Rate Update"),
-    paragraph: String(payload.paragraph || ""),
-    appearance: normalizeAppearance(payload.appearance),
-  };
+function defaultHeadingForKind(kind = "") {
+  if (kind === "contact") return "Recording Department";
+  if (kind === "rate") return "Rate Update";
+  if (kind === "bforms") return "B Forms";
+  return "";
 }
 
-function normalizeBformsPayload(payload = {}) {
-  return {
-    heading: String(payload.heading || "B Forms"),
-    body: String(payload.body || ""),
-    linkLabel: String(payload.linkLabel || ""),
-    linkHref: String(payload.linkHref || "/scales-forms-agreements"),
-    external: Boolean(payload.external),
-    appearance: normalizeAppearance(payload.appearance),
-  };
+function paragraphsToHtml(value) {
+  const text = cleanText(value, 1000);
+  return text ? `<p>${escapeHtml(text)}</p>` : "";
 }
 
-function normalizeCtaGroupPayload(payload = {}) {
+function legacyBlocksForPayload(kind, payload = {}) {
+  if (Array.isArray(payload.contentBlocks) && payload.contentBlocks.length) {
+    return payload.contentBlocks.map(normalizeContentBlock);
+  }
+
+  if (kind === "contact") {
+    const blocks = [];
+    if (payload.phoneDisplay || payload.cta) {
+      blocks.push(
+        normalizeContentBlock({
+          type: "phone",
+          phoneDisplay: payload.phoneDisplay || "",
+          phoneHref: payload.phoneHref || "",
+          supportingText: payload.cta || "",
+        })
+      );
+    }
+    const staff = Array.isArray(payload.staff) ? payload.staff : [];
+    staff.forEach((member) => {
+      blocks.push(
+        normalizeContentBlock({
+          type: "person",
+          name: member?.name || "",
+          email: member?.email || "",
+          title: member?.role || "",
+        })
+      );
+    });
+    return blocks;
+  }
+
+  if (kind === "rate") {
+    return payload.paragraph
+      ? [normalizeContentBlock({ type: "html", html: paragraphsToHtml(payload.paragraph) })]
+      : [];
+  }
+
+  if (kind === "bforms") {
+    const blocks = [];
+    if (payload.body) {
+      blocks.push(normalizeContentBlock({ type: "text", text: payload.body }));
+    }
+    if (payload.linkLabel || payload.linkHref) {
+      blocks.push(
+        normalizeContentBlock({
+          type: "link",
+          label: payload.linkLabel || "Open link",
+          href: payload.linkHref || "",
+          external: payload.external,
+        })
+      );
+    }
+    return blocks;
+  }
+
+  if (kind === "cta_group") {
+    return (Array.isArray(payload.items) ? payload.items : []).map((item) =>
+      normalizeContentBlock({
+        type: "cta",
+        title: item?.title || "",
+        subtitle: item?.subtitle || "",
+        href: item?.href || "",
+        external: item?.external,
+      })
+    );
+  }
+
+  return [];
+}
+
+function normalizePayloadByKind(kind, payload = {}) {
   return {
-    items: Array.isArray(payload.items)
-      ? payload.items.map((item) => ({
-          title: String(item?.title || ""),
-          subtitle: String(item?.subtitle || ""),
-          href: String(item?.href || ""),
-          external: Boolean(item?.external),
-        }))
-      : [],
+    heading: cleanText(payload.heading, 160) || defaultHeadingForKind(kind),
     appearance: normalizeAppearance(payload.appearance),
+    contentBlocks: legacyBlocksForPayload(kind, payload),
   };
 }
 
 function normalizeBox(box = {}) {
   const kind = String(box.kind || "");
-  switch (kind) {
-    case "contact":
-      return { kind, payload: normalizeContactPayload(box.payload) };
-    case "rate":
-      return { kind, payload: normalizeRatePayload(box.payload) };
-    case "bforms":
-      return { kind, payload: normalizeBformsPayload(box.payload) };
-    case "cta_group":
-      return { kind, payload: normalizeCtaGroupPayload(box.payload) };
-    default:
-      return { kind, payload: { appearance: normalizeAppearance() } };
-  }
+  return {
+    kind,
+    payload: normalizePayloadByKind(kind, box.payload),
+  };
 }
 
 function normalizeBoxes(boxes = []) {
@@ -140,71 +358,14 @@ function normalizeBoxes(boxes = []) {
 
 function toSavePayload(box) {
   const normalized = normalizeBox(box);
-  const appearance = normalizeAppearance(normalized.payload.appearance);
-
-  if (normalized.kind === "contact") {
-    return {
-      kind: normalized.kind,
-      payload: {
-        heading: normalized.payload.heading.trim(),
-        phoneDisplay: normalized.payload.phoneDisplay.trim(),
-        phoneHref: formatTelHref(normalized.payload.phoneDisplay, normalized.payload.phoneHref),
-        cta: normalized.payload.cta.trim(),
-        staff: normalized.payload.staff
-          .map((member) => ({
-            name: member.name.trim(),
-            email: member.email.trim(),
-            role: member.role.trim(),
-          }))
-          .filter((member) => member.name || member.email || member.role),
-        appearance,
-      },
-    };
-  }
-
-  if (normalized.kind === "rate") {
-    return {
-      kind: normalized.kind,
-      payload: {
-        heading: normalized.payload.heading.trim(),
-        paragraph: normalized.payload.paragraph.trim(),
-        appearance,
-      },
-    };
-  }
-
-  if (normalized.kind === "bforms") {
-    return {
-      kind: normalized.kind,
-      payload: {
-        heading: normalized.payload.heading.trim(),
-        body: normalized.payload.body.trim(),
-        linkLabel: normalized.payload.linkLabel.trim(),
-        linkHref: normalized.payload.linkHref.trim(),
-        external: Boolean(normalized.payload.external),
-        appearance,
-      },
-    };
-  }
-
-  if (normalized.kind === "cta_group") {
-    return {
-      kind: normalized.kind,
-      payload: {
-        items: normalized.payload.items
-          .map((item) => ({
-            title: item.title.trim(),
-            subtitle: item.subtitle.trim(),
-            href: item.href.trim(),
-            external: Boolean(item.external),
-          }))
-          .filter((item) => item.title || item.subtitle || item.href),
-        appearance,
-      },
-    };
-  }
-
-  return normalized;
+  return {
+    kind: normalized.kind,
+    payload: {
+      heading: normalized.payload.heading,
+      appearance: normalized.payload.appearance,
+      contentBlocks: normalized.payload.contentBlocks,
+    },
+  };
 }
 
 function getBoxStyleVars(appearance) {
@@ -215,24 +376,76 @@ function getBoxStyleVars(appearance) {
   };
 }
 
-function getStyleOption(value) {
+function moveItem(list, fromIndex, delta) {
+  const toIndex = fromIndex + delta;
+  if (toIndex < 0 || toIndex >= list.length) {
+    return list;
+  }
+
+  const next = [...list];
+  const [item] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, item);
+  return next;
+}
+
+function renderLinkedElement({ href, external = false, className, children, key }) {
+  if (!href) {
+    return (
+      <span key={key} className={className}>
+        {children}
+      </span>
+    );
+  }
+
+  if (external) {
+    return (
+      <a key={key} href={href} className={className} target="_blank" rel="noopener noreferrer">
+        {children}
+      </a>
+    );
+  }
+
+  if (href.startsWith("/")) {
+    return (
+      <Link key={key} href={href} className={className}>
+        {children}
+      </Link>
+    );
+  }
+
   return (
-    SIDEBAR_STYLE_OPTIONS.find((option) => option.value === value) ||
-    SIDEBAR_STYLE_OPTIONS[0]
+    <a key={key} href={href} className={className}>
+      {children}
+    </a>
   );
 }
 
 function SidebarAppearanceFields({ appearance, onChange }) {
+  const layoutOption = getLayoutOption(appearance.layoutName);
   const styleOption = getStyleOption(appearance.styleName);
 
   return (
     <section className="recording-sidebar-modal__section recording-sidebar-modal__section--appearance">
       <div className="recording-sidebar-modal__section-head">
         <p className="recording-sidebar-modal__eyebrow">Appearance</p>
-        <h4>Style</h4>
+        <h4>Layout & Style</h4>
       </div>
 
       <div className="recording-sidebar-form-grid recording-sidebar-form-grid--2col">
+        <label>
+          Layout
+          <select
+            value={appearance.layoutName}
+            onChange={(event) => onChange({ ...appearance, layoutName: event.target.value })}
+          >
+            {SIDEBAR_LAYOUT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <label>
           Style Name
           <select
@@ -276,38 +489,239 @@ function SidebarAppearanceFields({ appearance, onChange }) {
         <span>Show accent strip on the left edge</span>
       </label>
 
+      <p className="recording-sidebar-modal__help">{layoutOption.description}</p>
       <p className="recording-sidebar-modal__help">{styleOption.description}</p>
     </section>
   );
 }
 
-function ContactFormFields({ payload, onChange }) {
-  const staff = payload.staff || [];
-
-  function updateField(field, value) {
-    onChange({ ...payload, [field]: value });
+function SidebarContentBlockFields({ block, onChange }) {
+  if (block.type === "phone") {
+    return (
+      <div className="recording-sidebar-form-grid recording-sidebar-form-grid--2col">
+        <label>
+          Phone Number
+          <input
+            type="text"
+            value={block.phoneDisplay}
+            onChange={(event) => onChange({ ...block, phoneDisplay: event.target.value })}
+            placeholder="615-244-9514"
+          />
+        </label>
+        <label>
+          Phone Link
+          <input
+            type="text"
+            value={block.phoneHref}
+            onChange={(event) => onChange({ ...block, phoneHref: event.target.value })}
+            placeholder="Leave blank to build a tel: link"
+          />
+        </label>
+        <label className="recording-sidebar-form-grid__wide">
+          Supporting Text
+          <input
+            type="text"
+            value={block.supportingText}
+            onChange={(event) => onChange({ ...block, supportingText: event.target.value })}
+            placeholder="Call for more information"
+          />
+        </label>
+      </div>
+    );
   }
 
-  function updateStaff(index, field, value) {
+  if (block.type === "person") {
+    return (
+      <div className="recording-sidebar-form-grid recording-sidebar-form-grid--3col">
+        <label>
+          Name
+          <input
+            type="text"
+            value={block.name}
+            onChange={(event) => onChange({ ...block, name: event.target.value })}
+            placeholder="Billy Lynn"
+          />
+        </label>
+        <label>
+          Email
+          <input
+            type="email"
+            value={block.email}
+            onChange={(event) => onChange({ ...block, email: event.target.value })}
+            placeholder="billy@nashvillemusicians.org"
+          />
+        </label>
+        <label>
+          Title
+          <input
+            type="text"
+            value={block.title}
+            onChange={(event) => onChange({ ...block, title: event.target.value })}
+            placeholder="Director of Recording"
+          />
+        </label>
+      </div>
+    );
+  }
+
+  if (block.type === "html") {
+    return (
+      <div className="recording-page-editor__richtext">
+        <NewsEventsBodyEditor value={block.html} onChange={(html) => onChange({ ...block, html })} labelledBy="" />
+      </div>
+    );
+  }
+
+  if (block.type === "link") {
+    return (
+      <>
+        <div className="recording-sidebar-form-grid recording-sidebar-form-grid--2col">
+          <label>
+            Link Label
+            <input
+              type="text"
+              value={block.label}
+              onChange={(event) => onChange({ ...block, label: event.target.value })}
+              placeholder="View under Scales, Forms & Agreements"
+            />
+          </label>
+          <label>
+            Link URL
+            <input
+              type="text"
+              value={block.href}
+              onChange={(event) => onChange({ ...block, href: event.target.value })}
+              placeholder="/scales-forms-agreements"
+            />
+          </label>
+          <label className="recording-sidebar-form-grid__wide">
+            Supporting Note
+            <input
+              type="text"
+              value={block.supportingText}
+              onChange={(event) => onChange({ ...block, supportingText: event.target.value })}
+              placeholder="Optional supporting line under the link"
+            />
+          </label>
+        </div>
+        <label className="recording-sidebar-form-check">
+          <input
+            type="checkbox"
+            checked={block.external}
+            onChange={(event) => onChange({ ...block, external: event.target.checked })}
+          />
+          <span>Open this link externally</span>
+        </label>
+      </>
+    );
+  }
+
+  if (block.type === "cta") {
+    return (
+      <>
+        <div className="recording-sidebar-form-grid recording-sidebar-form-grid--2col">
+          <label>
+            Card Title
+            <input
+              type="text"
+              value={block.title}
+              onChange={(event) => onChange({ ...block, title: event.target.value })}
+              placeholder="Scales & Agreements"
+            />
+          </label>
+          <label>
+            Card URL
+            <input
+              type="text"
+              value={block.href}
+              onChange={(event) => onChange({ ...block, href: event.target.value })}
+              placeholder="/scales-forms-agreements"
+            />
+          </label>
+          <label className="recording-sidebar-form-grid__wide">
+            Card Subtitle
+            <input
+              type="text"
+              value={block.subtitle}
+              onChange={(event) => onChange({ ...block, subtitle: event.target.value })}
+              placeholder="Recording scales, forms, and contract information"
+            />
+          </label>
+        </div>
+        <label className="recording-sidebar-form-check">
+          <input
+            type="checkbox"
+            checked={block.external}
+            onChange={(event) => onChange({ ...block, external: event.target.checked })}
+          />
+          <span>Open this CTA externally</span>
+        </label>
+      </>
+    );
+  }
+
+  return (
+    <div className="recording-sidebar-form-grid">
+      <label>
+        Paragraph
+        <textarea
+          rows="5"
+          value={block.text}
+          onChange={(event) => onChange({ ...block, text: event.target.value })}
+          placeholder="Simple paragraph copy"
+        />
+      </label>
+    </div>
+  );
+}
+
+function SidebarContentEditor({ box, onChange }) {
+  const payload = box.payload;
+  const blocks = Array.isArray(payload.contentBlocks) ? payload.contentBlocks : [];
+  const [nextBlockType, setNextBlockType] = useState("phone");
+
+  useEffect(() => {
+    if (!SIDEBAR_BLOCK_TYPE_OPTIONS.some((option) => option.value === nextBlockType)) {
+      setNextBlockType("phone");
+    }
+  }, [nextBlockType]);
+
+  function updatePayload(nextPayload) {
     onChange({
-      ...payload,
-      staff: staff.map((member, memberIndex) =>
-        memberIndex === index ? { ...member, [field]: value } : member
-      ),
+      ...box,
+      payload: nextPayload,
     });
   }
 
-  function addStaff() {
-    onChange({
+  function updateBlock(index, nextBlock) {
+    updatePayload({
       ...payload,
-      staff: [...staff, { name: "", email: "", role: "" }],
+      contentBlocks: blocks.map((block, blockIndex) => (blockIndex === index ? normalizeContentBlock(nextBlock) : block)),
     });
   }
 
-  function removeStaff(index) {
-    onChange({
+  function changeBlockType(index, nextType) {
+    updateBlock(index, emptyContentBlock(nextType));
+  }
+
+  function addBlock() {
+    updatePayload({
       ...payload,
-      staff: staff.filter((_, memberIndex) => memberIndex !== index),
+      contentBlocks: [...blocks, emptyContentBlock(nextBlockType)],
+    });
+  }
+
+  function removeBlock(index) {
+    updatePayload({
+      ...payload,
+      contentBlocks: blocks.filter((_, blockIndex) => blockIndex !== index),
+    });
+  }
+
+  function moveBlock(index, delta) {
+    updatePayload({
+      ...payload,
+      contentBlocks: moveItem(blocks, index, delta),
     });
   }
 
@@ -316,37 +730,18 @@ function ContactFormFields({ payload, onChange }) {
       <section className="recording-sidebar-modal__section">
         <div className="recording-sidebar-modal__section-head">
           <p className="recording-sidebar-modal__eyebrow">Content</p>
-          <h4>Recording Department Box</h4>
+          <h4>Panel Structure</h4>
         </div>
 
-        <div className="recording-sidebar-form-grid recording-sidebar-form-grid--2col">
+        <div className="recording-sidebar-form-grid">
           <label>
             Heading
-            <input type="text" value={payload.heading} onChange={(event) => updateField("heading", event.target.value)} />
-          </label>
-
-          <label>
-            Phone Number
             <input
               type="text"
-              value={payload.phoneDisplay}
-              onChange={(event) => updateField("phoneDisplay", event.target.value)}
+              value={payload.heading || ""}
+              onChange={(event) => updatePayload({ ...payload, heading: event.target.value })}
+              placeholder={defaultHeadingForKind(box.kind) || "Optional heading"}
             />
-          </label>
-
-          <label className="recording-sidebar-form-grid__wide">
-            Phone Link
-            <input
-              type="text"
-              value={payload.phoneHref}
-              onChange={(event) => updateField("phoneHref", event.target.value)}
-              placeholder="Leave blank to build a tel: link automatically"
-            />
-          </label>
-
-          <label className="recording-sidebar-form-grid__wide">
-            Supporting Line
-            <input type="text" value={payload.cta} onChange={(event) => updateField("cta", event.target.value)} />
           </label>
         </div>
       </section>
@@ -354,54 +749,74 @@ function ContactFormFields({ payload, onChange }) {
       <section className="recording-sidebar-modal__section">
         <div className="recording-sidebar-modal__section-head recording-sidebar-modal__section-head--row">
           <div>
-            <p className="recording-sidebar-modal__eyebrow">People</p>
-            <h4>Staff Entries</h4>
+            <p className="recording-sidebar-modal__eyebrow">Blocks</p>
+            <h4>Ordered Content</h4>
           </div>
-          <button type="button" className="btn btn-primary" onClick={addStaff}>
-            Add Staff
-          </button>
+          <div className="recording-sidebar-block-picker">
+            <select value={nextBlockType} onChange={(event) => setNextBlockType(event.target.value)}>
+              {SIDEBAR_BLOCK_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <button type="button" className="btn btn-primary" onClick={addBlock}>
+              Add Block
+            </button>
+          </div>
         </div>
 
+        <p className="recording-sidebar-modal__help">{getBlockTypeOption(nextBlockType).description}</p>
+
         <div className="recording-sidebar-repeater">
-          {staff.length ? (
-            staff.map((member, index) => (
-              <section key={`staff-${index}`} className="recording-sidebar-repeater__item">
+          {blocks.length ? (
+            blocks.map((block, index) => (
+              <section
+                key={`content-block-${index}-${block.type}`}
+                className={`recording-sidebar-repeater__item recording-sidebar-repeater__item--${block.type}`}
+              >
                 <div className="recording-sidebar-repeater__header">
-                  <strong>Staff {index + 1}</strong>
-                  <button type="button" className="btn btn-ghost" onClick={() => removeStaff(index)}>
-                    Delete
-                  </button>
+                  <strong>
+                    {index + 1}. {getBlockTypeOption(block.type).label}
+                  </strong>
+                  <div className="recording-sidebar-repeater__actions">
+                    <button type="button" className="btn btn-ghost" onClick={() => moveBlock(index, -1)} disabled={index === 0}>
+                      Up
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => moveBlock(index, 1)}
+                      disabled={index === blocks.length - 1}
+                    >
+                      Down
+                    </button>
+                    <button type="button" className="btn btn-ghost" onClick={() => removeBlock(index)}>
+                      Delete
+                    </button>
+                  </div>
                 </div>
-                <div className="recording-sidebar-form-grid recording-sidebar-form-grid--3col">
+
+                <div className="recording-sidebar-form-grid">
                   <label>
-                    Name
-                    <input
-                      type="text"
-                      value={member.name}
-                      onChange={(event) => updateStaff(index, "name", event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Email
-                    <input
-                      type="email"
-                      value={member.email}
-                      onChange={(event) => updateStaff(index, "email", event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Role
-                    <input
-                      type="text"
-                      value={member.role}
-                      onChange={(event) => updateStaff(index, "role", event.target.value)}
-                    />
+                    Block Type
+                    <select value={block.type} onChange={(event) => changeBlockType(index, event.target.value)}>
+                      {SIDEBAR_BLOCK_TYPE_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                 </div>
+
+                <SidebarContentBlockFields block={block} onChange={(nextBlock) => updateBlock(index, nextBlock)} />
               </section>
             ))
           ) : (
-            <p className="recording-sidebar-modal__help">No staff entries yet.</p>
+            <p className="recording-sidebar-modal__help">
+              No content blocks yet. Add blocks like phone callouts, people, HTML, links, and CTA cards.
+            </p>
           )}
         </div>
       </section>
@@ -409,204 +824,11 @@ function ContactFormFields({ payload, onChange }) {
   );
 }
 
-function RateFormFields({ payload, onChange }) {
-  return (
-    <section className="recording-sidebar-modal__section">
-      <div className="recording-sidebar-modal__section-head">
-        <p className="recording-sidebar-modal__eyebrow">Content</p>
-        <h4>Rate Update Box</h4>
-      </div>
-
-      <div className="recording-sidebar-form-grid">
-        <label>
-          Heading
-          <input
-            type="text"
-            value={payload.heading}
-            onChange={(event) => onChange({ ...payload, heading: event.target.value })}
-          />
-        </label>
-        <label>
-          Paragraph
-          <textarea
-            rows="6"
-            value={payload.paragraph}
-            onChange={(event) => onChange({ ...payload, paragraph: event.target.value })}
-          />
-        </label>
-      </div>
-    </section>
-  );
-}
-
-function BformsFormFields({ payload, onChange }) {
-  return (
-    <section className="recording-sidebar-modal__section">
-      <div className="recording-sidebar-modal__section-head">
-        <p className="recording-sidebar-modal__eyebrow">Content</p>
-        <h4>B Forms Box</h4>
-      </div>
-
-      <div className="recording-sidebar-form-grid recording-sidebar-form-grid--2col">
-        <label>
-          Heading
-          <input
-            type="text"
-            value={payload.heading}
-            onChange={(event) => onChange({ ...payload, heading: event.target.value })}
-          />
-        </label>
-
-        <label>
-          Link Label
-          <input
-            type="text"
-            value={payload.linkLabel}
-            onChange={(event) => onChange({ ...payload, linkLabel: event.target.value })}
-          />
-        </label>
-
-        <label className="recording-sidebar-form-grid__wide">
-          Body
-          <textarea
-            rows="5"
-            value={payload.body}
-            onChange={(event) => onChange({ ...payload, body: event.target.value })}
-          />
-        </label>
-
-        <label className="recording-sidebar-form-grid__wide">
-          Link URL
-          <input
-            type="text"
-            value={payload.linkHref}
-            onChange={(event) => onChange({ ...payload, linkHref: event.target.value })}
-          />
-        </label>
-      </div>
-
-      <label className="recording-sidebar-form-check">
-        <input
-          type="checkbox"
-          checked={payload.external}
-          onChange={(event) => onChange({ ...payload, external: event.target.checked })}
-        />
-        <span>Open this box as an external link</span>
-      </label>
-    </section>
-  );
-}
-
-function CtaGroupFormFields({ payload, onChange }) {
-  const items = payload.items || [];
-
-  function updateItem(index, field, value) {
-    onChange({
-      ...payload,
-      items: items.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, [field]: value } : item
-      ),
-    });
-  }
-
-  function addItem() {
-    onChange({
-      ...payload,
-      items: [...items, { title: "", subtitle: "", href: "", external: false }],
-    });
-  }
-
-  function removeItem(index) {
-    onChange({
-      ...payload,
-      items: items.filter((_, itemIndex) => itemIndex !== index),
-    });
-  }
-
-  return (
-    <section className="recording-sidebar-modal__section">
-      <div className="recording-sidebar-modal__section-head recording-sidebar-modal__section-head--row">
-        <div>
-          <p className="recording-sidebar-modal__eyebrow">Links</p>
-          <h4>CTA Group</h4>
-        </div>
-        <button type="button" className="btn btn-primary" onClick={addItem}>
-          Add Link
-        </button>
-      </div>
-
-      <div className="recording-sidebar-repeater">
-        {items.length ? (
-          items.map((item, index) => (
-            <section key={`cta-${index}`} className="recording-sidebar-repeater__item">
-              <div className="recording-sidebar-repeater__header">
-                <strong>CTA {index + 1}</strong>
-                <button type="button" className="btn btn-ghost" onClick={() => removeItem(index)}>
-                  Delete
-                </button>
-              </div>
-              <div className="recording-sidebar-form-grid recording-sidebar-form-grid--2col">
-                <label>
-                  Title
-                  <input
-                    type="text"
-                    value={item.title}
-                    onChange={(event) => updateItem(index, "title", event.target.value)}
-                  />
-                </label>
-                <label>
-                  URL
-                  <input
-                    type="text"
-                    value={item.href}
-                    onChange={(event) => updateItem(index, "href", event.target.value)}
-                  />
-                </label>
-                <label className="recording-sidebar-form-grid__wide">
-                  Subtitle
-                  <input
-                    type="text"
-                    value={item.subtitle}
-                    onChange={(event) => updateItem(index, "subtitle", event.target.value)}
-                  />
-                </label>
-              </div>
-              <label className="recording-sidebar-form-check">
-                <input
-                  type="checkbox"
-                  checked={item.external}
-                  onChange={(event) => updateItem(index, "external", event.target.checked)}
-                />
-                <span>Open this CTA as an external link</span>
-              </label>
-            </section>
-          ))
-        ) : (
-          <p className="recording-sidebar-modal__help">No calls to action yet.</p>
-        )}
-      </div>
-    </section>
-  );
-}
-
 function SidebarBoxEditor({ box, onChange }) {
-  const payload = box.payload;
-
-  switch (box.kind) {
-    case "contact":
-      return <ContactFormFields payload={payload} onChange={(next) => onChange({ ...box, payload: next })} />;
-    case "rate":
-      return <RateFormFields payload={payload} onChange={(next) => onChange({ ...box, payload: next })} />;
-    case "bforms":
-      return <BformsFormFields payload={payload} onChange={(next) => onChange({ ...box, payload: next })} />;
-    case "cta_group":
-      return <CtaGroupFormFields payload={payload} onChange={(next) => onChange({ ...box, payload: next })} />;
-    default:
-      return null;
-  }
+  return <SidebarContentEditor box={box} onChange={onChange} />;
 }
 
-function EditableSidebarBox({ box, isAdmin = false, onEdit, children }) {
+function EditableSidebarBox({ isAdmin = false, onEdit, children }) {
   const [overlayActive, setOverlayActive] = useState(false);
   const [glassVariant, setGlassVariant] = useState(GLASS_VARIANTS[0]);
   const [glassCycle, setGlassCycle] = useState(0);
@@ -662,109 +884,110 @@ function EditableSidebarBox({ box, isAdmin = false, onEdit, children }) {
   );
 }
 
-function ContactBox({ payload, rootClassName, rootStyle }) {
-  const heading = payload.heading || "Recording Department";
-  const phoneDisplay = payload.phoneDisplay || "";
-  const phoneHref = formatTelHref(payload.phoneDisplay, payload.phoneHref);
-  const cta = payload.cta || "";
-  const staff = Array.isArray(payload.staff) ? payload.staff : [];
-
-  return (
-    <div className={`${rootClassName} recording-contact-box`} style={rootStyle}>
-      <h3 className="recording-sidebar-heading">{heading}</h3>
-      {phoneDisplay ? (
-        <a href={phoneHref} className="recording-phone">
-          {phoneDisplay}
-        </a>
-      ) : null}
-      {cta ? <p className="recording-contact-cta">{cta}</p> : null}
-      <div className="recording-staff">
-        {staff.map((member, idx) => (
-          <div key={`${member.email || member.name || idx}`} className="recording-staff-member">
-            {member.email ? (
-              <a href={`mailto:${member.email}`}>{member.name || member.email}</a>
-            ) : (
-              <span className="recording-staff-member__name">{member.name}</span>
-            )}
-            {member.role ? <span>{member.role}</span> : null}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function RateBox({ payload, rootClassName, rootStyle }) {
-  if (!payload.paragraph) return null;
-
-  return (
-    <div className={`${rootClassName} recording-callout recording-rate-callout`} style={rootStyle}>
-      <h3 className="recording-sidebar-heading">{payload.heading || "Rate Update"}</h3>
-      <p>{payload.paragraph}</p>
-    </div>
-  );
-}
-
-function BformsBox({ payload, rootClassName, rootStyle }) {
-  const heading = payload.heading || "B Forms";
-  const body = payload.body || "";
-  const linkLabel = payload.linkLabel || "";
-  const linkHref = payload.linkHref || "/scales-forms-agreements";
-  const sharedClassName = `${rootClassName} recording-callout recording-bforms-callout`;
-
-  if (payload.external) {
+function renderSidebarBlock(block, index) {
+  if (block.type === "phone") {
+    const href = formatTelHref(block.phoneDisplay, block.phoneHref);
     return (
-      <a href={linkHref} className={sharedClassName} style={rootStyle} target="_blank" rel="noreferrer">
-        <h3 className="recording-bforms-title">{heading}</h3>
-        {body ? <p>{body}</p> : null}
-        {linkLabel ? <span className="recording-callout-link">{linkLabel}</span> : null}
-      </a>
+      <div key={`sidebar-block-${index}`} className="recording-sidebar-block recording-sidebar-block--phone">
+        {block.phoneDisplay ? (
+          <a href={href} className="recording-phone">
+            {block.phoneDisplay}
+          </a>
+        ) : null}
+        {block.supportingText ? <p className="recording-contact-cta">{block.supportingText}</p> : null}
+      </div>
     );
   }
 
+  if (block.type === "person") {
+    return (
+      <div key={`sidebar-block-${index}`} className="recording-sidebar-block recording-sidebar-block--person">
+        {block.email ? (
+          <a href={`mailto:${block.email}`} className="recording-sidebar-person-name">
+            {block.name || block.email}
+          </a>
+        ) : (
+          <span className="recording-sidebar-person-name">{block.name}</span>
+        )}
+        {block.title ? <span className="recording-sidebar-person-title">{block.title}</span> : null}
+      </div>
+    );
+  }
+
+  if (block.type === "html") {
+    return (
+      <div
+        key={`sidebar-block-${index}`}
+        className="recording-sidebar-block recording-sidebar-block--html recording-sidebar-richtext richtext"
+        dangerouslySetInnerHTML={{ __html: block.html }}
+      />
+    );
+  }
+
+  if (block.type === "link") {
+    return (
+      <div key={`sidebar-block-${index}`} className="recording-sidebar-block recording-sidebar-block--link">
+        {renderLinkedElement({
+          key: `sidebar-link-${index}`,
+          href: block.href,
+          external: block.external,
+          className: "recording-callout-link",
+          children: block.label || "Open link",
+        })}
+        {block.supportingText ? <p className="recording-sidebar-link-note">{block.supportingText}</p> : null}
+      </div>
+    );
+  }
+
+  if (block.type === "cta") {
+    return renderLinkedElement({
+      key: `sidebar-cta-${index}`,
+      href: block.href,
+      external: block.external,
+      className: "recording-sidebar-block recording-sidebar-block--cta recording-cta-item",
+      children: (
+        <>
+          <strong>{block.title || "CTA"}</strong>
+          {block.subtitle ? <span>{block.subtitle}</span> : null}
+        </>
+      ),
+    });
+  }
+
   return (
-    <Link href={linkHref} className={sharedClassName} style={rootStyle}>
-      <h3 className="recording-bforms-title">{heading}</h3>
-      {body ? <p>{body}</p> : null}
-      {linkLabel ? <span className="recording-callout-link">{linkLabel}</span> : null}
-    </Link>
+    <div key={`sidebar-block-${index}`} className="recording-sidebar-block recording-sidebar-block--text">
+      {block.text ? <p>{block.text}</p> : null}
+    </div>
   );
 }
 
-function CtaGroupBox({ payload, rootClassName, rootStyle }) {
-  const items = Array.isArray(payload.items) ? payload.items : [];
+function GenericSidebarBox({ kind, payload, rootClassName, rootStyle }) {
+  const appearance = normalizeAppearance(payload.appearance);
+  const kindClassName =
+    kind === "contact"
+      ? "recording-contact-box"
+      : kind === "rate"
+        ? "recording-callout recording-rate-callout"
+        : kind === "bforms"
+          ? "recording-callout recording-bforms-callout"
+          : "recording-cta-box recording-cta-box--sidebar";
+
+  const className = [
+    rootClassName,
+    kindClassName,
+    `recording-sidebar-box--layout-${appearance.layoutName}`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const blocks = Array.isArray(payload.contentBlocks) ? payload.contentBlocks : [];
 
   return (
-    <div className={`${rootClassName} recording-cta-box recording-cta-box--sidebar`} style={rootStyle}>
-      {items.map((item, idx) => {
-        const title = item.title || "";
-        const subtitle = item.subtitle || "";
-        const href = item.href || "#";
-        const external = Boolean(item.external);
-        const className = "recording-cta-item";
-
-        if (external) {
-          return (
-            <a
-              key={`${href}-${idx}`}
-              href={href}
-              className={className}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <strong>{title}</strong>
-              {subtitle ? <span>{subtitle}</span> : null}
-            </a>
-          );
-        }
-
-        return (
-          <Link key={`${href}-${idx}`} href={href} className={className}>
-            <strong>{title}</strong>
-            {subtitle ? <span>{subtitle}</span> : null}
-          </Link>
-        );
-      })}
+    <div className={className} style={rootStyle}>
+      {payload.heading ? <h3 className="recording-sidebar-heading">{payload.heading}</h3> : null}
+      <div className={`recording-sidebar-blocks recording-sidebar-blocks--${appearance.layoutName}`}>
+        {blocks.map((block, index) => renderSidebarBlock(block, index))}
+      </div>
     </div>
   );
 }
@@ -780,28 +1003,10 @@ function renderSidebarBox(box, isAdmin, onEdit) {
     .join(" ");
   const rootStyle = getBoxStyleVars(appearance);
 
-  let content = null;
-  switch (box.kind) {
-    case "contact":
-      content = <ContactBox payload={box.payload} rootClassName={rootClassName} rootStyle={rootStyle} />;
-      break;
-    case "rate":
-      content = <RateBox payload={box.payload} rootClassName={rootClassName} rootStyle={rootStyle} />;
-      break;
-    case "bforms":
-      content = <BformsBox payload={box.payload} rootClassName={rootClassName} rootStyle={rootStyle} />;
-      break;
-    case "cta_group":
-      content = <CtaGroupBox payload={box.payload} rootClassName={rootClassName} rootStyle={rootStyle} />;
-      break;
-    default:
-      content = null;
-  }
-
-  if (!content) return null;
+  const content = <GenericSidebarBox kind={box.kind} payload={box.payload} rootClassName={rootClassName} rootStyle={rootStyle} />;
 
   return (
-    <EditableSidebarBox box={box} isAdmin={isAdmin} onEdit={onEdit}>
+    <EditableSidebarBox isAdmin={isAdmin} onEdit={onEdit}>
       {content}
     </EditableSidebarBox>
   );
@@ -897,10 +1102,9 @@ export function RecordingSidebarPanel({
 
   return (
     <>
-      {currentBoxes.map((box, index) => {
-        const rendered = renderSidebarBox(box, isAdmin, () => openEditor(index));
-        return rendered ? <div key={`sidebar-${index}-${box.kind}`}>{rendered}</div> : null;
-      })}
+      {currentBoxes.map((box, index) => (
+        <div key={`sidebar-${index}-${box.kind}`}>{renderSidebarBox(box, isAdmin, () => openEditor(index))}</div>
+      ))}
 
       {isAdmin && editingBox ? (
         <ModalLightbox open onClose={closeEditor} closeLabel="Close sidebar callout editor">

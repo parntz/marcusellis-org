@@ -19,13 +19,14 @@ export async function PageHeaderWithCallout({
   trailing,
   titleAction,
   children,
+  hideCallout = false,
 }) {
   const session = await getServerSession(authOptions);
   const isAdmin = Boolean(session?.user);
   const headerCallouts = await listCallouts("header");
   const adminCallouts = isAdmin ? await listCalloutsForAdmin("header") : [];
   const calloutConfig = await getCalloutConfig("header");
-  const hasCallout = headerCallouts.length > 0 || isAdmin;
+  const hasCallout = !hideCallout && (headerCallouts.length > 0 || isAdmin);
   const headerOverride = route ? await getPageHeaderOverride(route) : null;
   const resolvedTitle = headerOverride ? headerOverride.title : title;
   const resolvedDescription = headerOverride ? headerOverride.description : description ?? "";

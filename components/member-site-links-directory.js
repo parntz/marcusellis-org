@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { ModalLightbox } from "./modal-lightbox";
@@ -43,6 +43,7 @@ function sortLinks(items) {
 export function MemberSiteLinksDirectory({ initialLinks = [], isAdmin = false }) {
   const router = useRouter();
   const [links, setLinks] = useState(() => sortLinks(initialLinks));
+  const [query, setQuery] = useState("");
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingId, setEditingId] = useState(0);
   const [form, setForm] = useState(() => emptyForm());
@@ -55,6 +56,15 @@ export function MemberSiteLinksDirectory({ initialLinks = [], isAdmin = false })
   useEffect(() => {
     setLinks(sortLinks(initialLinks));
   }, [initialLinks]);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredLinks = useMemo(() => {
+    if (!normalizedQuery) {
+      return links;
+    }
+
+    return links.filter((item) => String(item.title || "").toLowerCase().includes(normalizedQuery));
+  }, [links, normalizedQuery]);
 
   const triggerGlassEffect = useCallback(() => {
     setGlassVariant((current) => pickRandomGlassVariant(current));
@@ -166,8 +176,26 @@ export function MemberSiteLinksDirectory({ initialLinks = [], isAdmin = false })
 
   return (
     <>
+      <div className="news-events-search">
+        <label htmlFor="member-site-links-search-input">Search Member Directory</label>
+        <div className="news-events-search-row">
+          <input
+            id="member-site-links-search-input"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search by member name..."
+          />
+          {query ? (
+            <button type="button" className="news-events-search-clear" onClick={() => setQuery("")}>
+              Clear
+            </button>
+          ) : null}
+        </div>
+      </div>
+
       <div className="member-links-grid">
-        {links.map((item) => {
+        {filteredLinks.map((item) => {
           const cardContent = (
             <>
               <span className="member-links-card-domain">{item.domain || "member site"}</span>
@@ -230,6 +258,10 @@ export function MemberSiteLinksDirectory({ initialLinks = [], isAdmin = false })
 
       {isAdmin && !links.length ? (
         <p className="member-links-empty">No site links yet. Use the add button in the page header to create one.</p>
+      ) : null}
+
+      {!filteredLinks.length && links.length ? (
+        <p className="member-links-empty">No results found. Try a different member name.</p>
       ) : null}
 
       {isAdmin ? (

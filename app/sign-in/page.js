@@ -8,6 +8,8 @@ export const metadata = {
 };
 
 export default async function SignInPage() {
+  const hasGoogle = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true";
+
   return (
     <article className="page-frame">
       <PageHeaderWithCallout route="/sign-in" title="Sign In" description={INTERNAL_PAGE_DESCRIPTION.SIGN_IN} />
@@ -15,7 +17,11 @@ export default async function SignInPage() {
         <SignInForm />
         <aside className="auth-side">
           <h3>Need an account?</h3>
-          <p>Register with a strong password or sign in with Google.</p>
+          <p>
+            {hasGoogle
+              ? "Register with a strong password or sign in with Google."
+              : "Register with a strong password to create your account."}
+          </p>
           <Link href="/register" className="btn btn-secondary">
             Create Account
           </Link>

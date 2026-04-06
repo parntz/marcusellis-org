@@ -29,6 +29,14 @@ Optional local override:
 RECAPTCHA_BYPASS=true
 ```
 
+If your local Google OAuth client is not ready yet, set:
+
+```bash
+NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=false
+```
+
+That disables the Google provider and removes the Google sign-in button locally.
+
 ## Routes added
 
 - `/sign-in`

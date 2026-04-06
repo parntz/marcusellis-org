@@ -583,3 +583,18 @@
   font-weight: 800;
   letter-spacing: 0.05em;
 }
+
+.mobile-member-notice-slot {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobile-member-notice-slot {
+    display: block;
+    padding: 0 clamp(16px, 3.5vw, 28px) 16px;
+  }
+
+  .mobile-member-notice-slot .callout-rotator {
+    max-width: 100%;
+  }
+}

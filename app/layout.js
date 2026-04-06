@@ -3,6 +3,7 @@ import "./admin-glass-overlay.css";
 import "./callout-rotator.css";
 import { Footer } from "../components/footer";
 import { SiteHeader } from "../components/site-header";
+import { MobileMemberNoticeDock } from "../components/mobile-member-notice-dock";
 import { siteMeta } from "../lib/site-data";
 import { Providers } from "./providers";
 
@@ -22,6 +23,9 @@ export default function RootLayout({ children }) {
         <Providers>
           <SiteHeader />
           <main className="page-shell">{children}</main>
+          <div id="mobile-member-notice-slot">
+            <MobileMemberNoticeDock />
+          </div>
           <Footer />
         </Providers>
       </body>

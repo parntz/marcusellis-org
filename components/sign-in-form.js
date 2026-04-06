@@ -74,7 +74,11 @@ export function SignInForm() {
         />
       ) : null}
       <h2>Sign In</h2>
-      <p>Use your username/email and password, or continue with Google.</p>
+      <p>
+        {hasGoogle
+          ? "Use your username/email and password, or continue with Google."
+          : "Use your username/email and password to sign in."}
+      </p>
       <form onSubmit={handleCredentialsSignIn} className="auth-form">
         <label>
           Username or Email

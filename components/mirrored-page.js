@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth";
 import { AssetGallery } from "./asset-gallery";
 import { HomepageExperience } from "./homepage-experience";
 import { FindArtistEnhancer } from "./find-artist-enhancer";
+import { MemberSiteLinksHeroAdmin } from "./member-site-links-hero-admin";
+import { MemberSiteLinksIntroAdmin } from "./member-site-links-intro-admin";
 import { MemberSiteLinksCreateButton } from "./member-site-links-create-button";
 import { MemberSiteLinksDirectory } from "./member-site-links-directory";
 import { NewsEventsFeed } from "./news-events-feed";
@@ -14,12 +16,15 @@ import { computeMirrorPageDescription } from "../lib/internal-page-description.j
 import { RecordingSidebarPanel } from "./recording-sidebar-panel";
 import { RecordingVideo } from "./recording-video";
 import { RecordingPageAdmin } from "./recording-page-admin";
+import { RecordingPageOptionsButton } from "./recording-page-options-button";
 import { ScalesMasterDetail } from "./scales-master-detail";
 import { authOptions } from "../lib/auth-options";
 import { listMemberSiteLinks } from "../lib/member-site-links";
 import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
 import { pageMap, primaryNav, siteStats, utilityNav } from "../lib/site-data";
 import { listNewsEventsItems } from "../lib/news-events-items";
+import { getMemberSiteLinksHeroConfig } from "../lib/site-config-member-site-links-hero";
+import { getMemberSiteLinksIntroConfig } from "../lib/site-config-member-site-links-intro";
 import { getRecordingPageConfig } from "../lib/site-config-recording-page";
 import { getScalesFormsLinksConfig } from "../lib/site-config-scales-forms-links";
 
@@ -775,6 +780,11 @@ export async function MirroredPage({
   const recordingMainHtml = recordingPageConfig?.mainHtml
     ? `<div class="recording-flow">${recordingPageConfig.mainHtml}</div>`
     : "";
+  const recordingSidebarBoxesVisible = isMainRecordingPage
+    ? (recordingSidebarBoxes || []).filter(
+        (box) => recordingPageConfig?.showSidebarCtas !== false || box.kind !== "cta_group"
+      )
+    : recordingSidebarBoxes;
   const scalesFormsLinks = scalesFormsPage ? await getScalesFormsLinksConfig() : null;
   const signatoryContentHtml = signatoryPage
     ? enhanceSignatoryArticleHtml(extractContentEncodedHtml(page.bodyHtml || ""))
@@ -785,6 +795,10 @@ export async function MirroredPage({
   const benefitsHubContent = benefitsHubPage ? extractBenefitsHubContent(page.bodyHtml || "") : null;
   const memberSiteLinksContent = memberSiteLinksPage ? extractMemberSiteLinksContent(page.bodyHtml || "") : null;
   const persistedMemberSiteLinks = memberSiteLinksPage ? await listMemberSiteLinks() : null;
+  const memberSiteLinksHeroConfig = memberSiteLinksPage ? await getMemberSiteLinksHeroConfig() : null;
+  const memberSiteLinksIntroConfig = memberSiteLinksPage
+    ? await getMemberSiteLinksIntroConfig({ html: memberSiteLinksContent?.introHtml || "" })
+    : null;
   const memberSiteLinksInitialLinks = memberSiteLinksPage
     ? persistedMemberSiteLinks || []
     : null;
@@ -834,7 +848,14 @@ export async function MirroredPage({
               hideHeaderSummary,
               isMainRecordingPage,
             })}
-            titleAction={memberSiteLinksPage && isAdmin ? <MemberSiteLinksCreateButton /> : null}
+            titleAction={
+              memberSiteLinksPage && isAdmin ? (
+                <MemberSiteLinksCreateButton />
+              ) : isMainRecordingPage && isAdmin && recordingPageConfig ? (
+                <RecordingPageOptionsButton initialConfig={recordingPageConfig} />
+              ) : null
+            }
+            hideCallout={isMainRecordingPage && recordingPageConfig?.showMemberNotices === false}
           />
         )}
 
@@ -865,7 +886,11 @@ export async function MirroredPage({
                 ) : null}
               </div>
               <aside className="recording-sidebar">
-                <RecordingSidebarPanel boxes={recordingSidebarBoxes} pageRoute="/recording" isAdmin={isAdmin} />
+                <RecordingSidebarPanel
+                  boxes={recordingSidebarBoxesVisible}
+                  pageRoute="/recording"
+                  isAdmin={isAdmin}
+                />
               </aside>
               {isAdmin && recordingPageConfig ? (
                 <RecordingPageAdmin initialConfig={recordingPageConfig} target="main">
@@ -1248,29 +1273,56 @@ export async function MirroredPage({
               <div className="recording-body-grid recording-body-grid--scales">
                 <section className="page-content member-links-content">
                   <div className="member-links-shell">
-                    <section className="member-links-hero">
-                      <div className="member-links-hero-copy">
-                        <p className="eyebrow">Member Directory</p>
-                        <h2>Member sites that still point somewhere useful</h2>
-                        <p>
-                          Old local-site link pages tend to decay. This version keeps the public member-site list in a
-                          cleaner directory, points moved domains at their current homes when possible, and leaves out
-                          the clearly dead entries.
-                        </p>
-                      </div>
-                      <div className="member-links-stat-card">
-                        <span className="member-links-stat-value">{memberSiteLinksInitialLinks?.length || 0}</span>
-                        <span className="member-links-stat-label">Published Links</span>
-                        <p>This directory is now maintained on-site by admins.</p>
-                      </div>
-                    </section>
+                    {isAdmin ? (
+                      <MemberSiteLinksHeroAdmin initialConfig={memberSiteLinksHeroConfig}>
+                        <section className="member-links-hero">
+                          <div className="member-links-hero-copy">
+                            <p className="eyebrow" data-member-links-hero-eyebrow>
+                              {memberSiteLinksHeroConfig?.eyebrow}
+                            </p>
+                            <h2 data-member-links-hero-title>{memberSiteLinksHeroConfig?.title}</h2>
+                            <p data-member-links-hero-body>{memberSiteLinksHeroConfig?.body}</p>
+                          </div>
+                          <div className="member-links-stat-card">
+                            <span className="member-links-stat-value">{memberSiteLinksInitialLinks?.length || 0}</span>
+                            <span className="member-links-stat-label" data-member-links-stat-label>
+                              {memberSiteLinksHeroConfig?.statLabel}
+                            </span>
+                            <p data-member-links-stat-body>{memberSiteLinksHeroConfig?.statBody}</p>
+                          </div>
+                        </section>
+                      </MemberSiteLinksHeroAdmin>
+                    ) : (
+                      <section className="member-links-hero">
+                        <div className="member-links-hero-copy">
+                          <p className="eyebrow" data-member-links-hero-eyebrow>
+                            {memberSiteLinksHeroConfig?.eyebrow}
+                          </p>
+                          <h2 data-member-links-hero-title>{memberSiteLinksHeroConfig?.title}</h2>
+                          <p data-member-links-hero-body>{memberSiteLinksHeroConfig?.body}</p>
+                        </div>
+                        <div className="member-links-stat-card">
+                          <span className="member-links-stat-value">{memberSiteLinksInitialLinks?.length || 0}</span>
+                          <span className="member-links-stat-label" data-member-links-stat-label>
+                            {memberSiteLinksHeroConfig?.statLabel}
+                          </span>
+                          <p data-member-links-stat-body>{memberSiteLinksHeroConfig?.statBody}</p>
+                        </div>
+                      </section>
+                    )}
 
                     <section className="member-links-section">
-                      {memberSiteLinksContent?.introHtml ? (
-                        <div
-                          className="member-links-intro"
-                          dangerouslySetInnerHTML={{ __html: memberSiteLinksContent.introHtml }}
-                        />
+                      {memberSiteLinksIntroConfig?.html ? (
+                        <div className={`member-links-intro-shell${isAdmin ? " member-links-intro-shell--admin-editable" : ""}`}>
+                          <div
+                            className="member-links-intro"
+                            data-member-links-intro
+                            dangerouslySetInnerHTML={{ __html: memberSiteLinksIntroConfig.html }}
+                          />
+                          {isAdmin ? (
+                            <MemberSiteLinksIntroAdmin defaultHtml={memberSiteLinksContent?.introHtml || ""} />
+                          ) : null}
+                        </div>
                       ) : null}
 
                       <MemberSiteLinksDirectory

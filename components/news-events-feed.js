@@ -308,6 +308,7 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
   const [glassVariant, setGlassVariant] = useState(GLASS_VARIANTS[0]);
   const [glassCycle, setGlassCycle] = useState(0);
   const calendarAsideRef = useRef(null);
+  const searchBlockRef = useRef(null);
   const calLayoutObserverRef = useRef(null);
   const normalizedQuery = query.trim().toLowerCase();
   const calendarPortaledToBody = useSyncExternalStore(
@@ -362,9 +363,9 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
       }
       const header = document.querySelector(".site-header");
       const headerBottom = header ? Math.ceil(header.getBoundingClientRect().bottom) + 8 : 200;
-      const contact = document.querySelector(".recording-body-grid--news .recording-contact-box");
-      const sidebar = document.querySelector(".recording-body-grid--news .recording-sidebar");
-      const alignTarget = contact || sidebar;
+      const searchBlock = searchBlockRef.current;
+      const feedMain = document.querySelector(".recording-body-grid--news .news-events-main");
+      const alignTarget = searchBlock || feedMain;
       const alignTop = alignTarget ? Math.ceil(alignTarget.getBoundingClientRect().top) : headerBottom;
       const top = Math.max(headerBottom, alignTop);
       el.style.setProperty("--news-calendar-fixed-top", `${top}px`);
@@ -385,12 +386,13 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
     mq.addEventListener("change", schedule);
 
     const grid = document.querySelector(".recording-body-grid--news");
-    const sidebar = document.querySelector(".recording-body-grid--news .recording-sidebar");
+    const feedMain = document.querySelector(".recording-body-grid--news .news-events-main");
     if (typeof ResizeObserver !== "undefined") {
       const ro = new ResizeObserver(() => schedule());
       if (grid) ro.observe(grid);
-      if (sidebar) ro.observe(sidebar);
-      if (grid || sidebar) {
+      if (feedMain) ro.observe(feedMain);
+      if (searchBlockRef.current) ro.observe(searchBlockRef.current);
+      if (grid || feedMain || searchBlockRef.current) {
         calLayoutObserverRef.current = ro;
       }
     }
@@ -596,7 +598,7 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
         {portaledToBody ? createPortal(calendarAside, document.body) : calendarAside}
 
         <div className="news-events-main">
-          <div className="news-events-search">
+          <div ref={searchBlockRef} className="news-events-search">
             <label htmlFor="news-events-search-input">Search News &amp; Events</label>
             <div className="news-events-search-row">
               <input

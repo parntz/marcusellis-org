@@ -1098,6 +1098,103 @@ export function HomepageExperience({
     [handleHeroDragEnd]
   );
 
+  const renderMemberNotices = (variantClass = "") => (
+    <div className={["hero-panels", variantClass].filter(Boolean).join(" ")}>
+      <article
+        className="hero-panel hero-panel--promo hero-panel--parking"
+        style={heroPanelBackgroundStyle(
+          homePanels.parking.backgroundImageSrc,
+          DEFAULT_HOME_PANELS.parking.backgroundImageSrc,
+          "right bottom"
+        )}
+      >
+        <p className="panel-kicker">{homePanels.parking.kicker}</p>
+        <h3 className="parking-panel-title">{homePanels.parking.title}</h3>
+        <p className="parking-panel-copy">
+          {homePanels.parking.body}
+        </p>
+        <HomePanelButton href={homePanels.parking.ctaHref} className="btn btn-primary parking-panel-cta">
+          {homePanels.parking.ctaLabel}
+        </HomePanelButton>
+        {isAdmin ? (
+          <button
+            type="button"
+            className="recording-page-edit-overlay"
+            aria-label="Edit homepage parking card"
+            data-active={homePanelOverlayActive.parking ? "true" : "false"}
+            onClick={() => void openHomePanelsEditor("parking")}
+            onMouseEnter={() =>
+              setHomePanelOverlayActive((current) => ({ ...current, parking: true }))
+            }
+            onMouseLeave={() =>
+              setHomePanelOverlayActive((current) => ({ ...current, parking: false }))
+            }
+            onFocus={() =>
+              setHomePanelOverlayActive((current) => ({ ...current, parking: true }))
+            }
+            onBlur={() =>
+              setHomePanelOverlayActive((current) => ({ ...current, parking: false }))
+            }
+          >
+            <span className="recording-page-edit-overlay__wash" aria-hidden="true">
+              {homePanelOverlayActive.parking ? (
+                <span
+                  key={`home-panel-parking-${homePanelGlassVariant.parking}-${homePanelGlassCycle.parking}`}
+                  className={`recording-page-edit-overlay__glass recording-page-edit-overlay__glass--${homePanelGlassVariant.parking}`}
+                />
+              ) : null}
+            </span>
+          </button>
+        ) : null}
+      </article>
+      <article
+        className="hero-panel hero-panel--promo hero-panel--travel"
+        style={heroPanelBackgroundStyle(
+          homePanels.travel.backgroundImageSrc,
+          DEFAULT_HOME_PANELS.travel.backgroundImageSrc,
+          "center"
+        )}
+      >
+        <p className="panel-kicker">{homePanels.travel.kicker}</p>
+        <h3 className="parking-panel-title">{homePanels.travel.title}</h3>
+        <p className="parking-panel-copy">{homePanels.travel.body}</p>
+        <HomePanelButton href={homePanels.travel.ctaHref} className="btn btn-primary parking-panel-cta">
+          {homePanels.travel.ctaLabel}
+        </HomePanelButton>
+        {isAdmin ? (
+          <button
+            type="button"
+            className="recording-page-edit-overlay"
+            aria-label="Edit homepage travel card"
+            data-active={homePanelOverlayActive.travel ? "true" : "false"}
+            onClick={() => void openHomePanelsEditor("travel")}
+            onMouseEnter={() =>
+              setHomePanelOverlayActive((current) => ({ ...current, travel: true }))
+            }
+            onMouseLeave={() =>
+              setHomePanelOverlayActive((current) => ({ ...current, travel: false }))
+            }
+            onFocus={() =>
+              setHomePanelOverlayActive((current) => ({ ...current, travel: true }))
+            }
+            onBlur={() =>
+              setHomePanelOverlayActive((current) => ({ ...current, travel: false }))
+            }
+          >
+            <span className="recording-page-edit-overlay__wash" aria-hidden="true">
+              {homePanelOverlayActive.travel ? (
+                <span
+                  key={`home-panel-travel-${homePanelGlassVariant.travel}-${homePanelGlassCycle.travel}`}
+                  className={`recording-page-edit-overlay__glass recording-page-edit-overlay__glass--${homePanelGlassVariant.travel}`}
+                />
+              ) : null}
+            </span>
+          </button>
+        ) : null}
+      </article>
+    </div>
+  );
+
   return (
     <div className="home-exp">
       <section
@@ -1855,100 +1952,7 @@ export function HomepageExperience({
           ) : null}
         </div>
 
-        <div className="hero-panels">
-          <article
-            className="hero-panel hero-panel--promo hero-panel--parking"
-            style={heroPanelBackgroundStyle(
-              homePanels.parking.backgroundImageSrc,
-              DEFAULT_HOME_PANELS.parking.backgroundImageSrc,
-              "right bottom"
-            )}
-          >
-            <p className="panel-kicker">{homePanels.parking.kicker}</p>
-            <h3 className="parking-panel-title">{homePanels.parking.title}</h3>
-            <p className="parking-panel-copy">
-              {homePanels.parking.body}
-            </p>
-            <HomePanelButton href={homePanels.parking.ctaHref} className="btn btn-primary parking-panel-cta">
-              {homePanels.parking.ctaLabel}
-            </HomePanelButton>
-            {isAdmin ? (
-              <button
-                type="button"
-                className="recording-page-edit-overlay"
-                aria-label="Edit homepage parking card"
-                data-active={homePanelOverlayActive.parking ? "true" : "false"}
-                onClick={() => void openHomePanelsEditor("parking")}
-                onMouseEnter={() =>
-                  setHomePanelOverlayActive((current) => ({ ...current, parking: true }))
-                }
-                onMouseLeave={() =>
-                  setHomePanelOverlayActive((current) => ({ ...current, parking: false }))
-                }
-                onFocus={() =>
-                  setHomePanelOverlayActive((current) => ({ ...current, parking: true }))
-                }
-                onBlur={() =>
-                  setHomePanelOverlayActive((current) => ({ ...current, parking: false }))
-                }
-              >
-                <span className="recording-page-edit-overlay__wash" aria-hidden="true">
-                  {homePanelOverlayActive.parking ? (
-                    <span
-                      key={`home-panel-parking-${homePanelGlassVariant.parking}-${homePanelGlassCycle.parking}`}
-                      className={`recording-page-edit-overlay__glass recording-page-edit-overlay__glass--${homePanelGlassVariant.parking}`}
-                    />
-                  ) : null}
-                </span>
-              </button>
-            ) : null}
-          </article>
-          <article
-            className="hero-panel hero-panel--promo hero-panel--travel"
-            style={heroPanelBackgroundStyle(
-              homePanels.travel.backgroundImageSrc,
-              DEFAULT_HOME_PANELS.travel.backgroundImageSrc,
-              "center"
-            )}
-          >
-            <p className="panel-kicker">{homePanels.travel.kicker}</p>
-            <h3 className="parking-panel-title">{homePanels.travel.title}</h3>
-            <p className="parking-panel-copy">{homePanels.travel.body}</p>
-            <HomePanelButton href={homePanels.travel.ctaHref} className="btn btn-primary parking-panel-cta">
-              {homePanels.travel.ctaLabel}
-            </HomePanelButton>
-            {isAdmin ? (
-              <button
-                type="button"
-                className="recording-page-edit-overlay"
-                aria-label="Edit homepage travel card"
-                data-active={homePanelOverlayActive.travel ? "true" : "false"}
-                onClick={() => void openHomePanelsEditor("travel")}
-                onMouseEnter={() =>
-                  setHomePanelOverlayActive((current) => ({ ...current, travel: true }))
-                }
-                onMouseLeave={() =>
-                  setHomePanelOverlayActive((current) => ({ ...current, travel: false }))
-                }
-                onFocus={() =>
-                  setHomePanelOverlayActive((current) => ({ ...current, travel: true }))
-                }
-                onBlur={() =>
-                  setHomePanelOverlayActive((current) => ({ ...current, travel: false }))
-                }
-              >
-                <span className="recording-page-edit-overlay__wash" aria-hidden="true">
-                  {homePanelOverlayActive.travel ? (
-                    <span
-                      key={`home-panel-travel-${homePanelGlassVariant.travel}-${homePanelGlassCycle.travel}`}
-                      className={`recording-page-edit-overlay__glass recording-page-edit-overlay__glass--${homePanelGlassVariant.travel}`}
-                    />
-                  ) : null}
-                </span>
-              </button>
-            ) : null}
-          </article>
-        </div>
+        {renderMemberNotices("hero-panels--desktop")}
       </section>
 
       <section className="value-strip" data-reveal>
@@ -1992,6 +1996,8 @@ export function HomepageExperience({
           );
         })}
       </section>
+
+      {renderMemberNotices("hero-panels--mobile-footer")}
 
     </div>
   );

@@ -614,6 +614,10 @@ img {
 }
 
 @media (max-width: 900px) {
+  .page-header-callout {
+    display: none;
+  }
+
   .page-header--with-callout {
     grid-template-columns: 1fr;
   }
@@ -1550,6 +1554,10 @@ img {
   width: min(1120px, calc(100vw - 32px));
 }
 
+.recording-page-options-modal {
+  width: min(560px, calc(100vw - 32px));
+}
+
 .recording-body-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1591,6 +1599,28 @@ img {
   flex-direction: column;
   gap: 16px;
   max-width: 350px;
+}
+
+@media (max-width: 1099px) {
+  .recording-sidebar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-auto-flow: dense;
+    align-items: start;
+    max-width: none;
+    width: 100%;
+  }
+
+  .recording-sidebar-box-wrap {
+    height: 100%;
+  }
+
+  .recording-sidebar-box-wrap > .recording-sidebar-box,
+  .recording-sidebar-box-wrap > .recording-callout,
+  .recording-sidebar-box-wrap > .recording-cta-box,
+  .recording-sidebar-box-wrap > .recording-contact-box {
+    height: 100%;
+  }
 }
 
 @media (min-width: 1100px) {
@@ -1953,6 +1983,63 @@ img {
   background: rgba(8, 12, 22, 0.44);
 }
 
+.recording-sidebar-repeater__item--phone {
+  border-color: rgba(0, 210, 255, 0.45);
+  background: linear-gradient(135deg, rgba(0, 72, 96, 0.88), rgba(6, 18, 32, 0.96));
+}
+
+.recording-sidebar-repeater__item--person {
+  border-color: rgba(255, 140, 0, 0.45);
+  background: linear-gradient(135deg, rgba(92, 42, 0, 0.9), rgba(24, 12, 4, 0.96));
+}
+
+.recording-sidebar-repeater__item--text {
+  border-color: rgba(120, 255, 90, 0.42);
+  background: linear-gradient(135deg, rgba(22, 70, 18, 0.9), rgba(8, 20, 10, 0.96));
+}
+
+.recording-sidebar-repeater__item--html {
+  border-color: rgba(255, 74, 222, 0.45);
+  background: linear-gradient(135deg, rgba(88, 16, 78, 0.9), rgba(24, 8, 28, 0.96));
+}
+
+.recording-sidebar-repeater__item--link {
+  border-color: rgba(255, 225, 77, 0.48);
+  background: linear-gradient(135deg, rgba(88, 68, 8, 0.9), rgba(28, 22, 6, 0.96));
+}
+
+.recording-sidebar-repeater__item--cta {
+  border-color: rgba(122, 92, 255, 0.5);
+  background: linear-gradient(135deg, rgba(34, 24, 92, 0.92), rgba(12, 10, 30, 0.98));
+}
+
+.recording-sidebar-repeater__item--phone strong,
+.recording-sidebar-repeater__item--person strong,
+.recording-sidebar-repeater__item--text strong,
+.recording-sidebar-repeater__item--html strong,
+.recording-sidebar-repeater__item--link strong,
+.recording-sidebar-repeater__item--cta strong {
+  color: #ffffff;
+}
+
+.recording-sidebar-repeater__item--phone label,
+.recording-sidebar-repeater__item--person label,
+.recording-sidebar-repeater__item--text label,
+.recording-sidebar-repeater__item--html label,
+.recording-sidebar-repeater__item--link label,
+.recording-sidebar-repeater__item--cta label {
+  color: rgba(248, 252, 255, 0.94);
+}
+
+.recording-sidebar-repeater__item--phone .recording-sidebar-modal__help,
+.recording-sidebar-repeater__item--person .recording-sidebar-modal__help,
+.recording-sidebar-repeater__item--text .recording-sidebar-modal__help,
+.recording-sidebar-repeater__item--html .recording-sidebar-modal__help,
+.recording-sidebar-repeater__item--link .recording-sidebar-modal__help,
+.recording-sidebar-repeater__item--cta .recording-sidebar-modal__help {
+  color: rgba(235, 242, 255, 0.84);
+}
+
 .recording-sidebar-repeater__header {
   display: flex;
   align-items: center;
@@ -1960,9 +2047,22 @@ img {
   gap: 12px;
 }
 
+.recording-sidebar-repeater__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .recording-sidebar-repeater__header strong {
   color: #ffffff;
   font-size: 0.92rem;
+}
+
+.recording-sidebar-block-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
 .recording-sidebar-modal__error {
@@ -2165,10 +2265,98 @@ img {
   letter-spacing: 0.02em;
 }
 
+.recording-sidebar-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.recording-sidebar-blocks--compact {
+  gap: 10px;
+}
+
+.recording-sidebar-blocks--feature {
+  gap: 18px;
+}
+
+.recording-sidebar-block--text p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.6;
+}
+
+.recording-sidebar-block--html > :first-child {
+  margin-top: 0;
+}
+
+.recording-sidebar-block--html > :last-child {
+  margin-bottom: 0;
+}
+
+.recording-sidebar-block--person {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recording-sidebar-person-name {
+  color: var(--accent, #00c2ff);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.recording-sidebar-person-name:hover {
+  color: #fff;
+}
+
+.recording-sidebar-person-title {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.02em;
+}
+
+.recording-sidebar-link-note {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.56);
+  line-height: 1.45;
+  font-size: 0.82rem;
+}
+
+.recording-sidebar-box--layout-compact .recording-phone {
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+}
+
+.recording-sidebar-box--layout-feature .recording-phone {
+  font-size: clamp(1.8rem, 2.7vw, 2.2rem);
+}
+
+.recording-sidebar-box--layout-compact .recording-sidebar-heading {
+  margin-bottom: 10px;
+}
+
+.recording-sidebar-box--layout-feature .recording-sidebar-heading {
+  margin-bottom: 18px;
+}
+
 .recording-cta-box {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+@media (max-width: 1099px) {
+  .recording-cta-box--sidebar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-auto-flow: dense;
+    align-items: stretch;
+  }
+
+  .recording-cta-box--sidebar .recording-cta-item {
+    height: 100%;
+  }
 }
 
 .recording-cta-item {
@@ -4649,6 +4837,11 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
   z-index: 2;
 }
 
+.hero-panels--mobile-footer {
+  display: none;
+  margin-top: 16px;
+}
+
 .hero-panel {
   position: relative;
   overflow: hidden;
@@ -5057,6 +5250,14 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
 }
 
 @media (max-width: 900px) {
+  .hero-panels--desktop {
+    display: none !important;
+  }
+
+  .hero-panels--mobile-footer {
+    display: grid !important;
+  }
+
   .site-header {
     top: 0;
   }
@@ -7407,6 +7608,10 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
   color: rgba(255, 255, 255, 0.84);
+}
+
+.member-links-intro-shell--admin-editable {
+  position: relative;
 }
 
 .member-links-intro p {

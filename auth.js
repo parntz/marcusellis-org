@@ -8,6 +8,9 @@ import {
 } from "./lib/auth-users";
 import { verifyRecaptchaToken } from "./lib/recaptcha";
 
+const googleAuthEnabled = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true";
+const hasGoogleCredentials = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+
 const providers = [
   Credentials({
     name: "Credentials",
@@ -44,7 +47,7 @@ const providers = [
   }),
 ];
 
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+if (googleAuthEnabled && hasGoogleCredentials) {
   providers.push(
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
