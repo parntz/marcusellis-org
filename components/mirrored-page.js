@@ -1072,7 +1072,7 @@ export async function MirroredPage({
                       </div>
                       <div className="rehearsal-hall-hero-media">
                         <Image
-                          src="/sites/default/files/Media Root/IMG_6820.jpeg"
+                          src="/_downloaded/sites/default/files/Media Root/IMG_6820.jpeg"
                           alt="Dissonation rehearsing in Cooper Rehearsal Hall"
                           fill
                           className="rehearsal-hall-hero-image"
