@@ -22,7 +22,7 @@ import { authOptions } from "../lib/auth-options";
 import { isAdminSession } from "../lib/authz";
 import { listMemberSiteLinks } from "../lib/member-site-links";
 import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
-import { pageMap, primaryNav, siteStats, utilityNav } from "../lib/site-data";
+import { primaryNav, siteStats, utilityNav } from "../lib/site-data";
 import { listNewsEventsItems } from "../lib/news-events-items";
 import { getMemberSiteLinksHeroConfig } from "../lib/site-config-member-site-links-hero";
 import { getMemberSiteLinksIntroConfig } from "../lib/site-config-member-site-links-intro";

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
+import { getGigUploadsStore } from "../../../../../lib/gig-image-storage.mjs";
 
 export const runtime = "nodejs";
 
@@ -40,9 +41,8 @@ export async function GET(_request, context) {
     });
   }
 
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const { getStore } = await import("@netlify/blobs");
-    const store = getStore("gig-uploads");
+  const store = await getGigUploadsStore();
+  if (store) {
     const result = await store.getWithMetadata(id, { type: "arrayBuffer" });
     if (!result?.data || result.data.byteLength === 0) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });

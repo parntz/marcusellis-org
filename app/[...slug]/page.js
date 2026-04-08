@@ -1,10 +1,7 @@
 import { notFound } from "next/navigation";
 import { MirroredPage } from "../../components/mirrored-page";
-import {
-  fetchMirrorPageContentRow,
-  mergeMirrorPageFromDb,
-} from "../../lib/mirror-page-content.mjs";
-import { findPageByRoute, normalizeRouteFromSegments, pages, siteMeta } from "../../lib/site-data";
+import { normalizeRouteFromSegments, siteMeta } from "../../lib/site-data";
+import { getSitePageByRoute } from "../../lib/site-pages";
 
 export const dynamic = "force-dynamic";
 
@@ -18,24 +15,9 @@ function sanitizeMirroredPage(page) {
   };
 }
 
-export function generateStaticParams() {
-  return pages
-    .filter((page) => page.route !== "/")
-    .map((page) => ({
-      slug: page.route.replace(/^\/+/, "").split("/"),
-    }));
-}
-
 async function resolvePageForRoute(route) {
-  const staticPage = findPageByRoute(route);
-  if (!staticPage || staticPage.kind !== "mirror-page") return staticPage;
-  try {
-    const row = await fetchMirrorPageContentRow(route);
-    return sanitizeMirroredPage(mergeMirrorPageFromDb(staticPage, row));
-  } catch (err) {
-    console.error("[mirror_page_content] Turso read failed; using bundled site-data for", route, err);
-    return sanitizeMirroredPage(staticPage);
-  }
+  const page = await getSitePageByRoute(route);
+  return sanitizeMirroredPage(page);
 }
 
 export async function generateMetadata({ params }) {

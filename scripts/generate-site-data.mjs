@@ -875,8 +875,6 @@ export const utilityNav = ${JSON.stringify(data.utilityNav, null, 2)};
 
 export const pages = ${JSON.stringify(data.pages, null, 2)};
 
-export const pageMap = ${JSON.stringify(data.pageMap, null, 2)};
-
 export const siteMeta = ${JSON.stringify(data.siteMeta, null, 2)};
 
 export const siteTheme = ${JSON.stringify(data.siteTheme, null, 2)};
@@ -948,12 +946,10 @@ const downloadedAssetPages = buildDownloadedAssetPages(
 const pages = [...mergedMirrorPages, ...downloadedAssetPages].sort((left, right) =>
   left.route.localeCompare(right.route)
 );
-const pageMap = Object.fromEntries(pages.map((page) => [page.route, page]));
 const data = {
   primaryNav,
   utilityNav,
   pages,
-  pageMap,
   siteMeta,
   siteTheme: buildSiteTheme(analysis, homepageHtml),
   siteStats: {

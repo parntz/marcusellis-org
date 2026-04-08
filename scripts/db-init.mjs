@@ -171,6 +171,20 @@ const ddl = `
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS site_pages (
+    route TEXT PRIMARY KEY,
+    kind TEXT NOT NULL DEFAULT 'mirror-page',
+    source_path TEXT NOT NULL DEFAULT '',
+    title TEXT NOT NULL,
+    summary TEXT NOT NULL DEFAULT '',
+    meta_description TEXT NOT NULL DEFAULT '',
+    body_html TEXT NOT NULL DEFAULT '',
+    page_assets_json TEXT NOT NULL DEFAULT '[]',
+    groups_json TEXT NOT NULL DEFAULT '[]',
+    assets_json TEXT NOT NULL DEFAULT '[]',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS gigs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     start_at TEXT NOT NULL,
@@ -258,6 +272,54 @@ for (const [columnName, sql] of memberPageAlterStatements) {
     await client.execute(sql);
   }
 }
+
+const sitePageColumns = await client.execute("PRAGMA table_info(site_pages)");
+const sitePageColumnNames = new Set(sitePageColumns.rows.map((row) => String(row.name || "").toLowerCase()));
+const sitePageAlterStatements = [
+  ["kind", "ALTER TABLE site_pages ADD COLUMN kind TEXT NOT NULL DEFAULT 'mirror-page'"],
+  ["source_path", "ALTER TABLE site_pages ADD COLUMN source_path TEXT NOT NULL DEFAULT ''"],
+  ["summary", "ALTER TABLE site_pages ADD COLUMN summary TEXT NOT NULL DEFAULT ''"],
+  ["meta_description", "ALTER TABLE site_pages ADD COLUMN meta_description TEXT NOT NULL DEFAULT ''"],
+  ["body_html", "ALTER TABLE site_pages ADD COLUMN body_html TEXT NOT NULL DEFAULT ''"],
+  ["page_assets_json", "ALTER TABLE site_pages ADD COLUMN page_assets_json TEXT NOT NULL DEFAULT '[]'"],
+  ["groups_json", "ALTER TABLE site_pages ADD COLUMN groups_json TEXT NOT NULL DEFAULT '[]'"],
+  ["assets_json", "ALTER TABLE site_pages ADD COLUMN assets_json TEXT NOT NULL DEFAULT '[]'"],
+];
+for (const [columnName, sql] of sitePageAlterStatements) {
+  if (!sitePageColumnNames.has(columnName)) {
+    await client.execute(sql);
+  }
+}
+
+await client.execute(`
+  INSERT INTO site_pages (
+    route,
+    kind,
+    source_path,
+    title,
+    summary,
+    meta_description,
+    body_html,
+    page_assets_json,
+    groups_json,
+    assets_json,
+    updated_at
+  )
+  SELECT
+    route,
+    'mirror-page',
+    '',
+    title,
+    summary,
+    meta_description,
+    body_html,
+    '[]',
+    '[]',
+    '[]',
+    updated_at
+  FROM mirror_page_content
+  WHERE route NOT IN (SELECT route FROM site_pages)
+`);
 
 const gigColumns = await client.execute("PRAGMA table_info(gigs)");
 const gigColumnNames = new Set(gigColumns.rows.map((row) => String(row.name || "").toLowerCase()));

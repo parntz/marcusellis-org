@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { MirroredPage } from "../components/mirrored-page";
-import { findPageByRoute, siteMeta } from "../lib/site-data";
+import { siteMeta } from "../lib/site-data";
+import { getSitePageByRoute } from "../lib/site-pages";
 import { getHeroHomeConfig } from "../lib/site-config-hero";
 import { getHomeHeroTextConfig } from "../lib/site-config-home-hero-text";
 import { getHomeHeroContentConfig } from "../lib/site-config-home-hero-content";
@@ -17,7 +18,7 @@ export function generateMetadata() {
 }
 
 export default async function HomePage() {
-  const page = findPageByRoute("/");
+  const page = await getSitePageByRoute("/");
   if (!page) {
     notFound();
   }

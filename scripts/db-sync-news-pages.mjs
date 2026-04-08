@@ -8,7 +8,7 @@ const generatedDataFile = path.join(ROOT, "content", "generated", "site-data.gen
 
 function extractPagesJson(source) {
   const startToken = "export const pages = ";
-  const endToken = "\n\nexport const pageMap =";
+  const endToken = "\n\nexport const siteMeta =";
   const start = source.indexOf(startToken);
   const end = source.indexOf(endToken, start);
   if (start === -1 || end === -1) {

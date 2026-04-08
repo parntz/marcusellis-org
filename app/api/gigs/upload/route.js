@@ -1,25 +1,10 @@
-import { randomUUID } from "crypto";
-import fs from "fs";
-import path from "path";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/auth-options";
 import { isAdminSession } from "../../../../lib/authz";
+import { storeGigImageBuffer } from "../../../../lib/gig-image-storage.mjs";
 
 export const runtime = "nodejs";
-
-function safeFilename(name) {
-  const ext = (name || "").split(".").pop() || "jpg";
-  return /^[a-z0-9]+$/i.test(ext) ? ext.toLowerCase() : "jpg";
-}
-
-function canUseNetlifyBlobs() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
-}
-
-function canWriteLocalUploads() {
-  return !process.env.NETLIFY;
-}
 
 export async function POST(request) {
   const session = await getServerSession(authOptions);
@@ -39,28 +24,18 @@ export async function POST(request) {
     return NextResponse.json({ error: "File too large (max 8MB)" }, { status: 413 });
   }
 
-  const ext = safeFilename(file.name);
-  const id = `${randomUUID()}.${ext}`;
-
-  if (canUseNetlifyBlobs()) {
-    const { getStore } = await import("@netlify/blobs");
-    const store = getStore("gig-uploads");
-    await store.set(id, buf, { metadata: { contentType: mime } });
-    return NextResponse.json({ url: `/api/gigs/asset/${encodeURIComponent(id)}` });
+  try {
+    const url = await storeGigImageBuffer(buf, {
+      mimeType: mime,
+      filename: file.name,
+    });
+    return NextResponse.json({ url });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Gig upload failed.",
+      },
+      { status: 503 }
+    );
   }
-
-  if (canWriteLocalUploads()) {
-    const dir = path.join(process.cwd(), "public", "uploads", "gigs");
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, id), buf);
-    return NextResponse.json({ url: `/api/gigs/asset/${encodeURIComponent(id)}` });
-  }
-
-  return NextResponse.json(
-    {
-      error:
-        "Gig uploads require Netlify Blobs. In the Netlify dashboard, enable Blobs for this site so BLOB_READ_WRITE_TOKEN is available, or run the site locally.",
-    },
-    { status: 503 }
-  );
 }

@@ -8,6 +8,7 @@ data/*.db-wal
 .env.local
 .env*.local
 public/uploads/
+content/generated/site-data.generated.js
 
 # OS / editor
 .DS_Store

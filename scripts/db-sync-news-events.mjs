@@ -22,7 +22,7 @@ const newsAssetsDir = path.join(process.cwd(), "public", "_downloaded", "news-an
 
 function extractPagesJson(source) {
   const startToken = "export const pages = ";
-  const endToken = "\n\nexport const pageMap =";
+  const endToken = "\n\nexport const siteMeta =";
   const start = source.indexOf(startToken);
   const end = source.indexOf(endToken, start);
 

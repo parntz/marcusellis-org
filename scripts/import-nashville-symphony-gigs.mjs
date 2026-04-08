@@ -2,6 +2,7 @@ import "./load-env.mjs";
 import fs from "fs";
 import path from "path";
 import { closeDb, getClient } from "../lib/sqlite.mjs";
+import { storeGigImageBuffer } from "../lib/gig-image-storage.mjs";
 
 const EVENTS_URL = "https://tickets.nashvillesymphony.org/events";
 const PRODUCTIONS_API_URL = "https://tickets.nashvillesymphony.org/api/products/productionseasons";
@@ -158,16 +159,23 @@ async function downloadImage(imageUrl, productionSeasonId) {
   const filename = `nso-${productionSeasonId}${safeExt}`;
   const filePath = path.join(uploadsDir, filename);
 
-  if (!fs.existsSync(filePath)) {
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      throw new Error(`Image download failed for ${imageUrl}: ${response.status}`);
-    }
-    const arrayBuffer = await response.arrayBuffer();
-    fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
+  if (!process.env.NETLIFY && !process.env.NETLIFY_SITE_ID && fs.existsSync(filePath)) {
+    return `/api/gigs/asset/${encodeURIComponent(filename)}`;
   }
 
-  return `/api/gigs/asset/${encodeURIComponent(filename)}`;
+  const response = await fetch(imageUrl);
+  if (!response.ok) {
+    throw new Error(`Image download failed for ${imageUrl}: ${response.status}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  const mimeType =
+    (typeof response.headers.get === "function" && response.headers.get("content-type")) || "image/jpeg";
+
+  return storeGigImageBuffer(Buffer.from(arrayBuffer), {
+    mimeType,
+    filename,
+    preferredId: filename,
+  });
 }
 
 async function ensureGigsSchema(client) {

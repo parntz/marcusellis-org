@@ -1,11 +1,8 @@
 import "./load-env.mjs";
-import fs from "fs";
-import path from "path";
 import { spawnSync } from "child_process";
 import { closeDb, dbPath, getClient } from "../lib/sqlite.mjs";
 
 const rootDir = process.cwd();
-const generatedFile = path.join(rootDir, "content", "generated", "site-data.generated.js");
 const runFullPrep = process.env.PREDEV_FULL === "true";
 
 function runNpmScript(scriptName) {
@@ -28,9 +25,9 @@ async function hasRequiredDbTables() {
       SELECT name
       FROM sqlite_master
       WHERE type = 'table'
-        AND name IN ('news_events_items', 'news_event_pages', 'mirror_page_content')
+        AND name IN ('news_events_items', 'news_event_pages', 'site_pages')
     `);
-    return new Set(rs.rows.map((row) => row.name)).size === 2;
+    return new Set(rs.rows.map((row) => row.name)).size === 3;
   } catch {
     return false;
   } finally {
@@ -38,16 +35,16 @@ async function hasRequiredDbTables() {
   }
 }
 
-if (runFullPrep || !fs.existsSync(generatedFile)) {
+if (runFullPrep) {
   console.log("predev: generating site content...");
   runNpmScript("generate:content");
 } else {
-  console.log("predev: site content already generated (skipping).");
+  console.log("predev: using Turso-backed site content (skipping generated export).");
 }
 
 if (runFullPrep || !(await hasRequiredDbTables())) {
-  console.log(`predev: preparing database at ${dbPath}...`);
-  runNpmScript("db:prepare");
+  console.log(`predev: ensuring database schema at ${dbPath}...`);
+  runNpmScript(runFullPrep ? "db:prepare" : "db:init");
 } else {
   console.log(`predev: database at ${dbPath} already has required tables (skipping).`);
 }

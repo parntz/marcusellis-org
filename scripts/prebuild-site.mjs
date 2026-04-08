@@ -4,7 +4,7 @@ import { spawnSync } from "child_process";
 
 const rootDir = process.cwd();
 const mirrorDir = path.join(rootDir, "HTML-version");
-const generatedFile = path.join(rootDir, "content", "generated", "site-data.generated.js");
+const runFullPrep = process.env.PREBUILD_FULL === "true";
 
 function isMirrorDirectory(dirPath) {
   try {
@@ -26,26 +26,14 @@ function runNpmScript(scriptName) {
   }
 }
 
-if (isMirrorDirectory(mirrorDir)) {
-  console.log("prebuild: generating site content from HTML-version...");
-  runNpmScript("generate:content");
-} else {
-  if (fs.existsSync(mirrorDir)) {
-    console.warn(
-      `prebuild: ${mirrorDir} exists but is not a directory (file or bad symlink). Remove or replace it with the real mirror folder. Using committed site data if present.`
-    );
-  } else {
-    console.log(
-      "prebuild: HTML-version not in checkout; using committed content/generated/site-data.generated.js (e.g. Netlify CI)."
-    );
-  }
-  if (!fs.existsSync(generatedFile)) {
-    console.error(
-      `prebuild: No usable mirror and ${generatedFile} is missing. Add a real HTML-version directory or commit generated site data.`
-    );
+if (runFullPrep) {
+  if (!isMirrorDirectory(mirrorDir)) {
+    console.error(`prebuild: PREBUILD_FULL=true requires a real HTML-version directory at ${mirrorDir}.`);
     process.exit(1);
   }
+  console.log("prebuild: generating site content from HTML-version...");
+  runNpmScript("generate:content");
 }
 
-console.log("prebuild: preparing database...");
-runNpmScript("db:prepare");
+console.log("prebuild: ensuring database schema...");
+runNpmScript(runFullPrep ? "db:prepare" : "db:init");
