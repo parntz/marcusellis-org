@@ -252,7 +252,7 @@ export function GigsManager({ initialGigs = [] }) {
         if (!cancelled) {
           console.error("[gigs] Google Maps / Places load failed:", err);
           setPlacesStatus(
-            "Google Places could not load. Confirm NEXT_PUBLIC_GOOGLE_MAPS_API_KEY, enable Maps JavaScript API + Places API, billing, and referrer http://localhost:3000/* (or None for testing)."
+            "Google Places could not load. Confirm GOOGLE_MAPS_API_KEY, enable Maps JavaScript API + Places API, billing, and referrer http://localhost:3000/* (or None for testing)."
           );
         }
       });

@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function readGoogleMapsApiKey() {
-  const value = String(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "").trim();
+  const value = String(process.env.GOOGLE_MAPS_API_KEY || "").trim();
   return value && value.toLowerCase() !== "undefined" ? value : "";
 }
 
