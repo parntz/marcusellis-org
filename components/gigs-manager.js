@@ -7,11 +7,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { GigsList } from "./gigs-list";
 import { ModalLightbox } from "./modal-lightbox";
-
-const GOOGLE_MAPS_API_KEY = (() => {
-  const value = String(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "").trim();
-  return value && value.toLowerCase() !== "undefined" ? value : "";
-})();
 let googlePlacesPromise = null;
 let googlePlacesLoadedKey = "";
 
@@ -135,9 +130,8 @@ export function GigsManager({ initialGigs = [] }) {
   const [saveBusy, setSaveBusy] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
   const [error, setError] = useState("");
-  const [placesStatus, setPlacesStatus] = useState(
-    GOOGLE_MAPS_API_KEY ? "Loading Google Places…" : "Google Places API key not configured. Enter venue details manually."
-  );
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState("");
+  const [placesStatus, setPlacesStatus] = useState("Google Places available when configured. Enter venue details manually.");
   const placeHostRef = useRef(null);
 
   useEffect(() => {
@@ -145,8 +139,47 @@ export function GigsManager({ initialGigs = [] }) {
   }, [initialGigs]);
 
   useEffect(() => {
+    if (!editorOpen || googleMapsApiKey) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    fetch("/api/gigs/google-maps-key", { cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || "Google Maps API key unavailable.");
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        const apiKey = String(data.apiKey || "").trim();
+        setGoogleMapsApiKey(apiKey);
+        setPlacesStatus(
+          apiKey
+            ? "Loading Google Places…"
+            : "Google Places API key not configured. Enter venue details manually."
+        );
+      })
+      .catch((fetchError) => {
+        if (cancelled) {
+          return;
+        }
+        console.error("[gigs] Google Maps API key fetch failed:", fetchError);
+        setPlacesStatus("Google Places API key not configured. Enter venue details manually.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [editorOpen, googleMapsApiKey]);
+
+  useEffect(() => {
     const host = placeHostRef.current;
-    if (!editorOpen || !host || !GOOGLE_MAPS_API_KEY) {
+    if (!editorOpen || !host || !googleMapsApiKey) {
       return undefined;
     }
 
@@ -156,7 +189,7 @@ export function GigsManager({ initialGigs = [] }) {
     let handleError = null;
 
     setPlacesStatus("Loading Google Places…");
-    loadGooglePlacesApi(GOOGLE_MAPS_API_KEY)
+    loadGooglePlacesApi(googleMapsApiKey)
       .then((google) => {
         if (cancelled || !google?.maps?.places?.PlaceAutocompleteElement || !placeHostRef.current) {
           return;
@@ -236,7 +269,7 @@ export function GigsManager({ initialGigs = [] }) {
         placeElement.parentNode.removeChild(placeElement);
       }
     };
-  }, [editorOpen]);
+  }, [editorOpen, googleMapsApiKey]);
 
   const resetForm = useCallback(() => {
     setEditingId(0);
