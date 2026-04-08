@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -21,7 +19,7 @@ function isSafeAssetId(id) {
   return typeof id === "string" && id.length > 0 && id.length < 200 && !/[\\/]/.test(id) && !id.includes("..");
 }
 
-export async function GET(_request, context) {
+export async function GET(request, context) {
   const params = await context.params;
   const raw = params?.id;
   const id = typeof raw === "string" ? decodeURIComponent(raw) : "";
@@ -29,15 +27,8 @@ export async function GET(_request, context) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const localPath = path.join(process.cwd(), "public", "uploads", "hero", id);
-  if (fs.existsSync(localPath)) {
-    const buf = fs.readFileSync(localPath);
-    return new NextResponse(buf, {
-      headers: {
-        "Content-Type": guessContentType(id),
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
-    });
+  if (!process.env.NETLIFY) {
+    return NextResponse.redirect(new URL(`/uploads/hero/${encodeURIComponent(id)}`, request.url));
   }
 
   if (process.env.BLOB_READ_WRITE_TOKEN) {

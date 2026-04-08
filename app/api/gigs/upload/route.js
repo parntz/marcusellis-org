@@ -1,8 +1,11 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
+import fs from "fs";
 import { getServerSession } from "next-auth";
+import path from "path";
 import { authOptions } from "../../../../lib/auth-options";
 import { isAdminSession } from "../../../../lib/authz";
-import { storeGigImageBuffer } from "../../../../lib/gig-image-storage.mjs";
+import { buildGigAssetUrl, safeGigImageExtension, storeGigImageBuffer } from "../../../../lib/gig-image-storage.mjs";
 
 export const runtime = "nodejs";
 
@@ -25,10 +28,20 @@ export async function POST(request) {
   }
 
   try {
-    const url = await storeGigImageBuffer(buf, {
-      mimeType: mime,
-      filename: file.name,
-    });
+    let url = "";
+    if (!process.env.NETLIFY) {
+      const ext = safeGigImageExtension(file.name);
+      const id = `${randomUUID()}.${ext}`;
+      const dir = path.join(process.cwd(), "public", "uploads", "gigs");
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, id), buf);
+      url = buildGigAssetUrl(id);
+    } else {
+      url = await storeGigImageBuffer(buf, {
+        mimeType: mime,
+        filename: file.name,
+      });
+    }
     return NextResponse.json({ url });
   } catch (error) {
     return NextResponse.json(

@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -17,22 +15,15 @@ function getContentType(id = "") {
   return "application/octet-stream";
 }
 
-export async function GET(_request, { params }) {
+export async function GET(request, { params }) {
   const resolvedParams = await params;
   const id = String(resolvedParams?.id || "").trim();
   if (!id || id.includes("/") || id.includes("\\")) {
     return new NextResponse("Not found", { status: 404 });
   }
 
-  const localPath = path.join(process.cwd(), "public", "uploads", "member-profiles", id);
-  if (fs.existsSync(localPath)) {
-    const body = fs.readFileSync(localPath);
-    return new NextResponse(body, {
-      headers: {
-        "Content-Type": getContentType(id),
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
-    });
+  if (!process.env.NETLIFY) {
+    return NextResponse.redirect(new URL(`/uploads/member-profiles/${encodeURIComponent(id)}`, request.url));
   }
 
   if (process.env.BLOB_READ_WRITE_TOKEN) {
