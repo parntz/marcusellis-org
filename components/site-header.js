@@ -5,9 +5,12 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { isAdminUser } from "../lib/authz";
 import { primaryNav, siteMeta, utilityNav } from "../lib/site-data";
 import { ModalLightbox } from "./modal-lightbox";
+import { CalloutVisibilityToggle } from "./callout-visibility-toggle";
 import { RouteSidebarToggle } from "./route-sidebar-toggle";
+import { SiteBackgroundOpacitySlider } from "./site-background-opacity-slider";
 
 /** Static brand logo (see public/images/nma-logo.png) */
 const BRAND_LOGO_SRC = "/images/nma-logo.png";
@@ -136,9 +139,10 @@ function NavList({ items, depth = 0, onNavigate, onPdfLightbox, activePath }) {
   );
 }
 
-export function SiteHeader() {
+export function SiteHeader({ initialBackgroundOpacity = 1 }) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const isAdmin = isAdminUser(session?.user);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [pdfLightbox, setPdfLightbox] = useState(null);
@@ -169,7 +173,8 @@ export function SiteHeader() {
           >
             Sign Out
           </button>
-          {pathname !== "/" ? <RouteSidebarToggle className="utility-sidebar-toggle" /> : null}
+          {isAdmin && pathname !== "/" ? <CalloutVisibilityToggle className="utility-sidebar-toggle" /> : null}
+          {isAdmin && pathname !== "/" ? <RouteSidebarToggle className="utility-sidebar-toggle" /> : null}
         </>
       ) : (
         <>
@@ -246,33 +251,43 @@ export function SiteHeader() {
         </div>
       </div>
       <div className={`header-panels ${menuOpen ? "is-open" : ""}`} id="primary-navigation">
-        {utilityNav.length ? (
-          <nav className="utility-nav utility-mobile" aria-label="Utility">
-            {renderUtilityItems(() => setMenuOpen(false))}
-          </nav>
-        ) : null}
-        {visiblePrimaryNav.length ? (
-          <nav
-            className="main-nav"
-            aria-label="Primary"
-            onMouseLeave={() => {
-              const active = document.activeElement;
-              if (active instanceof HTMLElement) {
-                active.blur();
-              }
-            }}
-          >
-            <NavList
-              items={visiblePrimaryNav}
-              onNavigate={() => setMenuOpen(false)}
-              onPdfLightbox={(payload) => {
-                setPdfLightbox(payload);
-                setMenuOpen(false);
-              }}
-              activePath={pathname}
+        <div className="header-panels__inner">
+          <div className="header-panels__nav-stack">
+            {utilityNav.length ? (
+              <nav className="utility-nav utility-mobile" aria-label="Utility">
+                {renderUtilityItems(() => setMenuOpen(false))}
+              </nav>
+            ) : null}
+            {visiblePrimaryNav.length ? (
+              <nav
+                className="main-nav"
+                aria-label="Primary"
+                onMouseLeave={() => {
+                  const active = document.activeElement;
+                  if (active instanceof HTMLElement) {
+                    active.blur();
+                  }
+                }}
+              >
+                <NavList
+                  items={visiblePrimaryNav}
+                  onNavigate={() => setMenuOpen(false)}
+                  onPdfLightbox={(payload) => {
+                    setPdfLightbox(payload);
+                    setMenuOpen(false);
+                  }}
+                  activePath={pathname}
+                />
+              </nav>
+            ) : null}
+          </div>
+          {isAdmin ? (
+            <SiteBackgroundOpacitySlider
+              initialOpacity={initialBackgroundOpacity}
+              className="header-panels__background-control"
             />
-          </nav>
-        ) : null}
+          ) : null}
+        </div>
       </div>
       <ModalLightbox
         open={Boolean(pdfLightbox)}

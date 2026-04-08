@@ -3,11 +3,21 @@ import bcrypt from "bcryptjs";
 import { closeDb, getClient } from "../lib/sqlite.mjs";
 
 function usage() {
-  console.error("Usage: node scripts/upsert-auth-user.mjs <username> <email> <password> [previousUsername] [previousEmail]");
+  console.error(
+    "Usage: node scripts/upsert-auth-user.mjs <username> <email> <password> [previousUsername] [previousEmail] [role] [memberPageId]"
+  );
   process.exit(1);
 }
 
-const [usernameArg, emailArg, passwordArg, previousUsernameArg = "", previousEmailArg = ""] = process.argv.slice(2);
+const [
+  usernameArg,
+  emailArg,
+  passwordArg,
+  previousUsernameArg = "",
+  previousEmailArg = "",
+  roleArg = "admin",
+  memberPageIdArg = "",
+] = process.argv.slice(2);
 
 if (!usernameArg || !emailArg || !passwordArg) {
   usage();
@@ -19,6 +29,8 @@ const previousUsername = String(previousUsernameArg).trim().toLowerCase();
 const previousEmail = String(previousEmailArg).trim().toLowerCase();
 const normalizedPassword = String(passwordArg).toLowerCase();
 const passwordHash = bcrypt.hashSync(normalizedPassword, 12);
+const role = String(roleArg || "").trim().toLowerCase() === "admin" ? "admin" : "member";
+const memberPageId = memberPageIdArg ? Number(memberPageIdArg) : null;
 
 const client = getClient();
 
@@ -41,16 +53,16 @@ if (targetId) {
   await client.execute({
     sql: `
       UPDATE auth_users
-      SET username = ?, email = ?, password_hash = ?, updated_at = datetime('now')
+      SET username = ?, email = ?, password_hash = ?, role = ?, member_page_id = ?, updated_at = datetime('now')
       WHERE id = ?
     `,
-    args: [username, email, passwordHash, targetId],
+    args: [username, email, passwordHash, role, Number.isFinite(memberPageId) ? memberPageId : null, targetId],
   });
   console.log(`Updated auth user ${targetId} -> ${username}`);
 } else {
   const inserted = await client.execute({
-    sql: "INSERT INTO auth_users (username, email, password_hash) VALUES (?, ?, ?)",
-    args: [username, email, passwordHash],
+    sql: "INSERT INTO auth_users (username, email, password_hash, role, member_page_id) VALUES (?, ?, ?, ?, ?)",
+    args: [username, email, passwordHash, role, Number.isFinite(memberPageId) ? memberPageId : null],
   });
   console.log(`Created auth user ${String(inserted.lastInsertRowid ?? "")} -> ${username}`);
 }

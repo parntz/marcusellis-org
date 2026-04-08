@@ -4,6 +4,7 @@ import path from "path";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../../lib/auth-options";
+import { isAdminSession } from "../../../../../lib/authz";
 
 export const runtime = "nodejs";
 
@@ -22,7 +23,7 @@ function canWriteLocalUploads() {
 
 export async function POST(request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
+  if (!isAdminSession(session)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

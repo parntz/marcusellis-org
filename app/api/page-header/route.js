@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth-options";
+import { isAdminSession } from "../../../lib/authz";
 import {
   getEditablePageHeader,
   normalizeHeaderRoute,
@@ -13,7 +14,7 @@ function unauthorized() {
 
 export async function GET(req) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
+  if (!isAdminSession(session)) {
     return unauthorized();
   }
 
@@ -35,7 +36,7 @@ export async function GET(req) {
 
 export async function PUT(req) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
+  if (!isAdminSession(session)) {
     return unauthorized();
   }
 

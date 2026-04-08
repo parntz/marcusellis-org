@@ -5,6 +5,7 @@ import { GigsManager } from "../../components/gigs-manager";
 import { PageHeaderWithCallout } from "../../components/page-header-with-callout";
 import { RecordingSidebarPanel } from "../../components/recording-sidebar-panel";
 import { authOptions } from "../../lib/auth-options";
+import { isAdminSession } from "../../lib/authz";
 import { listUpcomingGigs } from "../../lib/gigs";
 import { resolveSidebarBoxes } from "../../lib/resolve-sidebar-boxes.mjs";
 import { getRouteSidebarConfig } from "../../lib/site-config-route-sidebar";
@@ -19,7 +20,7 @@ export const metadata = {
 
 export default async function GigsPage() {
   const session = await getServerSession(authOptions);
-  const isAdmin = Boolean(session?.user);
+  const isAdmin = isAdminSession(session);
   const routeSidebarEnabled = Boolean((await getRouteSidebarConfig("/gigs"))?.enabled);
   const [upcomingGigs, gigsSidebarBoxes] = await Promise.all([
     listUpcomingGigs(150),

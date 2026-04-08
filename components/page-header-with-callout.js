@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../lib/auth-options";
+import { isAdminSession } from "../lib/authz";
 import { listCallouts, listCalloutsForAdmin } from "../lib/callouts";
 import { getPageHeaderOverride } from "../lib/page-header-editor";
 import { getCalloutConfig } from "../lib/site-config-callouts";
@@ -22,11 +23,17 @@ export async function PageHeaderWithCallout({
   hideCallout = false,
 }) {
   const session = await getServerSession(authOptions);
-  const isAdmin = Boolean(session?.user);
+  const isAdmin = isAdminSession(session);
   const headerCallouts = await listCallouts("header");
   const adminCallouts = isAdmin ? await listCalloutsForAdmin("header") : [];
   const calloutConfig = await getCalloutConfig("header");
-  const hasCallout = !hideCallout && (headerCallouts.length > 0 || isAdmin);
+  const suppressCalloutByRoute =
+    typeof route === "string" && (route.startsWith("/users/") || route.startsWith("/user/"));
+  const hasCallout =
+    !hideCallout &&
+    !suppressCalloutByRoute &&
+    calloutConfig.enabled !== false &&
+    (headerCallouts.length > 0 || isAdmin);
   const headerOverride = route ? await getPageHeaderOverride(route) : null;
   const resolvedTitle = headerOverride ? headerOverride.title : title;
   const resolvedDescription = headerOverride ? headerOverride.description : description ?? "";

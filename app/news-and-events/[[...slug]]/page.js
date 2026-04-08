@@ -6,6 +6,7 @@ import { NewsEventsFeed } from "../../../components/news-events-feed";
 import { PageHeaderWithCallout } from "../../../components/page-header-with-callout";
 import { RecordingSidebarPanel } from "../../../components/recording-sidebar-panel";
 import { authOptions } from "../../../lib/auth-options";
+import { isAdminSession } from "../../../lib/authz";
 import { listNewsEventsItems } from "../../../lib/news-events-items";
 import { resolveSidebarBoxes } from "../../../lib/resolve-sidebar-boxes.mjs";
 import { INTERNAL_PAGE_DESCRIPTION } from "../../../lib/internal-page-description.js";
@@ -72,7 +73,7 @@ export default async function NewsAndEventsPage({ params }) {
   const resolvedParams = await params;
   const slug = normalizeSlug(resolvedParams);
   const session = await getServerSession(authOptions);
-  const isAdmin = Boolean(session?.user);
+  const isAdmin = isAdminSession(session);
 
   if (!slug.length) {
     const listRoute = "/news-and-events";

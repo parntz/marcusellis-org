@@ -21,6 +21,7 @@ import { DEFAULT_HOME_HERO_CONTENT } from "../lib/home-hero-content-defaults";
 import { DEFAULT_HOME_VALUE_STRIP } from "../lib/home-value-strip-defaults";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { DEFAULT_HOME_PANELS } from "../lib/home-panels-defaults";
+import { isAdminUser } from "../lib/authz";
 
 /** After moving one item from `from` to `to`, map an index that pointed at a slide before the move. */
 function mapIndexAfterReorder(oldIndex, from, to) {
@@ -261,7 +262,7 @@ export function HomepageExperience({
   homeValueStripConfig,
 }) {
   const { data: session, status } = useSession();
-  const isAdmin = status === "authenticated" && Boolean(session?.user);
+  const isAdmin = status === "authenticated" && isAdminUser(session?.user);
   const reducedMotion = useReducedMotion();
   useRevealOnScroll(reducedMotion);
 

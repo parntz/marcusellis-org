@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth-options";
+import { isAdminSession } from "../../../lib/authz";
 import { createGig, listAllGigs, listUpcomingGigs } from "../../../lib/gigs";
 
 export const runtime = "nodejs";
@@ -12,7 +13,7 @@ export async function GET(request) {
   const scope = searchParams.get("scope");
 
   if (scope === "all") {
-    if (!session?.user) {
+    if (!isAdminSession(session)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const gigs = await listAllGigs();
@@ -25,7 +26,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
+  if (!isAdminSession(session)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

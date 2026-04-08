@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/auth-options";
+import { isAdminSession } from "../../../../lib/authz";
 import { listCallouts, listCalloutsForAdmin, replaceCalloutsForLocation } from "../../../../lib/callouts";
 import { getCalloutConfig, setCalloutConfig } from "../../../../lib/site-config-callouts";
 
@@ -13,7 +14,7 @@ export async function GET(request) {
   const session = await getServerSession(authOptions);
   const config = await getCalloutConfig(location);
 
-  if (session?.user) {
+  if (isAdminSession(session)) {
     return NextResponse.json({ location, config, callouts: await listCalloutsForAdmin(location) });
   }
 
@@ -22,7 +23,7 @@ export async function GET(request) {
 
 export async function PUT(request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
+  if (!isAdminSession(session)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

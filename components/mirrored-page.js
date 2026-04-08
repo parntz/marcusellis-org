@@ -19,6 +19,7 @@ import { RecordingPageAdmin } from "./recording-page-admin";
 import { RecordingPageOptionsButton } from "./recording-page-options-button";
 import { ScalesMasterDetail } from "./scales-master-detail";
 import { authOptions } from "../lib/auth-options";
+import { isAdminSession } from "../lib/authz";
 import { listMemberSiteLinks } from "../lib/member-site-links";
 import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
 import { pageMap, primaryNav, siteStats, utilityNav } from "../lib/site-data";
@@ -198,6 +199,12 @@ function getRouteBodyHtml(route, bodyHtml) {
     return `<div class="recording-flow">${emphasized}</div>`;
   }
 
+  if (route === "/member-pages") {
+    return cleanDrupalHtml(bodyHtml)
+      .replace(/<div[^>]*class="[^"]*\bview-filters\b[^"]*"[^>]*>[\s\S]*?<\/div>\s*(?=<div[^>]*class="[^"]*\bview-content\b)/i, "")
+      .replace(/<form[^>]*action="\/member-pages"[^>]*>[\s\S]*?<\/form>/gi, "");
+  }
+
   return cleanDrupalHtml(bodyHtml);
 }
 
@@ -268,6 +275,15 @@ function normalizeSignatoryBodyHtml(html) {
   while (/<font\b/i.test(out)) {
     out = out.replace(/<font\b[^>]*>([\s\S]*?)<\/font>/gi, "$1");
   }
+
+  out = out.replace(
+    /<p\b[^>]*>\s*(?:<strong\b[^>]*>\s*)*Please refer to the Scale Summary for exact check amounts and the applicable rate sheets for exact scale amounts and terms\.\s*(?:<\/strong>\s*)*<\/p>/gi,
+    ""
+  );
+  out = out.replace(
+    /<p\b[^>]*>\s*(?:<strong\b[^>]*>\s*)*For a complete list of all AFM 257 forms, agreements and contracts, click(?:&nbsp;|\s)*<a\b[^>]*>here<\/a>\.\s*(?:<\/strong>\s*)*<\/p>/gi,
+    ""
+  );
 
   out = out.replace(/\s*style="[^"]*"/gi, "");
   out = out.replace(/\salign="[^"]*"/gi, "");
@@ -510,7 +526,16 @@ function extractMemberSiteLinksContent(bodyHtml) {
 
 /** Full-width intro + “What does Signatory mean?” heading; following copy flows in newspaper columns. */
 function enhanceSignatoryArticleHtml(html) {
-  const trimmed = normalizeSignatoryBodyHtml((html || "").trim());
+  const trimmed = normalizeSignatoryBodyHtml((html || "").trim())
+    .replace(
+      /<p\b[^>]*>[\s\S]*?Please refer to the Scale Summary for exact check amounts and the applicable rate sheets for exact scale amounts and terms\.[\s\S]*?<\/p>/i,
+      ""
+    )
+    .replace(
+      /<p\b[^>]*>[\s\S]*?For a complete list of all AFM 257 forms, agreements and contracts, click[\s\S]*?<\/p>/i,
+      ""
+    )
+    .trim();
   if (!trimmed) return "";
 
   const headingRe = /<h3\b[^>]*>[\s\S]*?what\s+does[\s\S]*?signatory[\s\S]*?<\/h3>/i;
@@ -691,7 +716,7 @@ export async function MirroredPage({
   searchParams = {},
 }) {
   const session = await getServerSession(authOptions);
-  const isAdmin = Boolean(session?.user);
+  const isAdmin = isAdminSession(session);
 
   const homeRoute = page.route === "/" && page.kind === "mirror-page";
   const joinHref =
@@ -858,7 +883,6 @@ export async function MirroredPage({
                 <RecordingPageOptionsButton initialConfig={recordingPageConfig} />
               ) : null
             }
-            hideCallout={isMainRecordingPage && recordingPageConfig?.showMemberNotices === false}
           />
         )}
 

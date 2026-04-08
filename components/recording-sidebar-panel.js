@@ -356,6 +356,27 @@ function normalizeBoxes(boxes = []) {
   return (Array.isArray(boxes) ? boxes : []).map(normalizeBox);
 }
 
+function createEmptySidebarBox() {
+  return normalizeBox({
+    kind: "bforms",
+    payload: {
+      heading: "New Sidebar Panel",
+      appearance: {
+        layoutName: "standard",
+        styleName: "glass-panel",
+        accentColor: "cyan",
+        showAccentStrip: true,
+      },
+      contentBlocks: [
+        {
+          type: "text",
+          text: "",
+        },
+      ],
+    },
+  });
+}
+
 function toSavePayload(box) {
   const normalized = normalizeBox(box);
   return {
@@ -1024,6 +1045,7 @@ export function RecordingSidebarPanel({
   const [draftBox, setDraftBox] = useState(null);
   const [saveBusy, setSaveBusy] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     setCurrentBoxes(normalizeBoxes(boxes));
@@ -1033,20 +1055,30 @@ export function RecordingSidebarPanel({
     if (editingIndex < 0) return null;
     return draftBox || currentBoxes[editingIndex] || null;
   }, [currentBoxes, draftBox, editingIndex]);
+  const isCreatingBox = editingIndex >= currentBoxes.length && editingIndex >= 0;
 
   const openEditor = useCallback(
     (index) => {
       setEditingIndex(index);
       setDraftBox(clone(currentBoxes[index]));
       setError("");
+      setConfirmDelete(false);
     },
     [currentBoxes]
   );
+
+  const openCreateEditor = useCallback(() => {
+    setEditingIndex(currentBoxes.length);
+    setDraftBox(createEmptySidebarBox());
+    setError("");
+    setConfirmDelete(false);
+  }, [currentBoxes.length]);
 
   const closeEditor = useCallback(() => {
     setEditingIndex(-1);
     setDraftBox(null);
     setError("");
+    setConfirmDelete(false);
   }, []);
 
   const saveBox = useCallback(
@@ -1057,9 +1089,9 @@ export function RecordingSidebarPanel({
         return;
       }
 
-      const nextBoxes = currentBoxes.map((box, index) =>
-        index === editingIndex ? toSavePayload(editingBox) : toSavePayload(box)
-      );
+      const nextBoxes = isCreatingBox
+        ? [...currentBoxes.map((box) => toSavePayload(box)), toSavePayload(editingBox)]
+        : currentBoxes.map((box, index) => (index === editingIndex ? toSavePayload(editingBox) : toSavePayload(box)));
 
       setSaveBusy(true);
       setError("");
@@ -1093,15 +1125,75 @@ export function RecordingSidebarPanel({
         setSaveBusy(false);
       }
     },
-    [currentBoxes, editingBox, editingIndex, familyKey, pageRoute, router]
+    [currentBoxes, editingBox, editingIndex, familyKey, isCreatingBox, pageRoute, router]
   );
 
-  if (!currentBoxes.length) {
-    return null;
-  }
+  const deleteBox = useCallback(async () => {
+    if (!pageRoute || editingIndex < 0 || isCreatingBox) {
+      setError("This sidebar box cannot be deleted from this page.");
+      return;
+    }
+
+    if (currentBoxes.length <= 1) {
+      setError("This is the last sidebar panel. Use the page-level remove panels control if you want no sidebar here.");
+      setConfirmDelete(false);
+      return;
+    }
+
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      setError("");
+      return;
+    }
+
+    const nextBoxes = currentBoxes
+      .filter((_, index) => index !== editingIndex)
+      .map((box) => toSavePayload(box));
+
+    setSaveBusy(true);
+    setError("");
+    try {
+      const res = await fetch("/api/site-config/sidebar", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pageRoute,
+          familyKey,
+          boxes: nextBoxes,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data.error || "Delete failed.";
+        setError(msg);
+        showDbToastError("Database update failed.");
+        return;
+      }
+      const savedBoxes = normalizeBoxes(data.boxes || []);
+      setCurrentBoxes(savedBoxes);
+      setDraftBox(null);
+      setEditingIndex(-1);
+      setConfirmDelete(false);
+      router.refresh();
+      showDbToastSuccess();
+    } catch {
+      setError("Delete failed.");
+      showDbToastError("Database update failed.");
+    } finally {
+      setSaveBusy(false);
+    }
+  }, [confirmDelete, currentBoxes, editingIndex, familyKey, isCreatingBox, pageRoute, router]);
 
   return (
-    <>
+    <div className="recording-sidebar-stack">
+      {isAdmin ? (
+        <div className="recording-sidebar-add-panel">
+          <button type="button" className="recording-sidebar-add-panel__button eyebrow" onClick={openCreateEditor}>
+            Add Sidebar Panel
+          </button>
+        </div>
+      ) : null}
+
       {currentBoxes.map((box, index) => (
         <div key={`sidebar-${index}-${box.kind}`}>{renderSidebarBox(box, isAdmin, () => openEditor(index))}</div>
       ))}
@@ -1112,7 +1204,7 @@ export function RecordingSidebarPanel({
             <div className="recording-sidebar-modal__header">
               <div>
                 <p className="recording-sidebar-modal__eyebrow">Admin</p>
-                <h3>Edit Sidebar Callout</h3>
+                <h3>{isCreatingBox ? "Add Sidebar Panel" : "Edit Sidebar Callout"}</h3>
               </div>
             </div>
 
@@ -1137,19 +1229,34 @@ export function RecordingSidebarPanel({
                   {error}
                 </p>
               ) : null}
+              {confirmDelete && !isCreatingBox ? (
+                <p className="recording-sidebar-modal__danger-hint" role="alert">
+                  Click delete again to permanently remove this sidebar panel.
+                </p>
+              ) : null}
 
               <div className="recording-sidebar-modal__actions">
+                {!isCreatingBox ? (
+                  <button
+                    type="button"
+                    className="recording-sidebar-modal__delete"
+                    onClick={deleteBox}
+                    disabled={saveBusy}
+                  >
+                    {confirmDelete ? "Confirm Delete Callout" : "Delete Callout"}
+                  </button>
+                ) : <span />}
                 <button type="button" className="btn btn-ghost" onClick={closeEditor} disabled={saveBusy}>
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={saveBusy}>
-                  {saveBusy ? "Saving..." : "Save Callout"}
+                  {saveBusy ? "Saving..." : isCreatingBox ? "Add Panel" : "Save Callout"}
                 </button>
               </div>
             </form>
           </div>
         </ModalLightbox>
       ) : null}
-    </>
+    </div>
   );
 }

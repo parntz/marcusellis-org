@@ -8,6 +8,16 @@ import { findPageByRoute, normalizeRouteFromSegments, pages, siteMeta } from "..
 
 export const dynamic = "force-dynamic";
 
+function sanitizeMirroredPage(page) {
+  if (!page) return page;
+  if (page.route !== "/signatory-information") return page;
+  return {
+    ...page,
+    summary: "Signatory and employer information.",
+    metaDescription: "Signatory and employer information.",
+  };
+}
+
 export function generateStaticParams() {
   return pages
     .filter((page) => page.route !== "/")
@@ -21,10 +31,10 @@ async function resolvePageForRoute(route) {
   if (!staticPage || staticPage.kind !== "mirror-page") return staticPage;
   try {
     const row = await fetchMirrorPageContentRow(route);
-    return mergeMirrorPageFromDb(staticPage, row);
+    return sanitizeMirroredPage(mergeMirrorPageFromDb(staticPage, row));
   } catch (err) {
     console.error("[mirror_page_content] Turso read failed; using bundled site-data for", route, err);
-    return staticPage;
+    return sanitizeMirroredPage(staticPage);
   }
 }
 

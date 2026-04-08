@@ -51,8 +51,11 @@ const ddl = `
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT,
     google_sub TEXT UNIQUE,
+    role TEXT NOT NULL DEFAULT 'member',
+    member_page_id INTEGER,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (member_page_id) REFERENCES member_pages(id) ON DELETE SET NULL
   );
 
   CREATE INDEX IF NOT EXISTS idx_auth_users_username
@@ -65,9 +68,33 @@ const ddl = `
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slug TEXT NOT NULL UNIQUE,
     title TEXT NOT NULL,
+    first_name TEXT NOT NULL DEFAULT '',
+    last_name TEXT NOT NULL DEFAULT '',
     canonical_url TEXT NOT NULL DEFAULT '',
     published_time TEXT NOT NULL DEFAULT '',
     updated_time TEXT NOT NULL DEFAULT '',
+    picture_url TEXT NOT NULL DEFAULT '',
+    featured_video_url TEXT NOT NULL DEFAULT '',
+    featured_video_title TEXT NOT NULL DEFAULT '',
+    legacy_video_links_json TEXT NOT NULL DEFAULT '[]',
+    audio_links_json TEXT NOT NULL DEFAULT '[]',
+    web_links_json TEXT NOT NULL DEFAULT '[]',
+    musical_styles_json TEXT NOT NULL DEFAULT '[]',
+    primary_instruments_json TEXT NOT NULL DEFAULT '[]',
+    additional_instruments_text TEXT NOT NULL DEFAULT '',
+    work_desired_json TEXT NOT NULL DEFAULT '[]',
+    work_desired_other TEXT NOT NULL DEFAULT '',
+    number_chart_read INTEGER NOT NULL DEFAULT 0,
+    number_chart_write INTEGER NOT NULL DEFAULT 0,
+    chord_chart_read INTEGER NOT NULL DEFAULT 0,
+    chord_chart_write INTEGER NOT NULL DEFAULT 0,
+    has_home_studio INTEGER NOT NULL DEFAULT 0,
+    is_engineer INTEGER NOT NULL DEFAULT 0,
+    additional_skills_json TEXT NOT NULL DEFAULT '[]',
+    additional_skills_other TEXT NOT NULL DEFAULT '',
+    website_url TEXT NOT NULL DEFAULT '',
+    facebook_url TEXT NOT NULL DEFAULT '',
+    reverbnation_url TEXT NOT NULL DEFAULT '',
     contact_html TEXT NOT NULL DEFAULT '',
     description_html TEXT NOT NULL DEFAULT '',
     personnel_html TEXT NOT NULL DEFAULT '',
@@ -76,6 +103,22 @@ const ddl = `
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS member_profile_media (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_page_id INTEGER NOT NULL,
+    media_type TEXT NOT NULL DEFAULT 'image',
+    label TEXT NOT NULL DEFAULT '',
+    asset_url TEXT NOT NULL,
+    mime_type TEXT NOT NULL DEFAULT '',
+    display_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (member_page_id) REFERENCES member_pages(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_member_profile_media_member_order
+    ON member_profile_media(member_page_id, display_order ASC, id ASC);
 
   CREATE TABLE IF NOT EXISTS site_callouts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -168,6 +211,53 @@ const ddl = `
 `;
 
 await client.executeMultiple(ddl);
+
+const authColumns = await client.execute("PRAGMA table_info(auth_users)");
+const authColumnNames = new Set(authColumns.rows.map((row) => String(row.name || "").toLowerCase()));
+if (!authColumnNames.has("role")) {
+  await client.execute("ALTER TABLE auth_users ADD COLUMN role TEXT NOT NULL DEFAULT 'member'");
+}
+if (!authColumnNames.has("member_page_id")) {
+  await client.execute("ALTER TABLE auth_users ADD COLUMN member_page_id INTEGER");
+}
+await client.execute("UPDATE auth_users SET role = 'admin' WHERE role IS NULL OR TRIM(role) = ''");
+await client.execute(
+  "CREATE UNIQUE INDEX IF NOT EXISTS idx_auth_users_member_page_id ON auth_users(member_page_id) WHERE member_page_id IS NOT NULL"
+);
+
+const memberPageColumns = await client.execute("PRAGMA table_info(member_pages)");
+const memberPageColumnNames = new Set(memberPageColumns.rows.map((row) => String(row.name || "").toLowerCase()));
+const memberPageAlterStatements = [
+  ["first_name", "ALTER TABLE member_pages ADD COLUMN first_name TEXT NOT NULL DEFAULT ''"],
+  ["last_name", "ALTER TABLE member_pages ADD COLUMN last_name TEXT NOT NULL DEFAULT ''"],
+  ["picture_url", "ALTER TABLE member_pages ADD COLUMN picture_url TEXT NOT NULL DEFAULT ''"],
+  ["featured_video_url", "ALTER TABLE member_pages ADD COLUMN featured_video_url TEXT NOT NULL DEFAULT ''"],
+  ["featured_video_title", "ALTER TABLE member_pages ADD COLUMN featured_video_title TEXT NOT NULL DEFAULT ''"],
+  ["legacy_video_links_json", "ALTER TABLE member_pages ADD COLUMN legacy_video_links_json TEXT NOT NULL DEFAULT '[]'"],
+  ["audio_links_json", "ALTER TABLE member_pages ADD COLUMN audio_links_json TEXT NOT NULL DEFAULT '[]'"],
+  ["web_links_json", "ALTER TABLE member_pages ADD COLUMN web_links_json TEXT NOT NULL DEFAULT '[]'"],
+  ["musical_styles_json", "ALTER TABLE member_pages ADD COLUMN musical_styles_json TEXT NOT NULL DEFAULT '[]'"],
+  ["primary_instruments_json", "ALTER TABLE member_pages ADD COLUMN primary_instruments_json TEXT NOT NULL DEFAULT '[]'"],
+  ["additional_instruments_text", "ALTER TABLE member_pages ADD COLUMN additional_instruments_text TEXT NOT NULL DEFAULT ''"],
+  ["work_desired_json", "ALTER TABLE member_pages ADD COLUMN work_desired_json TEXT NOT NULL DEFAULT '[]'"],
+  ["work_desired_other", "ALTER TABLE member_pages ADD COLUMN work_desired_other TEXT NOT NULL DEFAULT ''"],
+  ["number_chart_read", "ALTER TABLE member_pages ADD COLUMN number_chart_read INTEGER NOT NULL DEFAULT 0"],
+  ["number_chart_write", "ALTER TABLE member_pages ADD COLUMN number_chart_write INTEGER NOT NULL DEFAULT 0"],
+  ["chord_chart_read", "ALTER TABLE member_pages ADD COLUMN chord_chart_read INTEGER NOT NULL DEFAULT 0"],
+  ["chord_chart_write", "ALTER TABLE member_pages ADD COLUMN chord_chart_write INTEGER NOT NULL DEFAULT 0"],
+  ["has_home_studio", "ALTER TABLE member_pages ADD COLUMN has_home_studio INTEGER NOT NULL DEFAULT 0"],
+  ["is_engineer", "ALTER TABLE member_pages ADD COLUMN is_engineer INTEGER NOT NULL DEFAULT 0"],
+  ["additional_skills_json", "ALTER TABLE member_pages ADD COLUMN additional_skills_json TEXT NOT NULL DEFAULT '[]'"],
+  ["additional_skills_other", "ALTER TABLE member_pages ADD COLUMN additional_skills_other TEXT NOT NULL DEFAULT ''"],
+  ["website_url", "ALTER TABLE member_pages ADD COLUMN website_url TEXT NOT NULL DEFAULT ''"],
+  ["facebook_url", "ALTER TABLE member_pages ADD COLUMN facebook_url TEXT NOT NULL DEFAULT ''"],
+  ["reverbnation_url", "ALTER TABLE member_pages ADD COLUMN reverbnation_url TEXT NOT NULL DEFAULT ''"],
+];
+for (const [columnName, sql] of memberPageAlterStatements) {
+  if (!memberPageColumnNames.has(columnName)) {
+    await client.execute(sql);
+  }
+}
 
 const gigColumns = await client.execute("PRAGMA table_info(gigs)");
 const gigColumnNames = new Set(gigColumns.rows.map((row) => String(row.name || "").toLowerCase()));

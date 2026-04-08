@@ -2,14 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { isAdminUser } from "../lib/authz";
 import { CalloutRotator } from "./callout-rotator";
 
 export function MobileMemberNoticeDock() {
   const { data: session } = useSession();
-  const isAdmin = Boolean(session?.user);
+  const pathname = usePathname();
+  const isAdmin = isAdminUser(session?.user);
   const [items, setItems] = useState([]);
   const [adminItems, setAdminItems] = useState([]);
   const [config, setConfig] = useState({ delaySeconds: 8 });
+  const hideOnMemberProfile =
+    typeof pathname === "string" && (pathname.startsWith("/users/") || pathname.startsWith("/user/"));
 
   useEffect(() => {
     let cancelled = false;
@@ -36,6 +41,8 @@ export function MobileMemberNoticeDock() {
     };
   }, [isAdmin]);
 
+  if (hideOnMemberProfile) return null;
+  if (config?.enabled === false) return null;
   if (!items.length && !isAdmin) return null;
 
   return (

@@ -7,7 +7,6 @@ import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 
 function getInitialDraft(initialConfig) {
   return {
-    showMemberNotices: initialConfig?.showMemberNotices !== false,
     showSidebarCtas: initialConfig?.showSidebarCtas !== false,
   };
 }
@@ -35,7 +34,6 @@ export function RecordingPageOptionsButton({ initialConfig }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...initialConfig,
-          showMemberNotices: draft.showMemberNotices,
           showSidebarCtas: draft.showSidebarCtas,
         }),
       });
@@ -80,17 +78,6 @@ export function RecordingPageOptionsButton({ initialConfig }) {
                   Control which optional sections appear only on the recording page.
                 </p>
               </div>
-
-              <label className="recording-sidebar-form-check">
-                <input
-                  type="checkbox"
-                  checked={draft.showMemberNotices}
-                  onChange={(event) =>
-                    setDraft((current) => ({ ...current, showMemberNotices: event.target.checked }))
-                  }
-                />
-                <span>Member notices</span>
-              </label>
 
               <label className="recording-sidebar-form-check">
                 <input

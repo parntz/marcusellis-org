@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/auth-options";
+import { isAdminSession } from "../../../../lib/authz";
 import {
   duplicateSidebarToPage,
   listSidebarBoxesForPage,
@@ -31,7 +32,7 @@ export async function GET(request) {
 
 export async function PUT(request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
+  if (!isAdminSession(session)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -67,7 +68,7 @@ export async function PUT(request) {
 
 export async function POST(request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
+  if (!isAdminSession(session)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
