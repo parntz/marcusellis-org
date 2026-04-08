@@ -1,3 +1,4 @@
+import path from "path";
 import { NextResponse } from "next/server";
 import { getGigUploadsStore } from "../../../../../lib/gig-image-storage.mjs";
 
