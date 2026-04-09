@@ -7,6 +7,7 @@
   },
   "scripts": {
     "generate:content": "node scripts/generate-site-data.mjs",
+    "assets:sync:scales-forms": "node scripts/ensure-scales-forms-assets.mjs",
     "gigs:import:nso": "node scripts/import-nashville-symphony-gigs.mjs",
     "gigs:migrate-images:blobs": "node scripts/migrate-gig-images-to-blobs.mjs",
     "db:init": "node scripts/db-init.mjs",

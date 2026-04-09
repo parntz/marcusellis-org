@@ -79,5 +79,5 @@ await client.execute({
   ],
 });
 
-console.log(`Upserted site_pages row for ${route} (${dbPath})`);
+console.log(`Upserted site_pages row for ${route} in Turso (${dbPath})`);
 await closeDb();

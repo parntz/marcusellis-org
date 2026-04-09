@@ -1,13 +1,13 @@
 # Database: Turso only
 
-This app uses **Turso** (LibSQL) for **development and production**. There is no local `file:` SQLite, no `better-sqlite3`, and no other database driver.
+This app uses **Turso** (LibSQL) for **development and production**. There is no local SQLite database, no `file:` database URL, no `better-sqlite3`, and no other database driver.
 
 ## Environment
 
 - **`TURSO_DATABASE_URL`** — required. Must be a **`libsql://…`** URL from the Turso dashboard (not `file:`).
 - **`TURSO_AUTH_TOKEN`** — required for remote access (or **`LIBSQL_AUTH_TOKEN`** as an alias for the same Turso token).
 
-`lib/sqlite.mjs` rejects non-`libsql:` URLs so a local or third-party DB is not used by mistake.
+`lib/sqlite.mjs` rejects non-`libsql:` URLs so only Turso is used.
 
 ## Commands
 

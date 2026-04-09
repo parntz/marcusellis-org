@@ -13,6 +13,7 @@ import { INTERNAL_PAGE_DESCRIPTION } from "../../../lib/internal-page-descriptio
 import { getRouteSidebarConfig } from "../../../lib/site-config-route-sidebar";
 import { siteMeta } from "../../../lib/site-data";
 import { getEditablePageHeader } from "../../../lib/page-header-editor";
+import { rewriteLegacyNashvilleSiteInHtml } from "../../../lib/legacy-site-url.js";
 import { getClient } from "../../../lib/sqlite.mjs";
 
 export const dynamic = "force-dynamic";
@@ -154,7 +155,7 @@ export default async function NewsAndEventsPage({ params }) {
               }
             />
             <section className="page-content">
-              <div className="richtext" dangerouslySetInnerHTML={{ __html: page.body_html }} />
+              <div className="richtext" dangerouslySetInnerHTML={{ __html: rewriteLegacyNashvilleSiteInHtml(page.body_html) }} />
             </section>
           </div>
           {routeSidebarEnabled ? (

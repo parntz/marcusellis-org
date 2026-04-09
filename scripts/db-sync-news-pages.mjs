@@ -72,5 +72,5 @@ for (const page of newsPages) {
   inserted += 1;
 }
 
-console.log(`Synced ${inserted} news event pages into ${dbPath}`);
+console.log(`Synced ${inserted} news event pages into Turso (${dbPath})`);
 await closeDb();

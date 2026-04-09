@@ -339,7 +339,7 @@ const defaultHomePanelsPayload = JSON.stringify({
     title: "Free Downtown Parking",
     body: "Active members can park free in designated downtown garages. Open the parking map to see participating locations.",
     ctaLabel: "Open Parking Map",
-    ctaHref: "/file/parkingmappng",
+    ctaHref: "/_downloaded/file/parkingmappng--asset",
   },
   travel: {
     kicker: "Member Notice",
@@ -409,5 +409,5 @@ await client.execute({
   args: ["scales_forms_links", defaultScalesFormsLinksPayload],
 });
 
-console.log(`Database initialized at ${dbPath}`);
+console.log(`Turso initialized at ${dbPath}`);
 await closeDb();

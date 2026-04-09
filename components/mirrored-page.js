@@ -29,6 +29,7 @@ import { getMemberSiteLinksIntroConfig } from "../lib/site-config-member-site-li
 import { getRecordingPageConfig } from "../lib/site-config-recording-page";
 import { getRouteSidebarConfig } from "../lib/site-config-route-sidebar";
 import { getScalesFormsLinksConfig } from "../lib/site-config-scales-forms-links";
+import { rewriteLegacyNashvilleSiteInHtml } from "../lib/legacy-site-url.js";
 
 function AssetIndex({ page }) {
   return (
@@ -58,7 +59,7 @@ function AssetIndex({ page }) {
 }
 
 function cleanDrupalHtml(html) {
-  let cleaned = html;
+  let cleaned = rewriteLegacyNashvilleSiteInHtml(html);
   cleaned = cleaned.replace(/href=(["'])\/user\/login\/?\1/gi, 'href="/sign-in"');
   cleaned = cleaned.replace(/<ul[^>]*>[\s\S]*?<\/ul>\s*/i, (match) => {
     const navPatterns = /href="\/(?:recording|scales-forms|new-use|signatory|live-music|gigs|find-an-artist|live-scales|afm-entertainment|form-ls1|member-services|member-benefits|free-rehearsal|benefits-union|member-site|media|what-sound|photo-and-video|nashville-musician-magazine|directory|members-only)/i;
@@ -391,7 +392,7 @@ const BENEFITS_RESOURCE_LINKS = [
   },
   {
     title: "The Tennessee Credit Union",
-    href: "http://www.nashvillemusicians.org/sites/default/files/Media%20Root/300210%20TTCU%20Look%20Services_MAIN.pdf",
+    href: "/_downloaded/sites/default/files/Media%20Root/300210%20TTCU%20Look%20Services_MAIN.pdf",
     external: true,
     summary: "Member-facing credit union information and services.",
   },
@@ -403,7 +404,7 @@ const BENEFITS_RESOURCE_LINKS = [
   },
   {
     title: "HUB Instrument Insurance",
-    href: "https://nashvillemusicians.org/sites/default/files/Media%20Root/HUBInstrumentInsurance2024.pdf",
+    href: "/_downloaded/sites/default/files/Media%20Root/HUBInstrumentInsurance2024.pdf",
     external: true,
     summary: "Coverage details for instruments and music-related equipment.",
   },

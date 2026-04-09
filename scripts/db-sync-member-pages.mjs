@@ -821,6 +821,6 @@ for (const file of files) {
 }
 
 console.log(
-  `Scanned ${processed} assets; skipped ${skippedContact} contact pages; upserted ${kept} member rows into ${dbPath} (${supplemented} supplemented from pretty profile pages, ${audioAugmented} with audio links).`,
+  `Scanned ${processed} assets; skipped ${skippedContact} contact pages; upserted ${kept} member rows into Turso (${dbPath}) (${supplemented} supplemented from pretty profile pages, ${audioAugmented} with audio links).`,
 );
 await closeDb();

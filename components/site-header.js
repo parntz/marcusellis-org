@@ -19,6 +19,10 @@ const HIDDEN_PRIMARY_NAV_HREFS = new Set(["/downloaded-assets"]);
 function normalizeNavHref(href = "") {
   const normalizedHref = String(href || "").trim();
 
+  if (normalizedHref.startsWith("/file/")) {
+    return `/_downloaded${normalizedHref}--asset`;
+  }
+
   if (normalizedHref.startsWith("/sites/default/files/")) {
     return `/_downloaded${normalizedHref}`;
   }

@@ -99,5 +99,5 @@ for (const page of sitePages) {
   synced += 1;
 }
 
-console.log(`Synced ${synced} site pages into ${dbPath}`);
+console.log(`Synced ${synced} site pages into Turso (${dbPath})`);
 await closeDb();

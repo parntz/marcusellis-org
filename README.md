@@ -98,4 +98,5 @@ This site is a Next.js app for Nashville Musicians Association / AFM 257.
 ## Notes
 
 - Scripts rely on environment variables from `.env` / `.env.local` (loaded by `scripts/load-env.mjs`).
-- Database scripts target Turso via `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`.
+- The only database is Turso, via `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`.
+- This repo does not use or keep a local SQLite database.

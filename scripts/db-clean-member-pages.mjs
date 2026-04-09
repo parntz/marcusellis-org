@@ -49,7 +49,7 @@ async function countWhere(sql, args = []) {
   return Number(rows?.[0]?.c ?? 0);
 }
 
-console.log(`db-clean-member-pages → ${dbPath}${dry ? " (DRY_RUN)" : ""}`);
+console.log(`db-clean-member-pages → Turso ${dbPath}${dry ? " (DRY_RUN)" : ""}`);
 
 /** Legacy sync walked all *--asset files; drop rows not sourced from a user/ profile HTML path. */
 const nNonUserSource = await countWhere(

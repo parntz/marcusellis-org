@@ -32,7 +32,7 @@ const callouts = [
     title: "Free Parking for Members",
     body: "Free parking at 20+ Metropolis lots. Tap for map and details.",
     cta_label: "Free Parking Map",
-    cta_href: "https://nashvillemusicians.org/file/parkingmappng#overlay-context=",
+    cta_href: "/_downloaded/file/parkingmappng--asset",
     display_order: 1,
   },
   {
@@ -40,8 +40,7 @@ const callouts = [
     title: "Flying Soon?",
     body: "Travel tips for musicians: how to carry on your instrument.",
     cta_label: "Travel Tips PDF",
-    cta_href:
-      "https://nashvillemusicians.org/sites/default/files/Media%20Root/Travel%20Tips%20for%20Musicians2023.pdf",
+    cta_href: "/_downloaded/sites/default/files/Media%20Root/Travel%20Tips%20for%20Musicians2023.pdf",
     display_order: 2,
   },
 ];

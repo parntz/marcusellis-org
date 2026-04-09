@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeaderWithCallout } from "../../../components/page-header-with-callout";
 import { INTERNAL_PAGE_DESCRIPTION } from "../../../lib/internal-page-description.js";
+import { rewriteLegacyNashvilleSiteInHtml } from "../../../lib/legacy-site-url.js";
 import { getClient } from "../../../lib/sqlite.mjs";
 
 async function fetchPage(route) {
@@ -61,7 +62,7 @@ export default async function EventDetailPage({ params }) {
       />
 
       <section className="page-content">
-        <div className="richtext" dangerouslySetInnerHTML={{ __html: page.body_html }} />
+        <div className="richtext" dangerouslySetInnerHTML={{ __html: rewriteLegacyNashvilleSiteInHtml(page.body_html) }} />
       </section>
     </article>
   );

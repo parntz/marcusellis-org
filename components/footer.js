@@ -5,22 +5,22 @@ const FOOTER_PARTNER_LINKS = [
   {
     href: "https://www.musicares.org",
     label: "MusiCares",
-    src: "https://nashvillemusicians.org/sites/default/files/MC2color_clearbkgnd3.png",
+    src: "/_downloaded/sites/default/files/MC2color_clearbkgnd3.png",
   },
   {
     href: "https://www.afm.org",
     label: "American Federation of Musicians",
-    src: "https://nashvillemusicians.org/sites/default/files/styles/hg_media_image_medium/public/AFMLogo_new.png?itok=mltqeU-A",
+    src: "/_downloaded/sites/default/files/styles/hg_media_image_medium/public/AFMLogo_new--3f69746f6b3d.png",
   },
   {
     href: "https://www.musiciansofthenashvillesymphony.org",
     label: "Musicians of the Nashville Symphony",
-    src: "https://nashvillemusicians.org/sites/default/files/MONSO2.png",
+    src: "/_downloaded/sites/default/files/MONSO2.png",
   },
   {
     href: "https://www.afm-epf.org",
     label: "AFM Employers Pension Fund",
-    src: "https://nashvillemusicians.org/sites/default/files/AFM-EPF_Logo3_0.png",
+    src: "/_downloaded/sites/default/files/AFM-EPF_Logo3_0.png",
   },
 ];
 
