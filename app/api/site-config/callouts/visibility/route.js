@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../../lib/auth-options";
 import { isAdminSession } from "../../../../../lib/authz";
+import { listCallouts } from "../../../../../lib/callouts";
+import { computeHeaderNoticeStripVisible } from "../../../../../lib/callout-strip-visibility.js";
+import { getCalloutConfig } from "../../../../../lib/site-config-callouts";
 import { getRouteCalloutConfig, setRouteCalloutConfig } from "../../../../../lib/site-config-route-callouts";
+import { normalizeSidebarRoute } from "../../../../../lib/normalize-sidebar-route.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,9 +20,26 @@ function normalizeLocation(value) {
   return location || "header";
 }
 
-function normalizeRoute(value) {
-  const route = String(value || "").trim();
-  return route || "/";
+function normalizeRouteParam(value) {
+  return normalizeSidebarRoute(value);
+}
+
+async function headerStripVisibilityState(route, session) {
+  const [config, calloutConfig, headerCallouts] = await Promise.all([
+    getRouteCalloutConfig(route, "header"),
+    getCalloutConfig("header"),
+    listCallouts("header"),
+  ]);
+  const routeEnabled = config.enabled !== false;
+  const stripVisible = computeHeaderNoticeStripVisible({
+    route,
+    hideCallout: false,
+    routeCalloutEnabled: routeEnabled,
+    globalCalloutEnabled: calloutConfig.enabled,
+    headerCalloutCount: headerCallouts.length,
+    isAdmin: isAdminSession(session),
+  });
+  return { routeEnabled, stripVisible };
 }
 
 export async function GET(request) {
@@ -29,9 +50,16 @@ export async function GET(request) {
 
   const { searchParams } = new URL(request.url);
   const location = normalizeLocation(searchParams.get("location"));
-  const route = normalizeRoute(searchParams.get("route"));
+  const route = normalizeRouteParam(searchParams.get("route"));
   const config = await getRouteCalloutConfig(route, location);
-  return NextResponse.json({ location, enabled: config.enabled !== false });
+  const routeEnabled = config.enabled !== false;
+
+  if (location !== "header") {
+    return NextResponse.json({ location, route, enabled: routeEnabled, stripVisible: routeEnabled });
+  }
+
+  const { stripVisible } = await headerStripVisibilityState(route, session);
+  return NextResponse.json({ location, route, enabled: routeEnabled, stripVisible });
 }
 
 export async function PUT(request) {
@@ -42,10 +70,16 @@ export async function PUT(request) {
 
   const body = await request.json().catch(() => ({}));
   const location = normalizeLocation(body?.location);
-  const route = normalizeRoute(body?.route);
+  const route = normalizeRouteParam(body?.route);
   const nextConfig = await setRouteCalloutConfig(route, location, {
     enabled: body?.enabled !== false,
   });
+  const routeEnabled = nextConfig.enabled !== false;
 
-  return NextResponse.json({ location, route, enabled: nextConfig.enabled !== false });
+  if (location !== "header") {
+    return NextResponse.json({ location, route, enabled: routeEnabled, stripVisible: routeEnabled });
+  }
+
+  const { stripVisible } = await headerStripVisibilityState(route, session);
+  return NextResponse.json({ location, route, enabled: routeEnabled, stripVisible });
 }

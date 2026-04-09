@@ -70,7 +70,7 @@ export function PhotoVideoGallery({
   isAdmin = false,
   searchQuery = "",
   page = 1,
-  pageSize = 96,
+  pageSize = 20,
   totalMatching = 0,
   matchingStats = { total: 0, photos: 0, videos: 0 },
   archiveStats = { total: 0, photos: 0, videos: 0 },
@@ -217,19 +217,25 @@ export function PhotoVideoGallery({
                 className="photo-video-gallery-lightbox__tagged"
                 aria-label={
                   activeItem.mediaType === "video"
-                    ? "Union members tagged in this video"
-                    : "Union members tagged in this photo"
+                    ? "Union members associated with this video"
+                    : "Union members associated with this photo"
                 }
               >
                 <p className="photo-video-gallery-lightbox__tagged-heading">
                   {activeItem.mediaType === "video"
-                    ? "Union members tagged in this video"
-                    : "Union members tagged in this photo"}
+                    ? "Union members associated with this video"
+                    : "Union members associated with this photo"}
                 </p>
                 <ul className="photo-video-gallery-lightbox__tagged-list">
                   {activeItem.taggedMembers.map((m, i) => (
                     <li key={m.memberId ? `m-${m.memberId}` : `n-${m.name}-${i}`}>
-                      <span className="photo-video-gallery-lightbox__member-badge">{m.name}</span>
+                      {m.profileHref ? (
+                        <Link href={m.profileHref} className="photo-video-gallery-lightbox__member-badge">
+                          {m.name}
+                        </Link>
+                      ) : (
+                        <span className="photo-video-gallery-lightbox__member-badge">{m.name}</span>
+                      )}
                       {m.instrument ? (
                         <span className="photo-video-gallery-lightbox__member-instrument">{m.instrument}</span>
                       ) : null}

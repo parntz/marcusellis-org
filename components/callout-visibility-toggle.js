@@ -7,7 +7,10 @@ import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 export function CalloutVisibilityToggle({ className = "", location = "header" }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [enabled, setEnabled] = useState(true);
+  /** Per-route flag in site_config (whether this route allows the notice strip). */
+  const [routeEnabled, setRouteEnabled] = useState(true);
+  /** Whether the header strip is actually rendered (matches PageHeaderWithCallout). */
+  const [stripVisible, setStripVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -23,7 +26,8 @@ export function CalloutVisibilityToggle({ className = "", location = "header" })
       .then((res) => res.json().catch(() => ({})).then((data) => ({ ok: res.ok, data })))
       .then(({ ok, data }) => {
         if (!active || !ok) return;
-        setEnabled(data?.enabled !== false);
+        setRouteEnabled(data?.enabled !== false);
+        setStripVisible(data?.stripVisible === true);
       })
       .catch(() => {})
       .finally(() => {
@@ -38,8 +42,8 @@ export function CalloutVisibilityToggle({ className = "", location = "header" })
   }, [location, pathname]);
 
   async function handleToggle() {
-    const nextEnabled = !enabled;
-    setEnabled(nextEnabled);
+    const nextRouteEnabled = !routeEnabled;
+    setRouteEnabled(nextRouteEnabled);
     setSaving(true);
 
     try {
@@ -49,31 +53,36 @@ export function CalloutVisibilityToggle({ className = "", location = "header" })
         body: JSON.stringify({
           location,
           route: pathname || "/",
-          enabled: nextEnabled,
+          enabled: nextRouteEnabled,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setEnabled(!nextEnabled);
+        setRouteEnabled(!nextRouteEnabled);
         showDbToastError(data?.error || "Database update failed.");
         return;
       }
 
+      if (typeof data?.stripVisible === "boolean") {
+        setStripVisible(data.stripVisible);
+      }
       showDbToastSuccess();
       router.refresh();
       window.location.reload();
     } catch {
-      setEnabled(!nextEnabled);
+      setRouteEnabled(!nextRouteEnabled);
       showDbToastError("Database update failed.");
     } finally {
       setSaving(false);
     }
   }
 
+  const labelNoticesShowing = stripVisible;
+
   return (
     <div className={className ? `route-sidebar-toggle ${className}` : "route-sidebar-toggle"}>
       <button type="button" className="route-sidebar-toggle__button" onClick={handleToggle} disabled={loading || saving}>
-        {saving ? "Saving notices..." : enabled ? "Remove notices" : "Add notices"}
+        {saving ? "Saving notices..." : labelNoticesShowing ? "Remove notices" : "Add notices"}
       </button>
     </div>
   );

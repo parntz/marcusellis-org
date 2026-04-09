@@ -1,6 +1,7 @@
 import "./globals.css";
 import "./admin-glass-overlay.css";
 import "./callout-rotator.css";
+import { Suspense } from "react";
 import { Footer } from "../components/footer";
 import { SiteHeader } from "../components/site-header";
 import { MobileMemberNoticeDock } from "../components/mobile-member-notice-dock";
@@ -28,7 +29,9 @@ export default async function RootLayout({ children }) {
     >
       <body suppressHydrationWarning>
         <Providers>
-          <SiteHeader initialBackgroundOpacity={backgroundConfig.opacity} />
+          <Suspense fallback={<header className="site-header" aria-hidden />}>
+            <SiteHeader initialBackgroundOpacity={backgroundConfig.opacity} />
+          </Suspense>
           <main className="page-shell">{children}</main>
           <div id="mobile-member-notice-slot">
             <MobileMemberNoticeDock />

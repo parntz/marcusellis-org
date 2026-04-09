@@ -311,6 +311,7 @@ export function LiveScalesItemAdmin({ section, index, initialItem, children }) {
   const [open, setOpen] = useState(false);
   const [loadBusy, setLoadBusy] = useState(false);
   const [saveBusy, setSaveBusy] = useState(false);
+  const [uploadBusy, setUploadBusy] = useState(false);
   const [error, setError] = useState("");
   const [items, setItems] = useState([]);
   const [draft, setDraft] = useState(() => ({
@@ -359,6 +360,38 @@ export function LiveScalesItemAdmin({ section, index, initialItem, children }) {
     }
   }, [index, section]);
 
+  async function handlePdfUpload(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    setUploadBusy(true);
+    setError("");
+    try {
+      const form = new FormData();
+      form.set("file", file);
+      const res = await fetch("/api/site-config/live-scales/upload", {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || "Upload failed.");
+      }
+      setDraft((current) => ({
+        ...current,
+        href: String(data?.url || ""),
+      }));
+      showDbToastSuccess("PDF uploaded.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Upload failed.";
+      setError(message);
+      showDbToastError(message);
+    } finally {
+      setUploadBusy(false);
+    }
+  }
+
   async function handleSave(event) {
     event.preventDefault();
     setSaveBusy(true);
@@ -404,7 +437,11 @@ export function LiveScalesItemAdmin({ section, index, initialItem, children }) {
         {children}
       </LiveScalesEditableShell>
 
-      <ModalLightbox open={open} onClose={() => !saveBusy && setOpen(false)} closeLabel="Close card editor">
+      <ModalLightbox
+        open={open}
+        onClose={() => !saveBusy && !uploadBusy && setOpen(false)}
+        closeLabel="Close card editor"
+      >
         <div className="recording-sidebar-modal recording-page-editor-modal">
           <div className="recording-sidebar-modal__header">
             <div>
@@ -452,6 +489,20 @@ export function LiveScalesItemAdmin({ section, index, initialItem, children }) {
                         onChange={(event) => setDraft((current) => ({ ...current, href: event.target.value }))}
                       />
                     </label>
+                    <label className="recording-sidebar-form-grid__wide">
+                      Upload replacement PDF
+                      <input
+                        type="file"
+                        accept="application/pdf,.pdf"
+                        onChange={handlePdfUpload}
+                        disabled={uploadBusy}
+                      />
+                      <span className="recording-sidebar-modal__help">
+                        {uploadBusy
+                          ? "Uploading PDF…"
+                          : "Choose a PDF to upload and automatically replace the current file link."}
+                      </span>
+                    </label>
                     <label>
                       Link label
                       <input
@@ -491,11 +542,16 @@ export function LiveScalesItemAdmin({ section, index, initialItem, children }) {
             {error ? <p className="recording-sidebar-modal__error">{error}</p> : null}
 
             <div className="recording-sidebar-modal__actions">
-              <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)} disabled={saveBusy}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setOpen(false)}
+                disabled={saveBusy || uploadBusy}
+              >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary" disabled={saveBusy}>
-                {saveBusy ? "Saving…" : "Save"}
+              <button type="submit" className="btn btn-primary" disabled={saveBusy || uploadBusy}>
+                {saveBusy ? "Saving…" : uploadBusy ? "Uploading…" : "Save"}
               </button>
             </div>
           </form>

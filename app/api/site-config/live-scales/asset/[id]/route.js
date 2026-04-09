@@ -6,12 +6,7 @@ export const runtime = "nodejs";
 function guessContentType(filename) {
   const ext = path.extname(filename).toLowerCase();
   const map = {
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".png": "image/png",
-    ".gif": "image/gif",
-    ".webp": "image/webp",
-    ".avif": "image/avif",
+    ".pdf": "application/pdf",
   };
   return map[ext] || "application/octet-stream";
 }
@@ -29,12 +24,12 @@ export async function GET(request, context) {
   }
 
   if (!process.env.NETLIFY) {
-    return NextResponse.redirect(new URL(`/uploads/hero/${encodeURIComponent(id)}`, request.url));
+    return NextResponse.redirect(new URL(`/uploads/live-scales/${encodeURIComponent(id)}`, request.url));
   }
 
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     const { getStore } = await import("@netlify/blobs");
-    const store = getStore("hero-uploads");
+    const store = getStore("live-scales-uploads");
     const result = await store.getWithMetadata(id, { type: "arrayBuffer" });
     if (!result?.data || result.data.byteLength === 0) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { isAdminUser } from "../lib/authz";
 import { primaryNav, siteMeta, utilityNav } from "../lib/site-data";
 import { ModalLightbox } from "./modal-lightbox";
@@ -143,7 +143,7 @@ function NavList({ items, depth = 0, onNavigate, onPdfLightbox, activePath }) {
   );
 }
 
-export function SiteHeader({ initialBackgroundOpacity = 1 }) {
+function SiteHeaderContent({ initialBackgroundOpacity = 1 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
@@ -310,5 +310,13 @@ export function SiteHeader({ initialBackgroundOpacity = 1 }) {
         ) : null}
       </ModalLightbox>
     </header>
+  );
+}
+
+export function SiteHeader({ initialBackgroundOpacity = 1 }) {
+  return (
+    <Suspense fallback={<header className="site-header" aria-hidden />}>
+      <SiteHeaderContent initialBackgroundOpacity={initialBackgroundOpacity} />
+    </Suspense>
   );
 }

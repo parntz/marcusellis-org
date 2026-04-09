@@ -19,6 +19,7 @@ export function SitePageBodyAdmin({
   dialogTitle = "Edit page main content",
   overlayLabel = "Edit page main content",
   helpText = "Rich HTML: headings, lists, links, and basic formatting. Images are stripped if pasted.",
+  fieldLabel = "Main content",
   children,
 }) {
   const router = useRouter();
@@ -137,7 +138,7 @@ export function SitePageBodyAdmin({
           <form className="recording-sidebar-modal__form" onSubmit={handleSave}>
             <section className="recording-sidebar-modal__section">
               <div className="recording-sidebar-modal__section-head">
-                <h4 id="site-page-body-editor-label">Main content</h4>
+                <h4 id="site-page-body-editor-label">{fieldLabel}</h4>
               </div>
               <div className="recording-page-editor__richtext">
                 <NewsEventsBodyEditor

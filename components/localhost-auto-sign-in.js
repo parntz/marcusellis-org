@@ -2,9 +2,9 @@
 
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
-export function LocalhostAutoSignIn() {
+function LocalhostAutoSignInContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams?.get("callbackUrl") || "/";
 
@@ -17,5 +17,20 @@ export function LocalhostAutoSignIn() {
       <h2>Signing In</h2>
       <p>Signing you in as a local admin.</p>
     </div>
+  );
+}
+
+export function LocalhostAutoSignIn() {
+  return (
+    <Suspense
+      fallback={
+        <div className="auth-card">
+          <h2>Signing In</h2>
+          <p>Preparing your local admin session.</p>
+        </div>
+      }
+    >
+      <LocalhostAutoSignInContent />
+    </Suspense>
   );
 }

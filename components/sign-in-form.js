@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 async function getRecaptchaToken(action) {
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
@@ -20,7 +20,7 @@ async function getRecaptchaToken(action) {
   });
 }
 
-export function SignInForm() {
+function SignInFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [identifier, setIdentifier] = useState("");
@@ -121,5 +121,20 @@ export function SignInForm() {
         Need an account? <Link href="/register">Create one</Link>
       </p>
     </div>
+  );
+}
+
+export function SignInForm() {
+  return (
+    <Suspense
+      fallback={
+        <div className="auth-card">
+          <h2>Sign In</h2>
+          <p>Loading sign-in form...</p>
+        </div>
+      }
+    >
+      <SignInFormContent />
+    </Suspense>
   );
 }

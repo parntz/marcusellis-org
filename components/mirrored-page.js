@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { AssetGallery } from "./asset-gallery";
 import { HomepageExperience } from "./homepage-experience";
 import { FindArtistEnhancer } from "./find-artist-enhancer";
+import BenefitsHub from "./benefits-hub";
 import { MemberSiteLinksHeroAdmin } from "./member-site-links-hero-admin";
 import { MemberSiteLinksIntroAdmin } from "./member-site-links-intro-admin";
 import { MemberSiteLinksCreateButton } from "./member-site-links-create-button";
@@ -36,6 +37,7 @@ import {
   getPhotoGalleryStats,
   listPhotoGalleryItems,
   listPhotoGalleryItemsPaged,
+  PHOTO_GALLERY_PAGE_SIZE,
 } from "../lib/photo-gallery.mjs";
 import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
 import { primaryNav, siteStats, utilityNav } from "../lib/site-data";
@@ -54,6 +56,7 @@ import {
 } from "../lib/live-music-html.mjs";
 import { getMemberServicesIntroForPage } from "../lib/member-services-intro.mjs";
 import { listMemberServicesPanels } from "../lib/member-services-panels.mjs";
+import { getBenefitsHubConfig } from "../lib/site-config-benefits-hub.mjs";
 import { getMediaHubConfig } from "../lib/site-config-media-hub.mjs";
 import { getLiveScalesConfig } from "../lib/site-config-live-scales.mjs";
 import { getNewUseReuseIntroInnerForPage } from "../lib/new-use-reuse-intro.mjs";
@@ -163,77 +166,6 @@ function extractRehearsalHallContent(bodyHtml) {
     lead:
       paragraphs[0] ||
       "Use of the Cooper Rehearsal Hall at Local 257 is free to all current members.",
-  };
-}
-
-const BENEFITS_INSURANCE_ITEMS = [
-  "Instrument and equipment coverage",
-  "Musician liability insurance",
-  "Accidental death and dismemberment",
-  "Cancer care protection",
-  "Catastrophic major medical",
-  "Disability income plan",
-  "Group term life",
-  "Hospital indemnity",
-  "Major medical plans",
-  "Short-term medical",
-];
-
-const BENEFITS_RESOURCE_LINKS = [
-  {
-    title: "Sound Healthcare & Financial",
-    href: "http://soundhealthcare.org",
-    external: true,
-    summary: "Health and financial resources tailored to working musicians.",
-  },
-  {
-    title: "The Tennessee Credit Union",
-    href: "/_downloaded/sites/default/files/Media%20Root/300210%20TTCU%20Look%20Services_MAIN.pdf",
-    external: true,
-    summary: "Member-facing credit union information and services.",
-  },
-  {
-    title: "AFM Pension Info",
-    href: "http://afm-epf.org",
-    external: true,
-    summary: "Plan details, applications, and pension fund resources.",
-  },
-  {
-    title: "HUB Instrument Insurance",
-    href: "/_downloaded/sites/default/files/Media%20Root/HUBInstrumentInsurance2024.pdf",
-    external: true,
-    summary: "Coverage details for instruments and music-related equipment.",
-  },
-  {
-    title: "Union Plus Program",
-    href: "/union-plus-program",
-    external: false,
-    summary: "Discounts, legal services, travel savings, and everyday member perks.",
-  },
-  {
-    title: "Free Rehearsal Hall",
-    href: "/free-rehearsal-hall",
-    external: false,
-    summary: "Book the Cooper Rehearsal Hall as a current Local 257 member.",
-  },
-  {
-    title: "Member Site Links",
-    href: "/member-site-links",
-    external: false,
-    summary: "Jump to member tools, profiles, and practical online resources.",
-  },
-];
-
-function extractBenefitsHubContent(bodyHtml) {
-  const contentHtml = extractDrupalContentEncodedHtml(bodyHtml || "");
-  const paragraphs = Array.from(contentHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi), (match) =>
-    cleanText(stripHtml(match[1]))
-  ).filter(Boolean);
-
-  return {
-    lead:
-      paragraphs[0] ||
-      "Local 257 offers members meaningful services, insurance access, pension resources, discounts, and practical support for working musicians.",
   };
 }
 
@@ -592,12 +524,13 @@ export async function MirroredPage({
   const signatoryContentHtml = signatoryPage ? getSignatoryDisplayHtmlFromSource(signatorySourceHtml) : "";
   const liveMusicSourceHtml = liveMusicPage ? getLiveMusicSourceFromPageBody(page.bodyHtml || "") : "";
   const liveMusicContentHtml = liveMusicPage ? getLiveMusicDisplayHtmlFromSource(liveMusicSourceHtml) : "";
+  const membersOnlyDirectoryPage = page.kind === "mirror-page" && page.route === "/members-only-directory";
   /* Match other hubs: if route sidebar is on in site config, always mount the column (same as /gigs, benefits, etc.). */
   const liveMusicRouteSidebarOn = liveMusicPage && routeSidebarEnabled;
   const liveScalesContent = liveScalesPage ? await getLiveScalesConfig() : null;
   const rehearsalHallContent = rehearsalHallPage ? extractRehearsalHallContent(page.bodyHtml || "") : null;
   const rehearsalHallHeroConfig = rehearsalHallPage ? await getRehearsalHallHeroConfig() : null;
-  const benefitsHubContent = benefitsHubPage ? extractBenefitsHubContent(page.bodyHtml || "") : null;
+  const benefitsHubConfig = benefitsHubPage ? await getBenefitsHubConfig({ bodyHtmlFallback: page.bodyHtml || "" }) : null;
   const memberServicesIntro = memberServicesPage ? await getMemberServicesIntroForPage() : null;
   const memberServicesPanels = memberServicesPage ? await listMemberServicesPanels() : [];
   const mediaHubConfig = mediaHubPage ? await getMediaHubConfig() : null;
@@ -610,6 +543,9 @@ export async function MirroredPage({
   const memberSiteLinksInitialLinks = memberSiteLinksPage
     ? persistedMemberSiteLinks || []
     : null;
+  const membersOnlyDirectoryContentHtml = membersOnlyDirectoryPage
+    ? extractDrupalContentEncodedHtml(page.bodyHtml || "")
+    : "";
   const rawGalleryQ = searchParams?.q;
   const gallerySearchQuery =
     typeof rawGalleryQ === "string" ? rawGalleryQ : Array.isArray(rawGalleryQ) ? rawGalleryQ[0] : "";
@@ -618,7 +554,7 @@ export async function MirroredPage({
   const rawGalleryS = searchParams?.s;
   const gallerySeedNumRaw = Array.isArray(rawGalleryS) ? rawGalleryS[0] : rawGalleryS;
   const galleryPage = Math.max(1, Number.parseInt(String(galleryPageNumRaw || "1"), 10) || 1);
-  const galleryPageSize = 96;
+  const galleryPageSize = PHOTO_GALLERY_PAGE_SIZE;
 
   let photoGalleryItems = [];
   let photoGalleryListMeta = null;
@@ -683,7 +619,8 @@ export async function MirroredPage({
     memberServicesPage ||
     mediaHubPage ||
     memberSiteLinksPage ||
-    photoGalleryPage
+    photoGalleryPage ||
+    membersOnlyDirectoryPage
       ? ""
       : getRouteBodyHtml(page.route, page.bodyHtml || "");
 
@@ -1028,92 +965,7 @@ export async function MirroredPage({
             >
               <div className="recording-body-grid recording-body-grid--scales">
                 <section className="page-content benefits-content">
-                  <div className="benefits-shell">
-                    <section className="benefits-hero">
-                      <div className="benefits-hero-copy">
-                        <p className="eyebrow">Member Benefits</p>
-                        <h2>Benefits that actually help a working musician</h2>
-                        <p>{benefitsHubContent?.lead}</p>
-                      </div>
-                      <div className="benefits-hero-mark">
-                        <Image
-                          src="/images/afm-epf-logo.png"
-                          alt="AFM-EP Fund logo"
-                          width={420}
-                          height={260}
-                          className="benefits-hero-logo"
-                        />
-                      </div>
-                    </section>
-
-                    <section className="benefits-section">
-                      <div className="benefits-pillar-grid">
-                        <article className="benefits-pillar-card">
-                          <p className="benefits-pillar-kicker">Retirement</p>
-                          <h3>Pension and long-term security</h3>
-                          <p>
-                            The AFM-EP Fund is one of the largest pension funds in the entertainment industry and
-                            gives qualifying musicians a real path toward retirement benefits built from covered work.
-                          </p>
-                        </article>
-                        <article className="benefits-pillar-card">
-                          <p className="benefits-pillar-kicker">Protection</p>
-                          <h3>Insurance built around real gear and real risk</h3>
-                          <p>
-                            Local 257 members can access instrument coverage, liability protection, and additional
-                            health and life-related plans designed to match the realities of music work.
-                          </p>
-                          <div className="benefits-chip-list" role="list" aria-label="Insurance options">
-                            {BENEFITS_INSURANCE_ITEMS.map((item) => (
-                              <span key={item} className="benefits-chip">
-                                {item}
-                              </span>
-                            ))}
-                          </div>
-                        </article>
-                        <article className="benefits-pillar-card">
-                          <p className="benefits-pillar-kicker">Savings</p>
-                          <h3>Discounts and practical day-to-day support</h3>
-                          <p>
-                            Union Plus, credit union access, healthcare resources, and member tools give the union
-                            relationship value well beyond the bandstand.
-                          </p>
-                        </article>
-                      </div>
-                    </section>
-
-                    <section className="benefits-section">
-                      <div className="section-headline benefits-section-headline">
-                        <p className="eyebrow">Quick Access</p>
-                        <h2>Open the programs and documents people actually use</h2>
-                      </div>
-                      <div className="benefits-resource-grid">
-                        {BENEFITS_RESOURCE_LINKS.map((item) =>
-                          item.external ? (
-                            <a
-                              key={item.href}
-                              href={item.href}
-                              className="benefits-resource-card"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <span className="benefits-resource-kicker">Benefit Link</span>
-                              <h3>{item.title}</h3>
-                              <p>{item.summary}</p>
-                              <span className="benefits-resource-link">Open resource</span>
-                            </a>
-                          ) : (
-                            <Link key={item.href} href={item.href} className="benefits-resource-card">
-                              <span className="benefits-resource-kicker">Benefit Link</span>
-                              <h3>{item.title}</h3>
-                              <p>{item.summary}</p>
-                              <span className="benefits-resource-link">Open resource</span>
-                            </Link>
-                          )
-                        )}
-                      </div>
-                    </section>
-                  </div>
+                  {benefitsHubConfig ? <BenefitsHub initialConfig={benefitsHubConfig} isAdmin={isAdmin} /> : null}
                 </section>
                 {routeSidebarEnabled ? (
                   <aside className="recording-sidebar benefits-sidebar" style={routeSidebarStyle}>
@@ -1267,7 +1119,7 @@ export async function MirroredPage({
                     isAdmin={isAdmin}
                     searchQuery={photoGalleryListMeta?.searchQuery ?? ""}
                     page={photoGalleryListMeta?.page ?? 1}
-                    pageSize={photoGalleryListMeta?.pageSize ?? 96}
+                    pageSize={photoGalleryListMeta?.pageSize ?? PHOTO_GALLERY_PAGE_SIZE}
                     totalMatching={photoGalleryListMeta?.totalMatching ?? 0}
                     matchingStats={photoGalleryListMeta?.matchingStats ?? { total: 0, photos: 0, videos: 0 }}
                     archiveStats={photoGalleryListMeta?.archiveStats ?? { total: 0, photos: 0, videos: 0 }}
@@ -1389,10 +1241,26 @@ export async function MirroredPage({
                       />
                     </>
                   ) : (
-                    <section
-                      className={`page-content ${recordingRoute ? "recording-content" : ""}`}
-                      dangerouslySetInnerHTML={{ __html: bodyHtml }}
-                    />
+                    membersOnlyDirectoryPage && isAdmin ? (
+                      <SitePageBodyAdmin
+                        route={page.route}
+                        initialSourceHtml={page.bodyHtml || ""}
+                        dialogTitle="Edit Members Only Directory main content"
+                        overlayLabel="Edit members only directory main content"
+                        helpText="This page uses a single HTML field. Edit the full main column here with the HTML editor."
+                        fieldLabel="Main content HTML"
+                      >
+                        <section
+                          className="members-only-directory-main"
+                          dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
+                        />
+                      </SitePageBodyAdmin>
+                    ) : (
+                      <section
+                        className="members-only-directory-main"
+                        dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
+                      />
+                    )
                   )}
                   {profilePage ? <ProfilePageEnhancer /> : null}
                   {page.pageAssets?.length && !eventDetailRoute && !recordingRoute && !profilePage && !magazinePage ? (
@@ -1449,10 +1317,26 @@ export async function MirroredPage({
                   />
                 </>
               ) : (
-                <section
-                  className={`page-content ${recordingRoute ? "recording-content" : ""}`}
-                  dangerouslySetInnerHTML={{ __html: bodyHtml }}
-                />
+                membersOnlyDirectoryPage && isAdmin ? (
+                  <SitePageBodyAdmin
+                    route={page.route}
+                    initialSourceHtml={page.bodyHtml || ""}
+                    dialogTitle="Edit Members Only Directory main content"
+                    overlayLabel="Edit members only directory main content"
+                    helpText="This page uses a single HTML field. Edit the full main column here with the HTML editor."
+                    fieldLabel="Main content HTML"
+                  >
+                    <section
+                      className="members-only-directory-main"
+                      dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
+                    />
+                  </SitePageBodyAdmin>
+                ) : (
+                  <section
+                    className="members-only-directory-main"
+                    dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
+                  />
+                )
               )}
               {profilePage ? <ProfilePageEnhancer /> : null}
               {page.pageAssets?.length && !eventDetailRoute && !recordingRoute && !profilePage && !magazinePage ? (

@@ -10,6 +10,7 @@
     "assets:sync:scales-forms": "node scripts/ensure-scales-forms-assets.mjs",
     "gigs:import:nso": "node scripts/import-nashville-symphony-gigs.mjs",
     "gigs:migrate-images:blobs": "node scripts/migrate-gig-images-to-blobs.mjs",
+    "assets:sync:netlify-blobs": "node scripts/sync-local-uploads-to-netlify-blobs.mjs",
     "db:init": "node scripts/db-init.mjs",
     "db:seed": "node scripts/db-seed.mjs",
     "db:sync:site-pages": "node scripts/db-sync-site-pages.mjs",
