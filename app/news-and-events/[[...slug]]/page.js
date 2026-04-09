@@ -11,6 +11,7 @@ import { listNewsEventsItems } from "../../../lib/news-events-items";
 import { resolveSidebarBoxes } from "../../../lib/resolve-sidebar-boxes.mjs";
 import { INTERNAL_PAGE_DESCRIPTION } from "../../../lib/internal-page-description.js";
 import { getRouteSidebarConfig } from "../../../lib/site-config-route-sidebar";
+import { getSidebarWidthConfig } from "../../../lib/site-config-sidebar-width";
 import { siteMeta } from "../../../lib/site-data";
 import { getEditablePageHeader } from "../../../lib/page-header-editor";
 import { rewriteLegacyNashvilleSiteInHtml } from "../../../lib/legacy-site-url.js";
@@ -78,7 +79,12 @@ export default async function NewsAndEventsPage({ params }) {
 
   if (!slug.length) {
     const listRoute = "/news-and-events";
-    const routeSidebarEnabled = Boolean((await getRouteSidebarConfig(listRoute))?.enabled);
+    const routeSidebarConfig = await getRouteSidebarConfig(listRoute);
+    const sidebarWidthConfig = await getSidebarWidthConfig();
+    const routeSidebarEnabled = Boolean(routeSidebarConfig?.enabled);
+    const routeSidebarStyle = routeSidebarEnabled
+      ? { "--recording-sidebar-width": `${sidebarWidthConfig?.widthPx ?? 350}px` }
+      : undefined;
     const newsSidebarBoxes = routeSidebarEnabled ? await resolveSidebarBoxes(listRoute) : [];
     const newsEventItems = await listNewsEventsItems(1000, "/news-and-events");
     const listHeader = await getEditablePageHeader("/news-and-events");
@@ -94,7 +100,10 @@ export default async function NewsAndEventsPage({ params }) {
           titleAction={isAdmin ? <NewsEventsCreateButton /> : null}
         />
 
-        <div className="recording-page recording-sidebar-layout news-events-sidebar-layout">
+        <div
+          className="recording-page recording-sidebar-layout news-events-sidebar-layout"
+          style={routeSidebarStyle}
+        >
           <div className="recording-body-grid recording-body-grid--scales recording-body-grid--news">
             <div className="recording-news-main">
               {newsEventItems.length || isAdmin ? (
@@ -106,8 +115,13 @@ export default async function NewsAndEventsPage({ params }) {
               )}
             </div>
             {routeSidebarEnabled ? (
-              <aside className="recording-sidebar">
-                <RecordingSidebarPanel boxes={newsSidebarBoxes} pageRoute={listRoute} isAdmin={isAdmin} />
+              <aside className="recording-sidebar" style={routeSidebarStyle}>
+                <RecordingSidebarPanel
+                  boxes={newsSidebarBoxes}
+                  pageRoute={listRoute}
+                  isAdmin={isAdmin}
+                  initialWidthStep={sidebarWidthConfig?.widthStep}
+                />
               </aside>
             ) : null}
           </div>
@@ -122,7 +136,12 @@ export default async function NewsAndEventsPage({ params }) {
     notFound();
   }
 
-  const routeSidebarEnabled = Boolean((await getRouteSidebarConfig(route))?.enabled);
+  const routeSidebarConfig = await getRouteSidebarConfig(route);
+  const sidebarWidthConfig = await getSidebarWidthConfig();
+  const routeSidebarEnabled = Boolean(routeSidebarConfig?.enabled);
+  const routeSidebarStyle = routeSidebarEnabled
+    ? { "--recording-sidebar-width": `${sidebarWidthConfig?.widthPx ?? 350}px` }
+    : undefined;
   const newsSidebarBoxes = routeSidebarEnabled ? await resolveSidebarBoxes(route) : [];
 
   const evDate = item?.event_date_text ?? item?.eventDateText;
@@ -133,7 +152,10 @@ export default async function NewsAndEventsPage({ params }) {
 
   return (
     <article className="page-frame news-shell pg-news-events">
-      <div className="recording-page recording-sidebar-layout news-events-sidebar-layout">
+      <div
+        className="recording-page recording-sidebar-layout news-events-sidebar-layout"
+        style={routeSidebarStyle}
+      >
         <div className="recording-body-grid recording-body-grid--scales recording-body-grid--news">
           <div className="recording-news-main">
             <PageHeaderWithCallout
@@ -159,8 +181,13 @@ export default async function NewsAndEventsPage({ params }) {
             </section>
           </div>
           {routeSidebarEnabled ? (
-            <aside className="recording-sidebar">
-              <RecordingSidebarPanel boxes={newsSidebarBoxes} pageRoute={route} isAdmin={isAdmin} />
+            <aside className="recording-sidebar" style={routeSidebarStyle}>
+              <RecordingSidebarPanel
+                boxes={newsSidebarBoxes}
+                pageRoute={route}
+                isAdmin={isAdmin}
+                initialWidthStep={sidebarWidthConfig?.widthStep}
+              />
             </aside>
           ) : null}
         </div>

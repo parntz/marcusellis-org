@@ -373,6 +373,8 @@ export function CalloutRotator({
   isAdmin = false,
   adminItems = [],
   initialConfig = { delaySeconds: 8 },
+  /** Footer / mobile dock: no dot buttons; rotation stays on the timer only. */
+  suppressSlidePicker = false,
 }) {
   const [active, setActive] = useState(0);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -448,7 +450,10 @@ export function CalloutRotator({
 
   return (
     <>
-      <aside className={`callout-rotator${isAdmin ? " callout-rotator--admin" : ""}`} aria-live="polite">
+      <aside
+        className={`callout-rotator${isAdmin ? " callout-rotator--admin" : ""}${suppressSlidePicker ? " callout-rotator--footer-dock" : ""}`}
+        aria-live="polite"
+      >
         <div
           className="callout-card"
           onMouseEnter={isAdmin ? () => setOverlayActive(true) : undefined}
@@ -464,24 +469,26 @@ export function CalloutRotator({
               : undefined
           }
         >
-          {indicatorItems.length > 1 ? (
-            <div className="callout-indicators" aria-label="Member notice slides">
-              {indicatorItems.map((notice, index) => (
-                <button
-                  key={notice.slug || notice.title || index}
-                  type="button"
-                  className={`callout-indicator${index === active ? " is-active" : ""}`}
-                  onClick={() => goToIndex(index, index > active ? 1 : -1)}
-                  aria-label={`Show member notice ${index + 1}`}
-                  aria-pressed={index === active}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="callout-indicators callout-indicators--single" aria-hidden="true">
-              <span className="callout-indicator is-active" />
-            </div>
-          )}
+          {!suppressSlidePicker ? (
+            indicatorItems.length > 1 ? (
+              <div className="callout-indicators" aria-label="Member notice slides">
+                {indicatorItems.map((notice, index) => (
+                  <button
+                    key={notice.slug || notice.title || index}
+                    type="button"
+                    className={`callout-indicator${index === active ? " is-active" : ""}`}
+                    onClick={() => goToIndex(index, index > active ? 1 : -1)}
+                    aria-label={`Show member notice ${index + 1}`}
+                    aria-pressed={index === active}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="callout-indicators callout-indicators--single" aria-hidden="true">
+                <span className="callout-indicator is-active" />
+              </div>
+            )
+          ) : null}
 
           <div className="callout-slide-viewport">
             {leavingItem ? (

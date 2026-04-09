@@ -1,5 +1,6 @@
 import "./load-env.mjs";
 import { closeDb, getClient } from "../lib/sqlite.mjs";
+import { getCreativeDefaultSidebarBoxes } from "../lib/page-sidebar-defaults.mjs";
 import {
   DEFAULT_RECORDING_SIDEBAR_BOXES,
   RECORDING_SIDEBAR_FAMILY,
@@ -31,5 +32,14 @@ await client.executeMultiple(`
 
 await replaceSidebarBoxesForPage("/recording", RECORDING_SIDEBAR_FAMILY, DEFAULT_RECORDING_SIDEBAR_BOXES);
 
-console.log("Seeded /recording sidebar box set in Turso.");
+const newsEventsBoxes = getCreativeDefaultSidebarBoxes("/news-and-events");
+if (newsEventsBoxes?.length) {
+  await replaceSidebarBoxesForPage("/news-and-events", RECORDING_SIDEBAR_FAMILY, newsEventsBoxes);
+}
+
+console.log(
+  newsEventsBoxes?.length
+    ? "Seeded /recording and /news-and-events sidebar box sets in Turso."
+    : "Seeded /recording sidebar box set in Turso."
+);
 await closeDb();

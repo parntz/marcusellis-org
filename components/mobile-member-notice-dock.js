@@ -53,6 +53,7 @@ export function MobileMemberNoticeDock() {
         adminItems={adminItems}
         intervalMs={(config.delaySeconds || 8) * 1000}
         initialConfig={config}
+        suppressSlidePicker
       />
     </div>
   );

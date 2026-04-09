@@ -1,6 +1,6 @@
 :root {
-  /* Lighter “union site” base — still dark, less cavernous */
-  --bg: #0e1322;
+  /* True black base so page-frame wash never reads gray-white when background opacity is low */
+  --bg: #000000;
   --surface: rgba(24, 30, 48, 0.78);
   --surface-strong: rgba(30, 36, 54, 0.94);
   --ink: #f0f4ff;
@@ -17,10 +17,10 @@
   --shadow: 0 28px 72px rgba(0, 0, 0, 0.32);
   --display: "Anton", Impact, "Arial Narrow", sans-serif;
   --body: "Lato", "Inter", "Segoe UI", Arial, sans-serif;
-  /* Base wash + subtle bottom lift so the lower viewport (and flex gap above the footer) never reads as a flat void */
+  /* Base wash: lighter steel / sky blues over a dark falloff (adjust with admin background opacity) */
   --page-background:
-    radial-gradient(95% 48% at 50% 100%, rgba(32, 62, 118, 0.38) 0%, transparent 52%),
-    radial-gradient(110% 125% at 15% 0%, #122a4a 0%, #0e1628 48%, #0c101c 78%, #0b0f18 100%);
+    radial-gradient(95% 48% at 50% 100%, rgba(160, 205, 255, 0.5) 0%, transparent 56%),
+    radial-gradient(110% 125% at 15% 0%, #5a7eb8 0%, #3d5f8c 40%, #243a58 74%, #0f141f 100%);
   --brand-background: linear-gradient(
     120deg,
     rgba(42, 72, 130, 0.4) 0%,
@@ -31,6 +31,8 @@
   --sidebar-stack-page-offset: 35px;
   /* Gap below site nav and gap above main content when a page-header callout is present */
   --page-header-band-gap: clamp(14px, 2.2vw, 22px);
+  /* Muted kicker under internal page titles — matches photo gallery hero “Media Archive” (not cyan .eyebrow) */
+  --page-description-kicker-color: rgba(255, 243, 232, 0.76);
   --form-font: "Trebuchet MS", "Lato", "Segoe UI", Arial, sans-serif;
   --form-field-size: clamp(1rem, 0.96rem + 0.22vw, 1.08rem);
   --form-field-leading: 1.38;
@@ -318,8 +320,8 @@ input[type="search"] {
   pointer-events: none;
   opacity: var(--site-page-wash-strength);
   background:
-    radial-gradient(70vw 34vw at 5% 15%, rgba(70, 140, 255, 0.18) 0%, rgba(70, 140, 255, 0) 70%),
-    radial-gradient(50vw 40vw at 92% 8%, rgba(80, 200, 255, 0.2) 0%, rgba(80, 200, 255, 0) 72%),
+    radial-gradient(70vw 34vw at 5% 15%, rgba(150, 200, 255, 0.34) 0%, rgba(150, 200, 255, 0) 70%),
+    radial-gradient(50vw 40vw at 92% 8%, rgba(170, 220, 255, 0.36) 0%, rgba(170, 220, 255, 0) 72%),
     var(--page-background);
 }
 
@@ -366,8 +368,8 @@ input[type="search"] {
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, calc((1 - var(--site-page-wash-strength)) * 0.72)),
-      rgba(255, 255, 255, calc((1 - var(--site-page-wash-strength)) * 0.64))
+      rgba(0, 0, 0, calc((1 - var(--site-page-wash-strength)) * 0.78)),
+      rgba(0, 0, 0, calc((1 - var(--site-page-wash-strength)) * 0.7))
     ),
     linear-gradient(
       180deg,
@@ -724,6 +726,17 @@ input[type="search"] {
   border-bottom: 1px solid var(--line);
 }
 
+/*
+ * Without the member-notice strip, .page-header--with-callout is absent; the default
+ * .page-header padding-bottom: 22px would apply and stacks oddly with recording-page
+ * margin-top (--sidebar-stack-page-offset). Mirror the callout layout: no bottom padding,
+ * same band-gap margin below the title row as when the notice card is present.
+ */
+.page-header--internal:not(.page-header--with-callout) {
+  padding-bottom: 0;
+  margin-bottom: var(--page-header-band-gap);
+}
+
 /* Standardized internal title + summary under title (aligned across routes) */
 .page-header-main--internal .page-header-main__inner {
   display: flex;
@@ -743,6 +756,11 @@ input[type="search"] {
 
 .page-header-main__inner--admin-editable {
   position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .page-header-text-admin-overlay {
@@ -859,7 +877,22 @@ input[type="search"] {
 .page-header-editor-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.6rem;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-header-editor-actions .btn,
+.recording-sidebar-modal__actions .btn,
+.callout-admin-actions .btn {
+  min-width: 132px;
+}
+
+.page-header-editor-actions .btn,
+.callout-admin-actions .btn,
+.recording-sidebar-modal__actions .btn {
+  min-height: 42px;
+  padding-inline: 16px;
+  border-radius: 0;
 }
 
 .home-panels-editor-list {
@@ -918,14 +951,15 @@ input[type="search"] {
   letter-spacing: 0.03em;
 }
 
+/* Same face/size/case as gallery hero kicker (.eyebrow in .photo-video-gallery-hero__copy); warm muted, not --accent-dark */
 .page-summary--internal {
   margin: 10px 0 0;
   max-width: min(760px, 100%);
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.95rem;
-  line-height: 1.5;
-  font-style: italic;
-  letter-spacing: 0.01em;
+  color: var(--page-description-kicker-color);
+  font: 700 0.76rem/1.2 var(--body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-style: normal;
   white-space: pre-wrap;
 }
 
@@ -954,7 +988,7 @@ input[type="search"] {
 /* Page title + optional member callout (same band as “Recording”, etc.) */
 .page-header--with-callout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, min(52vw, 580px));
+  grid-template-columns: minmax(0, 1fr) minmax(360px, min(58vw, 680px));
   gap: clamp(16px, 2.5vw, 28px);
   align-items: stretch;
   margin-bottom: var(--page-header-band-gap);
@@ -1012,11 +1046,12 @@ input[type="search"] {
 .page-summary {
   max-width: 610px;
   margin: 16px 0 0;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  font-style: italic;
-  letter-spacing: 0.01em;
+  color: var(--page-description-kicker-color);
+  font: 700 0.76rem/1.2 var(--body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-style: normal;
+  line-height: 1.2;
 }
 
 .page-columns {
@@ -1392,6 +1427,7 @@ input[type="search"] {
   padding: 0;
   box-shadow: none;
   max-width: none;
+  min-width: 0;
 }
 
 .signatory-article-host {
@@ -1512,6 +1548,9 @@ input[type="search"] {
   display: flex;
   flex-direction: column;
   gap: clamp(20px, 3vw, 28px);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .pg-scales-forms .recording-page {
   gap: 6px;
@@ -1520,6 +1559,8 @@ input[type="search"] {
 /* Same vertical start for right-column boxes on all pages that use them */
 .recording-page.recording-sidebar-layout {
   margin-top: var(--sidebar-stack-page-offset);
+  /* Grid track sizing reads this on the page wrapper (aside’s inline style is not visible to siblings). */
+  --recording-sidebar-width: 350px;
 }
 
 /* /gigs should align right-column callouts with /recording start position. */
@@ -1856,6 +1897,14 @@ input[type="search"] {
 .recording-page-editable {
   position: relative;
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.recording-page-editable--content-fit {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .recording-page-edit-overlay {
@@ -1891,6 +1940,9 @@ input[type="search"] {
   display: grid;
   grid-template-columns: 1fr;
   gap: clamp(20px, 3vw, 28px);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .pg-scales-forms .recording-body-grid {
   row-gap: 6px;
@@ -1903,7 +1955,10 @@ input[type="search"] {
    * grid column-gap sat between the video and sidebar as a visible “gray bar.”
    */
   .recording-body-grid:not(.recording-body-grid--scales) {
-    grid-template-columns: minmax(0, 1fr) 350px;
+    width: 100%;
+    min-width: 0;
+    /* Main fills remainder; sidebar track matches global width (300–610px via --recording-sidebar-width). */
+    grid-template-columns: minmax(0, 1fr) minmax(0, min(var(--recording-sidebar-width, 350px), 610px, 100%));
     grid-template-rows: auto auto;
   }
 
@@ -1914,6 +1969,9 @@ input[type="search"] {
   .recording-body-grid:not(.recording-body-grid--scales) .recording-video-area {
     grid-column: 1;
     grid-row: 1;
+    width: 100%;
+    max-width: none;
+    justify-self: stretch;
   }
 
   .recording-body-grid:not(.recording-body-grid--scales) .recording-sidebar {
@@ -1924,25 +1982,38 @@ input[type="search"] {
   .recording-body-grid:not(.recording-body-grid--scales) .recording-content {
     grid-column: 1;
     grid-row: 2;
+    width: 100%;
+    max-width: none;
+    justify-self: stretch;
+  }
+
+  .recording-body-grid:not(.recording-body-grid--scales) .recording-page-editable,
+  .recording-body-grid:not(.recording-body-grid--scales) .recording-video-thumb {
+    width: 100%;
+    max-width: none;
   }
 }
 
 .recording-sidebar {
+  --recording-sidebar-width: 350px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 350px;
+  width: min(100%, var(--recording-sidebar-width));
+  max-width: min(100%, 610px);
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 @media (max-width: 1099px) {
   .recording-sidebar {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--recording-sidebar-width)), 1fr));
     grid-auto-flow: dense;
     align-items: stretch;
     justify-content: center;
     width: 100%;
-    max-width: min(100%, 920px);
+    max-width: 100%;
     margin-inline: auto;
     justify-items: stretch;
   }
@@ -1993,6 +2064,11 @@ input[type="search"] {
 @media (min-width: 1100px) {
   .recording-sidebar {
     align-self: start;
+    /* Track width is exact; fill the track and sit on the outer (viewport) edge of the grid. */
+    justify-self: stretch;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
   }
 }
 
@@ -2003,7 +2079,9 @@ input[type="search"] {
 
 @media (min-width: 1100px) {
   .recording-body-grid--scales {
-    grid-template-columns: 1fr 350px;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(0, min(var(--recording-sidebar-width, 350px), 610px, 100%));
     grid-template-rows: auto;
   }
 
@@ -2020,6 +2098,25 @@ input[type="search"] {
     grid-column: 2;
     grid-row: 1;
     align-self: start;
+  }
+
+  .recording-body-grid--scales > :first-child {
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* Let Scales/Forms + similar mirror pages use the full main track (was capped at 920px). */
+  .recording-sidebar-layout .recording-scales-master {
+    max-width: none;
+  }
+
+  .recording-sidebar-layout .recording-scales-intro--after-accordion {
+    max-width: none;
+  }
+
+  .recording-sidebar-layout .recording-scales-master-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
   }
 }
 
@@ -2124,18 +2221,26 @@ input[type="search"] {
 .recording-sidebar-add-panel {
   position: absolute;
   top: -27px;
-  left: 0;
+  right: 0;
   z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  white-space: nowrap;
 }
 
 .recording-sidebar-add-panel__button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
   color: var(--accent-dark);
+  min-width: 1ch;
 }
 
 .recording-sidebar-add-panel__button:hover,
@@ -2144,6 +2249,28 @@ input[type="search"] {
   text-shadow:
     0 0 10px rgba(36, 214, 255, 0.5),
     0 0 22px rgba(36, 214, 255, 0.32);
+}
+
+.recording-sidebar-width-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent-dark);
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.recording-sidebar-width-control input[type="range"] {
+  width: 122px;
+  min-width: 122px;
+  flex: 0 0 122px;
+  accent-color: var(--accent-dark);
+  cursor: pointer;
+}
+
+.recording-sidebar-width-control input[type="range"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .recording-sidebar-box {
@@ -2498,6 +2625,50 @@ input[type="search"] {
   opacity: 0.58;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+.recording-sidebar-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.recording-sidebar-modal__field .eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.recording-sidebar-modal__input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0;
+  background: rgba(10, 14, 24, 0.85);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.9rem;
+}
+
+.recording-sidebar-modal__input:focus-visible {
+  outline: 2px solid rgba(0, 194, 255, 0.45);
+  outline-offset: 1px;
+}
+
+.recording-sidebar-modal__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 4px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.recording-sidebar-modal__checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent, #00c2ff);
 }
 
 @media (max-width: 900px) {
@@ -2924,6 +3095,11 @@ input[type="search"] {
   background: transparent;
 }
 
+.recording-sidebar-layout .scales-forms-links-page.page-content {
+  max-width: none;
+  min-width: 0;
+}
+
 @media (max-width: 760px) {
   .recording-scales-master-list {
     grid-template-columns: 1fr;
@@ -2949,6 +3125,18 @@ input[type="search"] {
 
 .recording-flow > * {
   break-inside: avoid;
+}
+
+/*
+ * .page-content p { max-width: 610px } is for single-column reading measure.
+ * Inside .recording-flow (column-count: 2), it shrinks each block to 610px and leaves a wide
+ * empty strip before the sidebar on /recording.
+ */
+.recording-body-grid:not(.recording-body-grid--scales) .recording-content .recording-flow p,
+.recording-body-grid:not(.recording-body-grid--scales) .recording-content .recording-flow li,
+.recording-body-grid:not(.recording-body-grid--scales) .recording-content .recording-flow blockquote,
+.recording-body-grid:not(.recording-body-grid--scales) .recording-content .recording-flow dd {
+  max-width: none;
 }
 
 .recording-flow h1,
@@ -4404,8 +4592,9 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
 }
 
 .member-pages-shell .member-grid--grid {
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
+  /* ~70% larger cells vs prior 220px / 12px gap → fewer columns, bigger cards */
+  grid-template-columns: repeat(auto-fill, minmax(374px, 1fr));
+  gap: 20px;
 }
 
 .member-pages-shell .member-card {
@@ -4414,7 +4603,9 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
 }
 
 .member-pages-shell .member-card--grid {
-  align-content: start;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  align-content: stretch;
   min-height: 100%;
   gap: 0;
   border: 1px solid rgba(92, 226, 255, 0.18);
@@ -4434,7 +4625,21 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
 }
 
 .member-pages-shell .member-card--grid .member-card__content {
-  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 20px;
+  gap: 20px;
+}
+
+.member-pages-shell .member-card--grid .member-card__links {
+  margin-top: auto;
+  justify-content: center;
+  width: 100%;
+}
+
+.member-pages-shell .member-card--grid .member-card__identity {
+  gap: 10px;
 }
 
 .member-pages-shell .member-card__media {
@@ -4450,8 +4655,11 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
 }
 
 .member-pages-shell .member-card__media--grid {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   aspect-ratio: 1 / 1;
-  max-height: 220px;
+  /* Square tracks column width; avoid intrinsic image width shrinking the cell */
 }
 
 .member-pages-shell .member-card__media--placeholder {
@@ -4467,6 +4675,10 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
   font-weight: 800;
   letter-spacing: 0.08em;
   color: rgba(233, 247, 255, 0.92);
+}
+
+.member-pages-shell .member-card--grid .member-card__media--placeholder span {
+  font-size: clamp(2.3rem, 4.1vw, 3.57rem);
 }
 
 .member-pages-shell .member-card__identity {
@@ -4543,6 +4755,36 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
   gap: 8px;
   font-size: 0.82rem;
   margin-top: 2px;
+}
+
+.member-pages-shell .member-card--grid .member-card__headline {
+  font-size: clamp(1.63rem, 2.04vw, 1.87rem);
+  line-height: 1.16;
+}
+
+/* Grid: body copy matches .page-content / recording main column (name stays on headline scale). */
+.member-pages-shell .member-card--grid .member-card__summary {
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
+  font-weight: 400;
+  color: var(--page-body-fg);
+}
+
+.member-pages-shell .member-card--grid .member-card__meta {
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
+  font-weight: 400;
+  color: var(--page-body-fg);
+}
+
+.member-pages-shell .member-card--grid .member-card__links {
+  font-size: var(--page-body-size);
+}
+
+.member-pages-shell .member-card--grid .member-card__link-button {
+  font-size: var(--page-body-size);
+  min-height: 38px;
+  padding: 0 12px;
 }
 
 .member-pages-shell .member-pagination {
@@ -5424,6 +5666,29 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
   box-shadow: 0 16px 28px rgba(37, 99, 235, 0.35);
 }
 
+.btn-ghost {
+  border-color: rgba(145, 173, 255, 0.28);
+  background: linear-gradient(180deg, rgba(18, 25, 42, 0.82), rgba(12, 17, 30, 0.9));
+  color: rgba(235, 242, 255, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.btn-ghost:hover,
+.btn-ghost:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(170, 198, 255, 0.46);
+  background: linear-gradient(180deg, rgba(24, 33, 54, 0.9), rgba(14, 20, 36, 0.96));
+  color: #ffffff;
+  box-shadow: 0 12px 22px rgba(8, 14, 28, 0.26);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 .btn-secondary {
   background: rgba(30, 38, 58, 0.72);
   color: var(--link);
@@ -5612,6 +5877,37 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
   font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+/*
+ * Mobile member notices (layout.js, below <main>): tile like wrapped recording sidebars
+ * (repeat auto-fit, 260–350px tracks), cap card at 350px. Slide dots are suppressed in JS.
+ */
+@media (max-width: 900px) {
+  #mobile-member-notice-slot {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 350px));
+    gap: 16px;
+    justify-content: center;
+    width: 100%;
+    max-width: min(920px, 100%);
+    margin-inline: auto;
+    padding: 0 clamp(16px, 3.5vw, 28px) 16px;
+    box-sizing: border-box;
+  }
+
+  #mobile-member-notice-slot .callout-rotator {
+    width: 100%;
+    max-width: 350px;
+    min-width: 0;
+    justify-self: center;
+  }
+}
+
+@media (min-width: 901px) {
+  #mobile-member-notice-slot {
+    display: block;
+  }
 }
 
 .site-footer {
@@ -6291,14 +6587,17 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
   grid-template-columns: 1fr;
 }
 
-/* Live Music: main + right column via .recording-body-grid--scales (same as recording subpages) */
-.live-music-sidebar-layout .recording-content.page-content.live-music-main {
+/* Live Music: full-width main with or without optional route sidebar column */
+.live-music-sidebar-layout .recording-content.page-content.live-music-main,
+.pg-live .recording-content.page-content.live-music-main {
   max-width: none;
   min-width: 0;
 }
 
 .live-music-sidebar-layout .live-music-main.page-content p,
-.live-music-sidebar-layout .live-music-main.page-content li {
+.live-music-sidebar-layout .live-music-main.page-content li,
+.pg-live .live-music-main.page-content p,
+.pg-live .live-music-main.page-content li {
   max-width: none;
 }
 
@@ -7279,6 +7578,327 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
 }
 
 /* ===================================================================
+   PHOTO & VIDEO GALLERY
+   =================================================================== */
+
+/* No inner “card” — use page-frame padding only */
+.pg-gallery .page-content.photo-gallery-content {
+  max-width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.photo-gallery-content {
+  max-width: none;
+}
+
+.photo-video-gallery-shell {
+  display: grid;
+  gap: clamp(24px, 4vw, 38px);
+}
+
+.photo-video-gallery-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.72fr);
+  gap: clamp(18px, 3vw, 30px);
+  align-items: end;
+}
+
+.photo-video-gallery-search {
+  margin: 0;
+}
+
+.photo-video-gallery-search .news-events-search-row {
+  gap: 10px;
+}
+
+.photo-video-gallery-search input {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
+}
+
+.photo-video-gallery-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.photo-video-gallery-stat {
+  display: grid;
+  gap: 2px;
+  min-height: 54px;
+  padding: 8px 14px;
+  align-content: center;
+  border: 1px solid rgba(122, 197, 255, 0.34);
+  background: rgba(10, 15, 26, 0.2);
+}
+
+.photo-video-gallery-stat__value {
+  font-family: var(--display);
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  line-height: 0.82;
+  letter-spacing: 0.04em;
+  color: #eef8ff;
+}
+
+.photo-video-gallery-stat__label {
+  font-size: 0.54rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(143, 231, 255, 0.84);
+}
+
+/* 20 columns: spans 4/6/8 match old 12-col 4/6/8 at 60% width (≈40% narrower cards) */
+.photo-video-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 20px);
+  align-items: stretch;
+}
+
+.photo-video-gallery-card-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.photo-video-gallery-card-button--standard,
+.photo-video-gallery-card-button--tall {
+  grid-column: span 4;
+}
+
+.photo-video-gallery-card-button--wide {
+  grid-column: span 6;
+}
+
+.photo-video-gallery-card-button--featured {
+  grid-column: span 8;
+}
+
+.photo-video-gallery-grid > .recording-page-editable {
+  grid-column: span 4;
+}
+
+.photo-video-gallery-card {
+  display: grid;
+  min-height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(20, 23, 31, 0.98), rgba(11, 13, 19, 0.98));
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
+  transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+  overflow: hidden;
+}
+
+.photo-video-gallery-card-button:hover .photo-video-gallery-card,
+.photo-video-gallery-card-button:focus-visible .photo-video-gallery-card {
+  transform: translateY(-3px);
+  border-color: rgba(255, 168, 96, 0.34);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+}
+
+.photo-video-gallery-grid > .recording-page-editable .photo-video-gallery-card--wide,
+.photo-video-gallery-grid > .recording-page-editable .photo-video-gallery-card--tall,
+.photo-video-gallery-grid > .recording-page-editable .photo-video-gallery-card--featured,
+.photo-video-gallery-grid > .recording-page-editable .photo-video-gallery-card--standard {
+  grid-column: auto;
+}
+
+.photo-video-gallery-grid > .recording-page-editable:has(.photo-video-gallery-card--featured) {
+  grid-column: span 8;
+}
+
+.photo-video-gallery-grid > .recording-page-editable:has(.photo-video-gallery-card--wide) {
+  grid-column: span 6;
+}
+
+.photo-video-gallery-grid > .recording-page-editable:has(.photo-video-gallery-card--tall) {
+  grid-column: span 4;
+}
+
+.photo-video-gallery-card__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.photo-video-gallery-card--featured .photo-video-gallery-card__media {
+  aspect-ratio: 16 / 9;
+}
+
+.photo-video-gallery-card--tall .photo-video-gallery-card__media {
+  aspect-ratio: 4 / 5;
+}
+
+.photo-video-gallery-card__media::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 52%;
+  background: linear-gradient(180deg, transparent, rgba(8, 10, 15, 0.8));
+}
+
+.photo-video-gallery-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.photo-video-gallery-card__body {
+  display: grid;
+  gap: 10px;
+  padding: 16px 16px 18px;
+}
+
+.photo-video-gallery-card__body h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.05rem, 1.9vw, 1.48rem);
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.photo-video-gallery-card__body p {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.72;
+  color: rgba(241, 244, 250, 0.78);
+}
+
+.photo-video-gallery-lightbox {
+  display: grid;
+  gap: 18px;
+}
+
+.photo-video-gallery-lightbox iframe,
+.photo-video-gallery-lightbox__image {
+  display: block;
+  width: 100%;
+  max-height: min(72vh, 880px);
+  border: 0;
+}
+
+.photo-video-gallery-lightbox__image {
+  height: auto;
+  object-fit: contain;
+}
+
+.photo-video-gallery-lightbox__meta {
+  display: grid;
+  gap: 10px;
+}
+
+.photo-video-gallery-lightbox__kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 176, 111, 0.86);
+}
+
+.photo-video-gallery-lightbox__meta h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.25rem, 2.4vw, 2rem);
+  line-height: 0.98;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.photo-video-gallery-lightbox__meta p {
+  margin: 0;
+  color: rgba(240, 244, 250, 0.82);
+  line-height: 1.75;
+}
+
+.photo-video-gallery-empty {
+  grid-column: 1 / -1;
+  padding: 18px 20px;
+  border: 1px solid rgba(122, 197, 255, 0.2);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.photo-video-gallery-empty p {
+  margin: 0;
+  color: rgba(240, 244, 250, 0.78);
+}
+
+/* Search full width on first row; stats full width underneath — stats stay one horizontal row */
+@media (max-width: 1310px) {
+  .photo-video-gallery-toolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: clamp(14px, 2.5vw, 22px);
+  }
+
+  .photo-video-gallery-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+}
+
+/* 10 columns: spans 2/3/4 match proportions of desktop 20-col 4/6/8 */
+@media (max-width: 1080px) {
+  .photo-video-gallery-grid {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+
+  .photo-video-gallery-card-button--standard,
+  .photo-video-gallery-card-button--tall,
+  .photo-video-gallery-grid > .recording-page-editable {
+    grid-column: span 2;
+  }
+
+  .photo-video-gallery-card-button--wide,
+  .photo-video-gallery-grid > .recording-page-editable:has(.photo-video-gallery-card--wide) {
+    grid-column: span 3;
+  }
+
+  .photo-video-gallery-card-button--featured,
+  .photo-video-gallery-grid > .recording-page-editable:has(.photo-video-gallery-card--featured) {
+    grid-column: span 4;
+  }
+
+  .photo-video-gallery-grid > .recording-page-editable:has(.photo-video-gallery-card--tall) {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 760px) {
+  .photo-video-gallery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .photo-video-gallery-card-button--standard,
+  .photo-video-gallery-card-button--tall,
+  .photo-video-gallery-card-button--wide,
+  .photo-video-gallery-card-button--featured,
+  .photo-video-gallery-grid > .recording-page-editable,
+  .photo-video-gallery-grid > .recording-page-editable:has(.photo-video-gallery-card--featured),
+  .photo-video-gallery-grid > .recording-page-editable:has(.photo-video-gallery-card--wide),
+  .photo-video-gallery-grid > .recording-page-editable:has(.photo-video-gallery-card--tall) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ===================================================================
    FIND AN ARTIST OR BAND
    =================================================================== */
 
@@ -7522,15 +8142,6 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
   font-family: var(--display);
   letter-spacing: 0.04em;
   font-size: clamp(2rem, 3.7vw, 3.2rem);
-}
-
-.pg-afm-entertainment .page-header--internal .page-summary--internal {
-  margin-top: 12px;
-  max-width: min(760px, 100%);
-  color: rgba(230, 244, 255, 0.72);
-  font-size: clamp(0.96rem, 1.15vw, 1.08rem);
-  line-height: 1.55;
-  font-style: normal;
 }
 
 .pg-afm-entertainment .page-content {
@@ -8085,6 +8696,363 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
 }
 
 /* ===================================================================
+   MEMBER SERVICES HUB (/member-services)
+   =================================================================== */
+
+.member-services-sidebar-layout .member-services-content.page-content {
+  max-width: none;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  /* Split intro vs. cards based on *main column* width, not viewport (sidebar shrinks the track). */
+  container-type: inline-size;
+  container-name: member-services;
+}
+
+.member-services-sidebar-layout .member-services-content.page-content p,
+.member-services-sidebar-layout .member-services-content.page-content li {
+  max-width: none;
+}
+
+.member-services-shell {
+  min-width: 0;
+}
+
+/* Intro left / mega cards right (stacks when the main column is narrow). */
+.member-services-hub-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1.75rem, 4vw, 2.75rem);
+  align-items: start;
+}
+
+@container member-services (min-width: 30rem) {
+  .member-services-hub-layout {
+    grid-template-columns: minmax(14rem, 0.4fr) minmax(0, 1fr);
+    gap: clamp(20px, 3vw, 40px);
+    align-items: start;
+  }
+
+  .member-services-hub-intro {
+    position: sticky;
+    top: clamp(12px, 2.5vw, 28px);
+    padding-right: clamp(16px, 2.2vw, 28px);
+    margin-right: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: inset -1px 0 0 rgba(0, 194, 255, 0.06);
+  }
+
+  .member-services-hub-panels {
+    padding-left: clamp(4px, 0.8vw, 8px);
+  }
+}
+
+/* No @container support: approximate wide layout when the whole window is large enough for main+sidebar. */
+@supports not (container-type: inline-size) {
+  @media (min-width: 1020px) {
+    .member-services-hub-layout {
+      grid-template-columns: minmax(14rem, 0.4fr) minmax(0, 1fr);
+      gap: clamp(20px, 3vw, 40px);
+    }
+
+    .member-services-hub-intro {
+      position: sticky;
+      top: clamp(12px, 2.5vw, 28px);
+      padding-right: clamp(16px, 2.2vw, 28px);
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .member-services-hub-panels {
+      padding-left: clamp(4px, 0.8vw, 8px);
+    }
+  }
+}
+
+.member-services-hub-intro {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 2vw, 18px);
+  min-width: 0;
+}
+
+.member-services-hub-intro__title {
+  margin: 0;
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: clamp(1.85rem, 3.2vw, 2.85rem);
+  line-height: 0.96;
+  letter-spacing: 0.03em;
+  color: #fff;
+}
+
+.member-services-hub-intro__tagline {
+  margin: 0;
+  font-size: clamp(1.05rem, 1.9vw, 1.22rem);
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 36ch;
+}
+
+.member-services-hub-intro__body--rich p.member-services-hub-intro__tagline {
+  max-width: 36ch;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.member-services-hub-intro__body {
+  margin: 0;
+  font-size: clamp(0.98rem, 1.5vw, 1.08rem);
+  line-height: 1.78;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: min(40rem, 100%);
+}
+
+.member-services-hub-intro__body--rich p {
+  margin: 0 0 14px;
+  max-width: min(40rem, 100%);
+}
+
+.member-services-hub-intro__body--rich p:last-child {
+  margin-bottom: 0;
+}
+
+.member-services-hub-intro__body--rich ul,
+.member-services-hub-intro__body--rich ol {
+  margin: 0 0 14px;
+  padding-left: 1.25rem;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.member-services-hub-intro__body--rich a {
+  color: var(--accent, #6aa7d8);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.member-services-hub-intro__body--rich a:hover {
+  color: #fff;
+}
+
+.member-services-hub-panels {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 2.5vw, 26px);
+  min-width: 0;
+}
+
+/* Match sidebar: ADD + sits above the column (see .recording-sidebar-add-panel) so the first
+   mega card aligns with the first sidebar box and both ADD controls share the same vertical line. */
+.member-services-hub-panels.member-services-panels-column {
+  position: relative;
+}
+
+.member-services-panels-admin__toolbar {
+  position: absolute;
+  top: -27px;
+  left: 0;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: nowrap;
+  margin: 0;
+}
+
+.member-services-panels-column__empty {
+  margin: 0 0 16px;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-style: italic;
+}
+
+.member-services-mega__copy--rich {
+  font-size: clamp(0.95rem, 1.35vw, 1.05rem);
+  line-height: 1.72;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.member-services-mega__copy--rich p {
+  margin: 0 0 12px;
+  max-width: min(52rem, 100%);
+}
+
+.member-services-mega__copy--rich p:last-child {
+  margin-bottom: 0;
+}
+
+.member-services-mega__copy--rich ul,
+.member-services-mega__copy--rich ol {
+  margin: 0 0 12px;
+  padding-left: 1.25rem;
+}
+
+.member-services-mega__copy--rich a {
+  color: var(--accent, #6aa7d8);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.member-services-mega {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(16px, 3vw, 36px);
+  align-items: start;
+  padding: clamp(1.5rem, 4vw, 2.75rem) clamp(1.25rem, 3.5vw, 2.5rem);
+  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 194, 255, 0.04));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+}
+
+.member-services-mega--alt {
+  background: linear-gradient(145deg, rgba(0, 194, 255, 0.07), rgba(255, 255, 255, 0.03));
+  border-color: rgba(0, 194, 255, 0.14);
+}
+
+.member-services-mega__index {
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  line-height: 0.85;
+  letter-spacing: 0.04em;
+  color: rgba(0, 194, 255, 0.35);
+  padding-top: 0.12em;
+}
+
+.member-services-mega__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.member-services-mega__kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(193, 226, 255, 0.78);
+}
+
+.member-services-mega__title {
+  margin: 0;
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: clamp(1.65rem, 3.2vw, 2.65rem);
+  line-height: 0.98;
+  letter-spacing: 0.03em;
+  color: #fff;
+}
+
+.member-services-mega__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.member-services-mega__copy p {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.35vw, 1.05rem);
+  line-height: 1.72;
+  color: rgba(255, 255, 255, 0.76);
+  max-width: min(52rem, 100%);
+}
+
+.member-services-mega__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin-top: clamp(6px, 1.2vw, 14px);
+}
+
+/* Override .page-content a (underline + accent color) for hub CTAs. */
+.member-services-content .member-services-mega__cta,
+.member-services-content .member-services-mega__cta:link,
+.member-services-content .member-services-mega__cta:visited,
+.member-services-content .member-services-mega__cta:hover,
+.member-services-content .member-services-mega__cta:focus,
+.member-services-content .member-services-mega__cta:focus-visible,
+.member-services-content .member-services-mega__cta:active {
+  text-decoration: none;
+  text-underline-offset: unset;
+}
+
+.member-services-mega__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 12px 22px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 0;
+  box-shadow: 0 10px 28px rgba(0, 194, 255, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+/* Solid: dark text on a lighter cyan fill for WCAG-friendly contrast (not white on mid-blue). */
+.member-services-content .member-services-mega__cta:not(.member-services-mega__cta--ghost) {
+  color: #030910;
+  background: linear-gradient(180deg, #c4f0ff 0%, #7ad4f5 45%, #4ebee8 100%);
+  border: 1px solid #1a6f8c;
+}
+
+.member-services-content .member-services-mega__cta:not(.member-services-mega__cta--ghost):hover,
+.member-services-content .member-services-mega__cta:not(.member-services-mega__cta--ghost):focus-visible {
+  color: #01060a;
+  background: linear-gradient(180deg, #d8f6ff 0%, #8edcf7 45%, #5ec9ec 100%);
+  border-color: #0f4d63;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(0, 194, 255, 0.28);
+}
+
+.member-services-content .member-services-mega__cta--ghost {
+  color: #e8f6fc;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 194, 255, 0.45);
+  box-shadow: none;
+}
+
+.member-services-content .member-services-mega__cta--ghost:hover,
+.member-services-content .member-services-mega__cta--ghost:focus-visible {
+  color: #fff;
+  background: rgba(0, 194, 255, 0.14);
+  border-color: rgba(120, 220, 255, 0.65);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 560px) {
+  .member-services-mega {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .member-services-mega__index {
+    padding-top: 0;
+    font-size: clamp(2rem, 12vw, 2.6rem);
+  }
+
+  .member-services-mega__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .member-services-mega__cta,
+  .member-services-mega__cta--ghost {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ===================================================================
    MEMBER SITE LINKS PAGE
    =================================================================== */
 
@@ -8404,6 +9372,13 @@ body:has(#gigs-search-input:focus-visible) .news-events-sidebar-portal .gigs-cal
 
 .pg-form .page-content {
   max-width: 820px;
+}
+
+/* New Use / Reuse + sidebar: .pg-form .page-content caps at 820px — let both columns use the grid track. */
+.pg-form .recording-sidebar-layout .page-content.new-use-form,
+.pg-form .recording-sidebar-layout .page-content.new-use-copy {
+  max-width: none;
+  min-width: 0;
 }
 
 .pg-form.page-columns {

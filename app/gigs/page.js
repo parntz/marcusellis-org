@@ -9,6 +9,7 @@ import { isAdminSession } from "../../lib/authz";
 import { listUpcomingGigs } from "../../lib/gigs";
 import { resolveSidebarBoxes } from "../../lib/resolve-sidebar-boxes.mjs";
 import { getRouteSidebarConfig } from "../../lib/site-config-route-sidebar";
+import { getSidebarWidthConfig } from "../../lib/site-config-sidebar-width";
 import { siteMeta } from "../../lib/site-data";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,12 @@ export const metadata = {
 export default async function GigsPage() {
   const session = await getServerSession(authOptions);
   const isAdmin = isAdminSession(session);
-  const routeSidebarEnabled = Boolean((await getRouteSidebarConfig("/gigs"))?.enabled);
+  const routeSidebarConfig = await getRouteSidebarConfig("/gigs");
+  const sidebarWidthConfig = await getSidebarWidthConfig();
+  const routeSidebarEnabled = Boolean(routeSidebarConfig?.enabled);
+  const routeSidebarStyle = routeSidebarEnabled
+    ? { "--recording-sidebar-width": `${sidebarWidthConfig?.widthPx ?? 350}px` }
+    : undefined;
   const [upcomingGigs, gigsSidebarBoxes] = await Promise.all([
     listUpcomingGigs(150),
     routeSidebarEnabled ? resolveSidebarBoxes("/gigs") : Promise.resolve([]),
@@ -36,14 +42,19 @@ export default async function GigsPage() {
         titleAction={isAdmin ? <GigsCreateButton /> : null}
       />
 
-      <div className="recording-page recording-sidebar-layout">
+      <div className="recording-page recording-sidebar-layout" style={routeSidebarStyle}>
         <div className="recording-body-grid recording-body-grid--scales">
           <div className="recording-content">
             {isAdmin ? <GigsManager initialGigs={upcomingGigs} /> : <GigsList gigs={upcomingGigs} />}
           </div>
           {routeSidebarEnabled ? (
-            <aside className="recording-sidebar">
-              <RecordingSidebarPanel boxes={gigsSidebarBoxes} pageRoute="/gigs" isAdmin={isAdmin} />
+            <aside className="recording-sidebar" style={routeSidebarStyle}>
+              <RecordingSidebarPanel
+                boxes={gigsSidebarBoxes}
+                pageRoute="/gigs"
+                isAdmin={isAdmin}
+                initialWidthStep={sidebarWidthConfig?.widthStep}
+              />
             </aside>
           ) : null}
         </div>

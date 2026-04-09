@@ -72,7 +72,11 @@ const upsertSql = `
     title=excluded.title,
     summary=excluded.summary,
     meta_description=excluded.meta_description,
-    body_html=excluded.body_html,
+    body_html=CASE
+      WHEN excluded.route = '/signatory-information' AND TRIM(COALESCE(site_pages.body_html, '')) != ''
+      THEN site_pages.body_html
+      ELSE excluded.body_html
+    END,
     page_assets_json=excluded.page_assets_json,
     groups_json=excluded.groups_json,
     assets_json=excluded.assets_json,

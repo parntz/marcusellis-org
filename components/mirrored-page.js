@@ -8,28 +8,48 @@ import { MemberSiteLinksHeroAdmin } from "./member-site-links-hero-admin";
 import { MemberSiteLinksIntroAdmin } from "./member-site-links-intro-admin";
 import { MemberSiteLinksCreateButton } from "./member-site-links-create-button";
 import { MemberSiteLinksDirectory } from "./member-site-links-directory";
+import MemberServicesHub from "./member-services-hub";
 import { NewsEventsFeed } from "./news-events-feed";
 import { PageHeaderWithCallout } from "./page-header-with-callout";
 import { ProfilePageEnhancer } from "./profile-page-enhancer";
 import { FaqSearch } from "./faq-search";
+import { NewUseReuseIntroAdmin } from "./new-use-reuse-intro-admin";
 import { computeMirrorPageDescription } from "../lib/internal-page-description.js";
 import { RecordingSidebarPanel } from "./recording-sidebar-panel";
 import { RecordingVideo } from "./recording-video";
 import { RecordingPageAdmin } from "./recording-page-admin";
 import { RecordingPageOptionsButton } from "./recording-page-options-button";
+import { RehearsalHallHeroAdmin } from "./rehearsal-hall-hero-admin";
+import { RehearsalHallSectionAdmin } from "./rehearsal-hall-section-admin";
+import { PhotoVideoGallery } from "./photo-video-gallery";
 import { ScalesMasterDetail } from "./scales-master-detail";
+import { SitePageBodyAdmin } from "./signatory-body-admin";
 import { authOptions } from "../lib/auth-options";
 import { isAdminSession } from "../lib/authz";
 import { listMemberSiteLinks } from "../lib/member-site-links";
+import { listPhotoGalleryItems } from "../lib/photo-gallery.mjs";
 import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
 import { primaryNav, siteStats, utilityNav } from "../lib/site-data";
 import { listNewsEventsItems } from "../lib/news-events-items";
 import { getMemberSiteLinksHeroConfig } from "../lib/site-config-member-site-links-hero";
 import { getMemberSiteLinksIntroConfig } from "../lib/site-config-member-site-links-intro";
 import { getRecordingPageConfig } from "../lib/site-config-recording-page";
+import { getRehearsalHallHeroConfig } from "../lib/site-config-rehearsal-hall";
 import { getRouteSidebarConfig } from "../lib/site-config-route-sidebar";
+import { getSidebarWidthConfig } from "../lib/site-config-sidebar-width";
 import { getScalesFormsLinksConfig } from "../lib/site-config-scales-forms-links";
-import { rewriteLegacyNashvilleSiteInHtml } from "../lib/legacy-site-url.js";
+import { cleanDrupalHtml, extractDrupalContentEncodedHtml } from "../lib/drupal-html-clean.js";
+import {
+  getLiveMusicDisplayHtmlFromSource,
+  getLiveMusicSourceFromPageBody,
+} from "../lib/live-music-html.mjs";
+import { getMemberServicesIntroForPage } from "../lib/member-services-intro.mjs";
+import { listMemberServicesPanels } from "../lib/member-services-panels.mjs";
+import { getNewUseReuseIntroInnerForPage } from "../lib/new-use-reuse-intro.mjs";
+import {
+  getSignatoryDisplayHtmlFromSource,
+  getSignatorySourceFromPageBody,
+} from "../lib/signatory-html.mjs";
 
 function AssetIndex({ page }) {
   return (
@@ -56,36 +76,6 @@ function AssetIndex({ page }) {
       ))}
     </section>
   );
-}
-
-function cleanDrupalHtml(html) {
-  let cleaned = rewriteLegacyNashvilleSiteInHtml(html);
-  cleaned = cleaned.replace(/href=(["'])\/user\/login\/?\1/gi, 'href="/sign-in"');
-  cleaned = cleaned.replace(/<ul[^>]*>[\s\S]*?<\/ul>\s*/i, (match) => {
-    const navPatterns = /href="\/(?:recording|scales-forms|new-use|signatory|live-music|gigs|find-an-artist|live-scales|afm-entertainment|form-ls1|member-services|member-benefits|free-rehearsal|benefits-union|member-site|media|what-sound|photo-and-video|nashville-musician-magazine|directory|members-only)/i;
-    if (navPatterns.test(match)) return "";
-    return match;
-  });
-  cleaned = cleaned.replace(/<h1[^>]*>[\s\S]*?<\/h1>/i, "");
-  cleaned = cleaned.replace(/\s+style="[^"]*"/gi, "");
-  cleaned = cleaned.replace(/<source[^>]*>/gi, "");
-  cleaned = cleaned.replace(/<p>\s*(?:&nbsp;|\s)*<\/p>/gi, "");
-  cleaned = cleaned.replace(/<div>\s*(?:&nbsp;|\s)*<\/div>/gi, "");
-  cleaned = cleaned.replace(/<h3>\s*(?:&nbsp;|\s)*<\/h3>/gi, "");
-  cleaned = cleaned.replace(/<h2>\s*(?:&nbsp;|\s)*<\/h2>/gi, "");
-  cleaned = cleaned.replace(/<a><\/a>/g, "");
-  cleaned = cleaned.replace(
-    /<(p|div|li)[^>]*>\s*Source:\s*(?:<a[^>]*>)?https?:\/\/[^\s<]+(?:<\/a>)?\s*<\/\1>/gi,
-    ""
-  );
-  cleaned = cleaned.replace(/(?:^|[\r\n])\s*Source:\s*https?:\/\/\S+\s*(?=[\r\n]|$)/gi, "");
-  cleaned = cleaned.replace(/<div[^>]*>Media Folder:[\s\S]*?<\/div>\s*<\/div>/gi, "");
-  cleaned = cleaned.replace(
-    /<label[^>]*for="edit-url"[^>]*>[\s\S]*?<input[^>]*name="url"[^>]*>[\s\S]*?<\/div>/gi,
-    ""
-  );
-  cleaned = cleaned.replace(/(\s*\n){3,}/g, "\n");
-  return cleaned;
 }
 
 function cleanText(value) {
@@ -127,70 +117,6 @@ function stripHtml(input = "") {
   );
 }
 
-/** Curated main copy + sidebar CTAs for /live-music (main uses newspaper columns like signatory). */
-const LIVE_MUSIC_PAGE_MAIN_HTML = `
-<div class="live-music-article">
-  <div class="live-music-hub__lead live-music-preface">
-    <p>
-      Nashville is home to some of the greatest live music on earth. Our members &ldquo;play out&rdquo;
-      every night of the week, and this is the place to find them, whether you are a local looking for
-      something new or a tourist looking for that &ldquo;Nashville Moment&rdquo; and everything in
-      between.
-    </p>
-  </div>
-  <div class="live-music-newspaper">
-    <p>
-      On any given night, stages across Middle Tennessee light up with <strong>hundreds of bands and
-      solo artists</strong>—union professionals, house bands, pick-up groups, and touring acts passing
-      through. From early sets to last call, downtown corridors, neighborhood clubs, listening rooms,
-      churches, festivals, and private rooms keep the city humming with drums, steel, horns, and
-      voices that have traveled here from every corner of the map.
-    </p>
-    <p>
-      The scene is <strong>dense, diverse, and relentless in the best way</strong>: country and
-      Americana are part of the story the world knows, but rock, soul, jazz, gospel, funk, bluegrass,
-      Latin music, and songwriter nights share the calendar night after night. Local 257 members are on
-      the posters, in the pit orchestras, on Broadway, in East Nashville rooms, and on the festival
-      fields that draw fans from around the globe.
-    </p>
-    <p>
-      That energy is what makes Nashville more than a postcard—it is a <strong>working music town</strong>
-      where audiences expect craft, show after show. Whether you are mapping a weekend of venues,
-      chasing a new favorite artist, or hiring the right group for your room, you are stepping into one
-      of the deepest live-music ecosystems anywhere.
-    </p>
-    <p>
-      <strong>Explore what is playing.</strong> Use the listings and resources on this site to follow
-      calendars, discover acts, and connect with members who make their living on stage—because in
-      Nashville, the show is almost always already going on, and there is another room worth walking
-      into tonight.
-    </p>
-  </div>
-</div>
-`.trim();
-
-function extractLiveMusicHubParts() {
-  const sidebarHtml = `<div class="live-music-hub__ctas" role="group" aria-label="Quick links">
-    <a class="live-music-hub__cta" href="/find-an-artist-or-band">
-      <span class="live-music-hub__cta-kicker">Hire talent</span>
-      <span class="live-music-hub__cta-title">Find an artist or band</span>
-      <p class="live-music-hub__cta-desc">Search our member listings to book musicians and bands for your venue or event.</p>
-    </a>
-    <a class="live-music-hub__cta" href="/live-scales-contracts-pension">
-      <span class="live-music-hub__cta-kicker">Live engagements</span>
-      <span class="live-music-hub__cta-title">Scales, contracts &amp; pension</span>
-      <p class="live-music-hub__cta-desc">Live AFM rates, agreements, and pension resources for covered work.</p>
-    </a>
-    <a class="live-music-hub__cta" href="/gigs">
-      <span class="live-music-hub__cta-kicker">On the calendar</span>
-      <span class="live-music-hub__cta-title">Upcoming gigs</span>
-      <p class="live-music-hub__cta-desc">Where members are playing around town.</p>
-    </a>
-  </div>`;
-
-  return { mainHtml: LIVE_MUSIC_PAGE_MAIN_HTML, sidebarHtml };
-}
-
 function getRouteBodyHtml(route, bodyHtml) {
   if (route.startsWith("/recording")) {
     const emphasized = bodyHtml.replace(
@@ -209,87 +135,10 @@ function getRouteBodyHtml(route, bodyHtml) {
   return cleanDrupalHtml(bodyHtml);
 }
 
-/** Curated intro: clearer tone; no “below/next to” layout assumptions (responsive grid). */
-const NEW_USE_REUSE_INTRO_HTML = `
-<div class="new-use-intro-copy">
-  <p>
-    Use this page to report <strong>new use</strong> and <strong>reuse</strong>—any use, anywhere—of
-    your recorded work. Local 257 often learns about unpaid use of union recordings because members
-    speak up; your report helps the union follow up.
-  </p>
-  <p>
-    <strong>New use</strong> is when music recorded for one medium shows up in another medium, for a
-    different purpose. If your name is on the union contract, that can mean an additional wage
-    payment. For example, a track cut for CD that later appears in a film soundtrack is a new use.
-  </p>
-  <p>
-    <strong>Reuse</strong> refers to continued use of your recorded music under many electronic-media
-    agreements—extra payments when the same recording keeps airing or circulating. Examples include
-    TV programs and commercial jingles.
-  </p>
-</div>
-`.trim();
-
-function extractNewUseReuseSections(bodyHtml) {
-  if (!bodyHtml) {
-    return { copyHtml: "", formHtml: "" };
-  }
-
-  const copyMatch = bodyHtml.match(
-    /<div><div><div\s+property="content:encoded">([\s\S]*?)<\/div><\/div><\/div>/i
-  );
-  const formMatch = bodyHtml.match(/<form[\s\S]*?<\/form>/i);
-
-  return {
-    copyHtml: copyMatch?.[1] ? NEW_USE_REUSE_INTRO_HTML : "",
-    formHtml: enhanceNewUseReuseFormHtml(formMatch?.[0] || ""),
-  };
-}
-
-function extractContentEncodedHtml(bodyHtml) {
+function extractNewUseReuseFormOnly(bodyHtml) {
   if (!bodyHtml) return "";
-
-  const match = bodyHtml.match(
-    /<div><div><div\s+property="content:encoded">([\s\S]*?)<\/div><\/div><\/div>/i
-  );
-
-  return cleanDrupalHtml(match?.[1] || bodyHtml);
-}
-
-/**
- * Drupal signatory export wraps almost everything in nested <strong>, <em>, <font>, <span>.
- * Strip those so body copy uses normal .page-content weight; keep p, headings, lists, links, tables.
- */
-function normalizeSignatoryBodyHtml(html) {
-  if (!html) return "";
-  let out = html;
-
-  out = out.replace(/<\/?strong\b[^>]*>/gi, "");
-  out = out.replace(/<\/?b\b[^>]*>/gi, "");
-  out = out.replace(/<\/?em\b[^>]*>/gi, "");
-  out = out.replace(/<\/?i\b[^>]*>/gi, "");
-  out = out.replace(/<\/?u\b[^>]*>/gi, "");
-
-  while (/<span\b/i.test(out)) {
-    out = out.replace(/<span\b[^>]*>([\s\S]*?)<\/span>/gi, "$1");
-  }
-  while (/<font\b/i.test(out)) {
-    out = out.replace(/<font\b[^>]*>([\s\S]*?)<\/font>/gi, "$1");
-  }
-
-  out = out.replace(
-    /<p\b[^>]*>\s*(?:<strong\b[^>]*>\s*)*Please refer to the Scale Summary for exact check amounts and the applicable rate sheets for exact scale amounts and terms\.\s*(?:<\/strong>\s*)*<\/p>/gi,
-    ""
-  );
-  out = out.replace(
-    /<p\b[^>]*>\s*(?:<strong\b[^>]*>\s*)*For a complete list of all AFM 257 forms, agreements and contracts, click(?:&nbsp;|\s)*<a\b[^>]*>here<\/a>\.\s*(?:<\/strong>\s*)*<\/p>/gi,
-    ""
-  );
-
-  out = out.replace(/\s*style="[^"]*"/gi, "");
-  out = out.replace(/\salign="[^"]*"/gi, "");
-
-  return out;
+  const formMatch = bodyHtml.match(/<form[\s\S]*?<\/form>/i);
+  return enhanceNewUseReuseFormHtml(formMatch?.[0] || "");
 }
 
 function normalizeTitleKey(value) {
@@ -358,7 +207,7 @@ function extractLiveScalesContent(bodyHtml) {
 }
 
 function extractRehearsalHallContent(bodyHtml) {
-  const contentHtml = extractContentEncodedHtml(bodyHtml || "");
+  const contentHtml = extractDrupalContentEncodedHtml(bodyHtml || "");
   const paragraphs = Array.from(contentHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi), (match) =>
     cleanText(stripHtml(match[1]))
   ).filter(Boolean);
@@ -429,7 +278,7 @@ const BENEFITS_RESOURCE_LINKS = [
 ];
 
 function extractBenefitsHubContent(bodyHtml) {
-  const contentHtml = extractContentEncodedHtml(bodyHtml || "");
+  const contentHtml = extractDrupalContentEncodedHtml(bodyHtml || "");
   const paragraphs = Array.from(contentHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi), (match) =>
     cleanText(stripHtml(match[1]))
   ).filter(Boolean);
@@ -486,7 +335,7 @@ function splitMemberSiteLabel(label) {
 }
 
 function extractMemberSiteLinksContent(bodyHtml) {
-  const contentHtml = extractContentEncodedHtml(bodyHtml || "");
+  const contentHtml = extractDrupalContentEncodedHtml(bodyHtml || "");
   const introMatch = contentHtml.match(/<p\b[^>]*>[\s\S]*?<\/p>/i);
   const rawLinks = Array.from(
     contentHtml.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi),
@@ -523,37 +372,6 @@ function extractMemberSiteLinksContent(bodyHtml) {
       (match) => cleanText(match[1])
     ).filter((href) => MEMBER_SITE_LINK_REMOVALS.has(href)).length,
   };
-}
-
-/** Full-width intro + “What does Signatory mean?” heading; following copy flows in newspaper columns. */
-function enhanceSignatoryArticleHtml(html) {
-  const trimmed = normalizeSignatoryBodyHtml((html || "").trim())
-    .replace(
-      /<p\b[^>]*>[\s\S]*?Please refer to the Scale Summary for exact check amounts and the applicable rate sheets for exact scale amounts and terms\.[\s\S]*?<\/p>/i,
-      ""
-    )
-    .replace(
-      /<p\b[^>]*>[\s\S]*?For a complete list of all AFM 257 forms, agreements and contracts, click[\s\S]*?<\/p>/i,
-      ""
-    )
-    .trim();
-  if (!trimmed) return "";
-
-  const headingRe = /<h3\b[^>]*>[\s\S]*?what\s+does[\s\S]*?signatory[\s\S]*?<\/h3>/i;
-  const m = trimmed.match(headingRe);
-  if (!m || m.index === undefined) {
-    return `<div class="signatory-article"><div class="signatory-newspaper signatory-newspaper--full">${trimmed}</div></div>`;
-  }
-
-  const end = m.index + m[0].length;
-  const preface = trimmed.slice(0, end);
-  const newspaper = trimmed.slice(end).replace(/^\s+/, "");
-
-  if (!newspaper) {
-    return `<div class="signatory-article"><div class="signatory-preface">${preface}</div></div>`;
-  }
-
-  return `<div class="signatory-article"><div class="signatory-preface">${preface}</div><div class="signatory-newspaper">${newspaper}</div></div>`;
 }
 
 function enhanceNewUseReuseFormHtml(formHtml) {
@@ -742,8 +560,10 @@ export async function MirroredPage({
   const liveScalesPage = page.kind === "mirror-page" && page.route === "/live-scales-contracts-pension";
   const rehearsalHallPage = page.kind === "mirror-page" && page.route === "/free-rehearsal-hall";
   const benefitsHubPage = page.kind === "mirror-page" && page.route === "/benefits-union-members";
+  const memberServicesPage = page.kind === "mirror-page" && page.route === "/member-services";
   const memberSiteLinksPage = page.kind === "mirror-page" && page.route === "/member-site-links";
   const findArtistPage = page.kind === "mirror-page" && page.route === "/find-an-artist-or-band";
+  const photoGalleryPage = page.kind === "mirror-page" && page.route === "/photo-and-video-gallery";
   const magazinePage = page.kind === "mirror-page" && page.route === "/nashville-musician-magazine";
   const recordingNavChildren =
     primaryNav.find((item) => item.href === "/recording")?.children || [];
@@ -763,6 +583,7 @@ export async function MirroredPage({
     if (r === "/join-nashville-musicians-association") return "pg-join";
     if (r === "/free-rehearsal-hall") return "pg-venue";
     if (r === "/member-site-links") return "pg-links";
+    if (r === "/photo-and-video-gallery") return "pg-hub pg-gallery";
     if (r === "/gigs") return "pg-gigs";
     if (r === "/find-an-artist-or-band") return "pg-find-artist";
     if (r === "/live-scales-contracts-pension") return "pg-scales-live";
@@ -790,7 +611,11 @@ export async function MirroredPage({
     ? await listNewsEventsItems(1000, "/news-and-events")
     : [];
   const routeSidebarConfig = page.kind === "mirror-page" ? await getRouteSidebarConfig(page.route) : null;
+  const sidebarWidthConfig = page.kind === "mirror-page" ? await getSidebarWidthConfig() : null;
   const routeSidebarEnabled = Boolean(routeSidebarConfig?.enabled);
+  const routeSidebarStyle = routeSidebarEnabled
+    ? { "--recording-sidebar-width": `${sidebarWidthConfig?.widthPx ?? 350}px` }
+    : undefined;
   const sharedSidebarBoxes =
     page.kind === "mirror-page" && routeSidebarEnabled ? await resolveSidebarBoxes(page.route) : null;
   const recordingContent = isMainRecordingPage
@@ -815,13 +640,18 @@ export async function MirroredPage({
         )
       : null;
   const scalesFormsLinks = scalesFormsPage ? await getScalesFormsLinksConfig() : null;
-  const signatoryContentHtml = signatoryPage
-    ? enhanceSignatoryArticleHtml(extractContentEncodedHtml(page.bodyHtml || ""))
-    : "";
-  const liveMusicParts = liveMusicPage ? extractLiveMusicHubParts() : null;
+  const signatorySourceHtml = signatoryPage ? getSignatorySourceFromPageBody(page.bodyHtml || "") : "";
+  const signatoryContentHtml = signatoryPage ? getSignatoryDisplayHtmlFromSource(signatorySourceHtml) : "";
+  const liveMusicSourceHtml = liveMusicPage ? getLiveMusicSourceFromPageBody(page.bodyHtml || "") : "";
+  const liveMusicContentHtml = liveMusicPage ? getLiveMusicDisplayHtmlFromSource(liveMusicSourceHtml) : "";
+  /* Match other hubs: if route sidebar is on in site config, always mount the column (same as /gigs, benefits, etc.). */
+  const liveMusicRouteSidebarOn = liveMusicPage && routeSidebarEnabled;
   const liveScalesContent = liveScalesPage ? extractLiveScalesContent(page.bodyHtml || "") : null;
   const rehearsalHallContent = rehearsalHallPage ? extractRehearsalHallContent(page.bodyHtml || "") : null;
+  const rehearsalHallHeroConfig = rehearsalHallPage ? await getRehearsalHallHeroConfig() : null;
   const benefitsHubContent = benefitsHubPage ? extractBenefitsHubContent(page.bodyHtml || "") : null;
+  const memberServicesIntro = memberServicesPage ? await getMemberServicesIntroForPage() : null;
+  const memberServicesPanels = memberServicesPage ? await listMemberServicesPanels() : [];
   const memberSiteLinksContent = memberSiteLinksPage ? extractMemberSiteLinksContent(page.bodyHtml || "") : null;
   const persistedMemberSiteLinks = memberSiteLinksPage ? await listMemberSiteLinks() : null;
   const memberSiteLinksHeroConfig = memberSiteLinksPage ? await getMemberSiteLinksHeroConfig() : null;
@@ -831,6 +661,7 @@ export async function MirroredPage({
   const memberSiteLinksInitialLinks = memberSiteLinksPage
     ? persistedMemberSiteLinks || []
     : null;
+  const photoGalleryItems = photoGalleryPage ? await listPhotoGalleryItems() : [];
 
   const bodyHtml =
     isMainRecordingPage ||
@@ -841,13 +672,16 @@ export async function MirroredPage({
     liveScalesPage ||
     rehearsalHallPage ||
     benefitsHubPage ||
-    memberSiteLinksPage
+    memberServicesPage ||
+    memberSiteLinksPage ||
+    photoGalleryPage
       ? ""
       : getRouteBodyHtml(page.route, page.bodyHtml || "");
 
-  const newUseReuseSections = newUseReusePage
-    ? extractNewUseReuseSections(page.bodyHtml || "")
-    : null;
+  const newUseReuseCopyInnerHtml = newUseReusePage
+    ? await getNewUseReuseIntroInnerForPage(page.bodyHtml || "")
+    : "";
+  const newUseReuseFormHtml = newUseReusePage ? extractNewUseReuseFormOnly(page.bodyHtml || "") : "";
   const newUseStatus =
     newUseReusePage && searchParams?.submitted === "1"
       ? { tone: "success", message: "Your submission was sent." }
@@ -888,7 +722,7 @@ export async function MirroredPage({
         )}
 
         {page.kind === "mirror-page" && !homeRoute && isMainRecordingPage ? (
-          <div className="recording-page recording-sidebar-layout">
+          <div className="recording-page recording-sidebar-layout" style={routeSidebarStyle}>
             <div className="recording-body-grid">
               <div className="recording-video-area">
                 {isAdmin && recordingPageConfig ? (
@@ -914,11 +748,12 @@ export async function MirroredPage({
                 ) : null}
               </div>
               {routeSidebarEnabled ? (
-                <aside className="recording-sidebar">
+                <aside className="recording-sidebar" style={routeSidebarStyle}>
                   <RecordingSidebarPanel
                     boxes={recordingSidebarBoxesVisible}
                     pageRoute="/recording"
                     isAdmin={isAdmin}
+                    initialWidthStep={sidebarWidthConfig?.widthStep}
                   />
                 </aside>
               ) : null}
@@ -940,14 +775,19 @@ export async function MirroredPage({
         ) : null}
 
         {page.kind === "mirror-page" && !homeRoute && scalesFormsPage ? (
-          <div className={`recording-page recording-sidebar-layout ${pageTypeClass}`}>
+          <div className={`recording-page recording-sidebar-layout ${pageTypeClass}`} style={routeSidebarStyle}>
             <div className="recording-body-grid recording-body-grid--scales">
               <section className="page-content scales-forms-links-page recording-content">
                 <ScalesMasterDetail links={scalesFormsLinks} isAdmin={isAdmin} />
               </section>
               {routeSidebarEnabled ? (
-                <aside className="recording-sidebar">
-                  <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                <aside className="recording-sidebar" style={routeSidebarStyle}>
+                  <RecordingSidebarPanel
+                    boxes={sharedSidebarBoxes}
+                    pageRoute={page.route}
+                    isAdmin={isAdmin}
+                    initialWidthStep={sidebarWidthConfig?.widthStep}
+                  />
                 </aside>
               ) : null}
             </div>
@@ -956,7 +796,10 @@ export async function MirroredPage({
 
         {page.kind === "mirror-page" && !homeRoute && !isMainRecordingPage && !scalesFormsPage ? (
           newsEventsRoute ? (
-            <div className={`recording-page recording-sidebar-layout news-events-sidebar-layout ${pageTypeClass}`}>
+            <div
+              className={`recording-page recording-sidebar-layout news-events-sidebar-layout ${pageTypeClass}`}
+              style={routeSidebarStyle}
+            >
               <div className="recording-body-grid recording-body-grid--scales recording-body-grid--news">
                 <div className="recording-news-main">
                   {newsEventItems.length || isAdmin ? (
@@ -969,30 +812,61 @@ export async function MirroredPage({
                   )}
                 </div>
                 {routeSidebarEnabled ? (
-                  <aside className="recording-sidebar">
-                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  <aside className="recording-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
                   </aside>
                 ) : null}
               </div>
             </div>
           ) : signatoryPage ? (
-            <div className={`recording-page recording-sidebar-layout signatory-sidebar-layout ${pageTypeClass}`}>
+            <div
+              className={`recording-page recording-sidebar-layout signatory-sidebar-layout ${pageTypeClass}`}
+              style={routeSidebarStyle}
+            >
               <div className="recording-body-grid recording-body-grid--scales">
                 <section className="page-content signatory-content">
-                  <div
-                    className="signatory-article-host"
-                    dangerouslySetInnerHTML={{ __html: signatoryContentHtml }}
-                  />
+                  {isAdmin ? (
+                    <SitePageBodyAdmin
+                      route={page.route}
+                      initialSourceHtml={signatorySourceHtml}
+                      dialogTitle="Edit Signatory main content"
+                      overlayLabel="Edit signatory page main content"
+                      helpText="Rich HTML: headings, lists, links, and basic formatting. Column layout wrappers are still applied on save. Images are stripped if pasted."
+                    >
+                      <div
+                        className="signatory-article-host"
+                        dangerouslySetInnerHTML={{ __html: signatoryContentHtml }}
+                      />
+                    </SitePageBodyAdmin>
+                  ) : (
+                    <div
+                      className="signatory-article-host"
+                      dangerouslySetInnerHTML={{ __html: signatoryContentHtml }}
+                    />
+                  )}
                 </section>
                 {routeSidebarEnabled ? (
-                  <aside className="recording-sidebar">
-                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  <aside className="recording-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
                   </aside>
                 ) : null}
               </div>
             </div>
           ) : liveScalesPage ? (
-            <div className={`recording-page recording-sidebar-layout live-scales-sidebar-layout ${pageTypeClass}`}>
+            <div
+              className={`recording-page recording-sidebar-layout live-scales-sidebar-layout ${pageTypeClass}`}
+              style={routeSidebarStyle}
+            >
               <div className="recording-body-grid recording-body-grid--scales">
                 <section className="page-content live-scales-content">
                   <div className="live-scales-shell">
@@ -1054,70 +928,127 @@ export async function MirroredPage({
                   </div>
                 </section>
                 {routeSidebarEnabled ? (
-                  <aside className="recording-sidebar live-scales-sidebar">
-                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  <aside className="recording-sidebar live-scales-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
                   </aside>
                 ) : null}
               </div>
             </div>
           ) : rehearsalHallPage ? (
-            <div className={`recording-page recording-sidebar-layout rehearsal-hall-sidebar-layout ${pageTypeClass}`}>
+            <div
+              className={`recording-page recording-sidebar-layout rehearsal-hall-sidebar-layout ${pageTypeClass}`}
+              style={routeSidebarStyle}
+            >
               <div className="recording-body-grid recording-body-grid--scales">
                 <section className="page-content rehearsal-hall-content">
                   <div className="rehearsal-hall-shell">
-                    <section className="rehearsal-hall-hero">
-                      <div className="rehearsal-hall-hero-copy">
-                        <p className="eyebrow">Member Rehearsal Space</p>
-                        <h2>Cooper Rehearsal Hall</h2>
-                        <p>{rehearsalHallContent?.lead}</p>
-                      </div>
-                      <div className="rehearsal-hall-hero-media">
-                        <Image
-                          src="/_downloaded/sites/default/files/Media Root/IMG_6820.jpeg"
-                          alt="Dissonation rehearsing in Cooper Rehearsal Hall"
-                          fill
-                          className="rehearsal-hall-hero-image"
-                          sizes="(min-width: 860px) 40vw, 100vw"
-                        />
-                      </div>
-                    </section>
+                    {isAdmin && rehearsalHallHeroConfig ? (
+                      <RehearsalHallHeroAdmin initialConfig={rehearsalHallHeroConfig}>
+                        <section className="rehearsal-hall-hero">
+                          <div className="rehearsal-hall-hero-copy">
+                            <p className="eyebrow">{rehearsalHallHeroConfig.eyebrow}</p>
+                            <h2>{rehearsalHallHeroConfig.title}</h2>
+                            <p>{rehearsalHallHeroConfig.body || rehearsalHallContent?.lead}</p>
+                          </div>
+                          <div className="rehearsal-hall-hero-media">
+                            <Image
+                              src={rehearsalHallHeroConfig.imageSrc}
+                              alt={rehearsalHallHeroConfig.imageAlt}
+                              fill
+                              className="rehearsal-hall-hero-image"
+                              sizes="(min-width: 860px) 40vw, 100vw"
+                            />
+                          </div>
+                        </section>
+                      </RehearsalHallHeroAdmin>
+                    ) : (
+                      <section className="rehearsal-hall-hero">
+                        <div className="rehearsal-hall-hero-copy">
+                          <p className="eyebrow">{rehearsalHallHeroConfig?.eyebrow || "Member Rehearsal Space"}</p>
+                          <h2>{rehearsalHallHeroConfig?.title || "Cooper Rehearsal Hall"}</h2>
+                          <p>{rehearsalHallHeroConfig?.body || rehearsalHallContent?.lead}</p>
+                        </div>
+                        <div className="rehearsal-hall-hero-media">
+                          <Image
+                            src={
+                              rehearsalHallHeroConfig?.imageSrc ||
+                              "/_downloaded/sites/default/files/Media Root/IMG_6820.jpeg"
+                            }
+                            alt={rehearsalHallHeroConfig?.imageAlt || "Dissonation rehearsing in Cooper Rehearsal Hall"}
+                            fill
+                            className="rehearsal-hall-hero-image"
+                            sizes="(min-width: 860px) 40vw, 100vw"
+                          />
+                        </div>
+                      </section>
+                    )}
 
                     <section className="rehearsal-hall-section">
-                      <div className="section-headline rehearsal-hall-section-headline">
-                        <p className="eyebrow">What You Get</p>
-                        <h2>Room features built for real rehearsals</h2>
-                      </div>
+                      {isAdmin && rehearsalHallHeroConfig ? (
+                        <RehearsalHallSectionAdmin initialConfig={rehearsalHallHeroConfig} mode="section">
+                          <div className="section-headline rehearsal-hall-section-headline">
+                            <p className="eyebrow">{rehearsalHallHeroConfig.sectionEyebrow}</p>
+                            <h2>{rehearsalHallHeroConfig.sectionTitle}</h2>
+                          </div>
+                        </RehearsalHallSectionAdmin>
+                      ) : (
+                        <div className="section-headline rehearsal-hall-section-headline">
+                          <p className="eyebrow">
+                            {rehearsalHallHeroConfig?.sectionEyebrow || "What You Get"}
+                          </p>
+                          <h2>
+                            {rehearsalHallHeroConfig?.sectionTitle || "Room features built for real rehearsals"}
+                          </h2>
+                        </div>
+                      )}
                       <div className="rehearsal-hall-feature-grid">
-                        <article className="rehearsal-hall-feature-card">
-                          <h3>Member access</h3>
-                          <p>Free to all current Local 257 members.</p>
-                        </article>
-                        <article className="rehearsal-hall-feature-card">
-                          <h3>Long booking window</h3>
-                          <p>Available from 9 a.m. until 11 p.m. for working bands and projects.</p>
-                        </article>
-                        <article className="rehearsal-hall-feature-card">
-                          <h3>Stage and lighting</h3>
-                          <p>A real stage setup with lighting helps groups rehearse like the show matters.</p>
-                        </article>
-                        <article className="rehearsal-hall-feature-card">
-                          <h3>P.A. and treatment</h3>
-                          <p>Includes a P.A. with monitors and acoustical treatment in the room.</p>
-                        </article>
+                        {(rehearsalHallHeroConfig?.features || []).map((feature, index) =>
+                          isAdmin && rehearsalHallHeroConfig ? (
+                            <RehearsalHallSectionAdmin
+                              key={`rehearsal-feature-${index}`}
+                              initialConfig={rehearsalHallHeroConfig}
+                              mode="feature"
+                              featureIndex={index}
+                            >
+                              <article className="rehearsal-hall-feature-card">
+                                <h3>{feature.title}</h3>
+                                <p>{feature.body}</p>
+                              </article>
+                            </RehearsalHallSectionAdmin>
+                          ) : (
+                            <article key={`rehearsal-feature-${index}`} className="rehearsal-hall-feature-card">
+                              <h3>{feature.title}</h3>
+                              <p>{feature.body}</p>
+                            </article>
+                          )
+                        )}
                       </div>
                     </section>
 
                   </div>
                 </section>
                 {routeSidebarEnabled ? (
-                  <aside className="recording-sidebar rehearsal-hall-sidebar">
-                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  <aside className="recording-sidebar rehearsal-hall-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
                   </aside>
                 ) : null}
               </div>
             </div>
           ) : benefitsHubPage ? (
-            <div className={`recording-page recording-sidebar-layout benefits-sidebar-layout ${pageTypeClass}`}>
+            <div
+              className={`recording-page recording-sidebar-layout benefits-sidebar-layout ${pageTypeClass}`}
+              style={routeSidebarStyle}
+            >
               <div className="recording-body-grid recording-body-grid--scales">
                 <section className="page-content benefits-content">
                   <div className="benefits-shell">
@@ -1208,14 +1139,48 @@ export async function MirroredPage({
                   </div>
                 </section>
                 {routeSidebarEnabled ? (
-                  <aside className="recording-sidebar benefits-sidebar">
-                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  <aside className="recording-sidebar benefits-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
+                  </aside>
+                ) : null}
+              </div>
+            </div>
+          ) : memberServicesPage ? (
+            <div
+              className={`recording-page recording-sidebar-layout member-services-sidebar-layout ${pageTypeClass}`}
+              style={routeSidebarStyle}
+            >
+              <div className="recording-body-grid recording-body-grid--scales">
+                <section className="page-content member-services-content">
+                  <MemberServicesHub
+                    introTitle={memberServicesIntro?.hubTitle ?? ""}
+                    introHtml={memberServicesIntro?.introHtml ?? ""}
+                    panels={memberServicesPanels}
+                    isAdmin={isAdmin}
+                  />
+                </section>
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar member-services-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
                   </aside>
                 ) : null}
               </div>
             </div>
           ) : memberSiteLinksPage ? (
-            <div className={`recording-page recording-sidebar-layout member-links-sidebar-layout ${pageTypeClass}`}>
+            <div
+              className={`recording-page recording-sidebar-layout member-links-sidebar-layout ${pageTypeClass}`}
+              style={routeSidebarStyle}
+            >
               <div className="recording-body-grid recording-body-grid--scales">
                 <section className="page-content member-links-content">
                   <div className="member-links-shell">
@@ -1279,33 +1244,83 @@ export async function MirroredPage({
                   </div>
                 </section>
                 {routeSidebarEnabled ? (
-                  <aside className="recording-sidebar member-links-sidebar">
-                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  <aside className="recording-sidebar member-links-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
+                  </aside>
+                ) : null}
+              </div>
+            </div>
+          ) : photoGalleryPage ? (
+            <div
+              className={`recording-page recording-sidebar-layout photo-gallery-sidebar-layout ${pageTypeClass}`}
+              style={routeSidebarStyle}
+            >
+              <div className="recording-body-grid recording-body-grid--scales">
+                <section className="page-content photo-gallery-content">
+                  <PhotoVideoGallery
+                    items={photoGalleryItems}
+                    isAdmin={isAdmin}
+                  />
+                </section>
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar photo-gallery-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
                   </aside>
                 ) : null}
               </div>
             </div>
           ) : liveMusicPage ? (
-            <div className={`recording-page recording-sidebar-layout live-music-sidebar-layout ${pageTypeClass}`}>
-              <div className="recording-body-grid recording-body-grid--scales">
-                <section
-                  className="page-content recording-content live-music-main"
-                  dangerouslySetInnerHTML={{ __html: liveMusicParts.mainHtml }}
-                />
-                <aside className="recording-sidebar live-music-sidebar">
-                  {routeSidebarEnabled && sharedSidebarBoxes?.length ? (
-                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+            <div
+              className={`recording-page ${pageTypeClass}${
+                liveMusicRouteSidebarOn ? " recording-sidebar-layout live-music-sidebar-layout" : ""
+              }`}
+              style={liveMusicRouteSidebarOn ? routeSidebarStyle : undefined}
+            >
+              <div
+                className={`recording-body-grid${liveMusicRouteSidebarOn ? " recording-body-grid--scales" : ""}`}
+              >
+                <section className="page-content recording-content live-music-main">
+                  {isAdmin ? (
+                    <SitePageBodyAdmin
+                      route={page.route}
+                      initialSourceHtml={liveMusicSourceHtml}
+                      dialogTitle="Edit Live Music main content"
+                      overlayLabel="Edit live music page main content"
+                      helpText="This page uses a single HTML field. Edit the full main column here with the rich HTML editor."
+                    >
+                      <div dangerouslySetInnerHTML={{ __html: liveMusicContentHtml }} />
+                    </SitePageBodyAdmin>
                   ) : (
-                    <div
-                      className="live-music-sidebar-fallback"
-                      dangerouslySetInnerHTML={{ __html: liveMusicParts.sidebarHtml }}
-                    />
+                    <div dangerouslySetInnerHTML={{ __html: liveMusicContentHtml }} />
                   )}
-                </aside>
+                </section>
+                {liveMusicRouteSidebarOn ? (
+                  <aside className="recording-sidebar live-music-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes ?? []}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
+                  </aside>
+                ) : null}
               </div>
             </div>
           ) : findArtistPage ? (
-            <div className={`recording-page recording-sidebar-layout find-artist-sidebar-layout ${pageTypeClass}`}>
+            <div
+              className={`recording-page recording-sidebar-layout find-artist-sidebar-layout ${pageTypeClass}`}
+              style={routeSidebarStyle}
+            >
               <div className="recording-body-grid recording-body-grid--scales">
                 <section
                   className="recording-content find-artist-main"
@@ -1313,29 +1328,43 @@ export async function MirroredPage({
                 />
                 <FindArtistEnhancer />
                 {routeSidebarEnabled ? (
-                  <aside className="recording-sidebar">
-                    <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                  <aside className="recording-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
                   </aside>
                 ) : null}
               </div>
             </div>
           ) : routeSidebarEnabled ? (
-            <div className={`recording-page recording-sidebar-layout generic-shared-sidebar-layout ${pageTypeClass}`}>
+            <div
+              className={`recording-page recording-sidebar-layout generic-shared-sidebar-layout ${pageTypeClass}`}
+              style={routeSidebarStyle}
+            >
               <div className="recording-body-grid recording-body-grid--scales">
                 <div>
-                  {newUseReusePage && newUseReuseSections ? (
+                  {newUseReusePage ? (
                     <div className="new-use-grid">
-                      <section
-                        className="page-content new-use-copy"
-                        dangerouslySetInnerHTML={{ __html: newUseReuseSections.copyHtml }}
-                      />
+                      <section className="page-content new-use-copy">
+                        {isAdmin ? (
+                          <NewUseReuseIntroAdmin initialIntroHtml={newUseReuseCopyInnerHtml} />
+                        ) : (
+                          <div
+                            className="new-use-intro-copy"
+                            dangerouslySetInnerHTML={{ __html: newUseReuseCopyInnerHtml }}
+                          />
+                        )}
+                      </section>
                       <section className="page-content new-use-form">
                         {newUseStatus ? (
                           <p className={`form-status form-status--${newUseStatus.tone}`}>
                             {newUseStatus.message}
                           </p>
                         ) : null}
-                        <div dangerouslySetInnerHTML={{ __html: newUseReuseSections.formHtml }} />
+                        <div dangerouslySetInnerHTML={{ __html: newUseReuseFormHtml }} />
                       </section>
                     </div>
                   ) : eventDetailRoute ? (
@@ -1365,26 +1394,37 @@ export async function MirroredPage({
                     </section>
                   ) : null}
                 </div>
-                <aside className="recording-sidebar">
-                  <RecordingSidebarPanel boxes={sharedSidebarBoxes} pageRoute={page.route} isAdmin={isAdmin} />
+                <aside className="recording-sidebar" style={routeSidebarStyle}>
+                  <RecordingSidebarPanel
+                    boxes={sharedSidebarBoxes}
+                    pageRoute={page.route}
+                    isAdmin={isAdmin}
+                    initialWidthStep={sidebarWidthConfig?.widthStep}
+                  />
                 </aside>
               </div>
             </div>
           ) : (
             <div className={`page-columns ${recordingRoute ? "recording-columns" : ""} ${pageTypeClass}`}>
-              {newUseReusePage && newUseReuseSections ? (
+              {newUseReusePage ? (
                 <div className="new-use-grid">
-                  <section
-                    className="page-content new-use-copy"
-                    dangerouslySetInnerHTML={{ __html: newUseReuseSections.copyHtml }}
-                  />
+                  <section className="page-content new-use-copy">
+                    {isAdmin ? (
+                      <NewUseReuseIntroAdmin initialIntroHtml={newUseReuseCopyInnerHtml} />
+                    ) : (
+                      <div
+                        className="new-use-intro-copy"
+                        dangerouslySetInnerHTML={{ __html: newUseReuseCopyInnerHtml }}
+                      />
+                    )}
+                  </section>
                   <section className="page-content new-use-form">
                     {newUseStatus ? (
                       <p className={`form-status form-status--${newUseStatus.tone}`}>
                         {newUseStatus.message}
                       </p>
                     ) : null}
-                    <div dangerouslySetInnerHTML={{ __html: newUseReuseSections.formHtml }} />
+                    <div dangerouslySetInnerHTML={{ __html: newUseReuseFormHtml }} />
                   </section>
                 </div>
               ) : eventDetailRoute ? (

@@ -1,11 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { ModalLightbox } from "./modal-lightbox";
 import { NewsEventsBodyEditor } from "./news-events-body-editor";
+import {
+  SIDEBAR_WIDTH_STEP_DEFAULT,
+  SIDEBAR_WIDTH_STEP_MAX,
+  SIDEBAR_WIDTH_STEP_MIN,
+  clampSidebarWidthStep,
+  sidebarWidthPxFromStep,
+} from "../lib/sidebar-width-shared.js";
 
 const SIDEBAR_FAMILY = "recording_sidebar";
 const GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
@@ -1038,18 +1045,66 @@ export function RecordingSidebarPanel({
   pageRoute = "",
   familyKey = SIDEBAR_FAMILY,
   isAdmin = false,
+  initialWidthStep = SIDEBAR_WIDTH_STEP_DEFAULT,
 }) {
   const router = useRouter();
+  const stackRef = useRef(null);
   const [currentBoxes, setCurrentBoxes] = useState(() => normalizeBoxes(boxes));
   const [editingIndex, setEditingIndex] = useState(-1);
   const [draftBox, setDraftBox] = useState(null);
   const [saveBusy, setSaveBusy] = useState(false);
+  const [widthSaving, setWidthSaving] = useState(false);
+  const [widthStep, setWidthStep] = useState(() => clampSidebarWidthStep(initialWidthStep));
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const committedWidthStepRef = useRef(clampSidebarWidthStep(initialWidthStep));
 
   useEffect(() => {
     setCurrentBoxes(normalizeBoxes(boxes));
   }, [boxes]);
+
+  useEffect(() => {
+    const next = clampSidebarWidthStep(initialWidthStep);
+    committedWidthStepRef.current = next;
+    setWidthStep(next);
+  }, [initialWidthStep]);
+
+  useLayoutEffect(() => {
+    const sidebar = stackRef.current?.closest(".recording-sidebar");
+    if (!sidebar) return;
+    const px = `${sidebarWidthPxFromStep(widthStep)}px`;
+    sidebar.style.setProperty("--recording-sidebar-width", px);
+    /* Grid tracks read var() from .recording-page (sibling of aside); aside-only updates never reached the grid. */
+    sidebar.closest(".recording-page")?.style.setProperty("--recording-sidebar-width", px);
+  }, [widthStep]);
+
+  const commitWidthIfDirty = useCallback(async () => {
+    if (!isAdmin || widthSaving) return;
+    if (widthStep === committedWidthStepRef.current) return;
+
+    setWidthSaving(true);
+    try {
+      const res = await fetch("/api/site-config/sidebar-width", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ widthStep }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || "Sidebar width update failed.");
+      }
+      const next = clampSidebarWidthStep(data?.widthStep);
+      committedWidthStepRef.current = next;
+      setWidthStep(next);
+      showDbToastSuccess();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Sidebar width update failed.";
+      setWidthStep(committedWidthStepRef.current);
+      showDbToastError(message);
+    } finally {
+      setWidthSaving(false);
+    }
+  }, [isAdmin, widthSaving, widthStep]);
 
   const editingBox = useMemo(() => {
     if (editingIndex < 0) return null;
@@ -1185,12 +1240,32 @@ export function RecordingSidebarPanel({
   }, [confirmDelete, currentBoxes, editingIndex, familyKey, isCreatingBox, pageRoute, router]);
 
   return (
-    <div className="recording-sidebar-stack">
+    <div className="recording-sidebar-stack" ref={stackRef}>
       {isAdmin ? (
         <div className="recording-sidebar-add-panel">
           <button type="button" className="recording-sidebar-add-panel__button eyebrow" onClick={openCreateEditor}>
-            Add Sidebar Panel
+            ADD +
           </button>
+          <label className="recording-sidebar-width-control eyebrow">
+            <span>width</span>
+            <input
+              type="range"
+              min={SIDEBAR_WIDTH_STEP_MIN}
+              max={SIDEBAR_WIDTH_STEP_MAX}
+              step="1"
+              value={widthStep}
+              onChange={(event) => setWidthStep(clampSidebarWidthStep(event.target.value))}
+              onPointerUp={commitWidthIfDirty}
+              onKeyUp={commitWidthIfDirty}
+              onBlur={commitWidthIfDirty}
+              disabled={widthSaving}
+              aria-label="Sidebar width"
+              aria-valuemin={SIDEBAR_WIDTH_STEP_MIN}
+              aria-valuemax={SIDEBAR_WIDTH_STEP_MAX}
+              aria-valuenow={widthStep}
+              aria-valuetext={`${sidebarWidthPxFromStep(widthStep)} pixels`}
+            />
+          </label>
         </div>
       ) : null}
 

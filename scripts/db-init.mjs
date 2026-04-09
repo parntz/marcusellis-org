@@ -2,6 +2,7 @@ import "./load-env.mjs";
 import { DEFAULT_HERO_IMAGES } from "../lib/hero-home-defaults.mjs";
 import { DEFAULT_SCALES_FORMS_LINKS } from "../lib/scales-forms-links-defaults.mjs";
 import { closeDb, dbPath, getClient } from "../lib/sqlite.mjs";
+import { seedMemberServicesPanelsIfEmpty } from "../lib/member-services-panels-seed.mjs";
 
 const client = getClient();
 
@@ -162,6 +163,37 @@ const ddl = `
   CREATE INDEX IF NOT EXISTS idx_sidebar_boxes_set_order
     ON sidebar_boxes(set_id, sort_order ASC);
 
+  CREATE TABLE IF NOT EXISTS member_services_panels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    kicker TEXT NOT NULL DEFAULT '',
+    title TEXT NOT NULL DEFAULT '',
+    body_html TEXT NOT NULL DEFAULT '',
+    primary_label TEXT NOT NULL DEFAULT '',
+    primary_href TEXT NOT NULL DEFAULT '',
+    primary_external INTEGER NOT NULL DEFAULT 0,
+    secondary_label TEXT NOT NULL DEFAULT '',
+    secondary_href TEXT NOT NULL DEFAULT '',
+    secondary_external INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_member_services_panels_order
+    ON member_services_panels(sort_order ASC, id ASC);
+
+  CREATE TABLE IF NOT EXISTS member_services_intro (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    hub_title TEXT NOT NULL DEFAULT 'Member Services',
+    intro_html TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS new_use_reuse_intro (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    intro_html TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS mirror_page_content (
     route TEXT PRIMARY KEY,
     title TEXT NOT NULL,
@@ -222,6 +254,26 @@ const ddl = `
     description TEXT NOT NULL DEFAULT '',
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS photo_gallery_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL DEFAULT '',
+    description_html TEXT NOT NULL DEFAULT '',
+    media_type TEXT NOT NULL DEFAULT 'image',
+    image_url TEXT NOT NULL DEFAULT '',
+    image_alt TEXT NOT NULL DEFAULT '',
+    video_url TEXT NOT NULL DEFAULT '',
+    source_url TEXT NOT NULL DEFAULT '',
+    source_image_url TEXT NOT NULL DEFAULT '',
+    display_order INTEGER NOT NULL DEFAULT 0,
+    is_published INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_photo_gallery_items_order
+    ON photo_gallery_items(display_order ASC, id ASC);
 `;
 
 await client.executeMultiple(ddl);
@@ -290,6 +342,16 @@ for (const [columnName, sql] of sitePageAlterStatements) {
     await client.execute(sql);
   }
 }
+
+await client.execute(`
+  INSERT OR IGNORE INTO member_services_intro (id, hub_title, intro_html)
+  VALUES (1, 'Member Services', '')
+`);
+
+await client.execute(`
+  INSERT OR IGNORE INTO new_use_reuse_intro (id, intro_html)
+  VALUES (1, '')
+`);
 
 await client.execute(`
   INSERT INTO site_pages (
@@ -408,6 +470,15 @@ await client.execute({
   sql: `INSERT OR IGNORE INTO site_config (key, value, updated_at) VALUES (?, ?, datetime('now'))`,
   args: ["scales_forms_links", defaultScalesFormsLinksPayload],
 });
+
+try {
+  const n = await seedMemberServicesPanelsIfEmpty(client);
+  if (n > 0) {
+    console.log(`Seeded member_services_panels (${n} rows; table was empty).`);
+  }
+} catch (e) {
+  console.warn("member_services_panels auto-seed skipped:", e instanceof Error ? e.message : e);
+}
 
 console.log(`Turso initialized at ${dbPath}`);
 await closeDb();

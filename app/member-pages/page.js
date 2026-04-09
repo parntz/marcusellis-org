@@ -10,6 +10,7 @@ import { resolveMemberMediaHref, resolveMemberWebsiteHref } from "../../lib/lega
 import { INTERNAL_PAGE_DESCRIPTION } from "../../lib/internal-page-description.js";
 import { resolveSidebarBoxes } from "../../lib/resolve-sidebar-boxes.mjs";
 import { getRouteSidebarConfig } from "../../lib/site-config-route-sidebar";
+import { getSidebarWidthConfig } from "../../lib/site-config-sidebar-width";
 import { getClient } from "../../lib/sqlite.mjs";
 
 export const dynamic = "force-dynamic";
@@ -90,7 +91,12 @@ async function fetchMembers() {
 export default async function MemberPages() {
   const session = await getServerSession(authOptions);
   const isAdmin = isAdminSession(session);
-  const routeSidebarEnabled = Boolean((await getRouteSidebarConfig("/member-pages"))?.enabled);
+  const routeSidebarConfig = await getRouteSidebarConfig("/member-pages");
+  const sidebarWidthConfig = await getSidebarWidthConfig();
+  const routeSidebarEnabled = Boolean(routeSidebarConfig?.enabled);
+  const routeSidebarStyle = routeSidebarEnabled
+    ? { "--recording-sidebar-width": `${sidebarWidthConfig?.widthPx ?? 350}px` }
+    : undefined;
   const [members, memberPagesSidebarBoxes] = await Promise.all([
     fetchMembers(),
     routeSidebarEnabled ? resolveSidebarBoxes("/member-pages") : Promise.resolve([]),
@@ -104,17 +110,18 @@ export default async function MemberPages() {
         description={INTERNAL_PAGE_DESCRIPTION.MEMBER_PAGES}
       />
 
-      <div className="recording-page recording-sidebar-layout">
+      <div className="recording-page recording-sidebar-layout" style={routeSidebarStyle}>
         <div className="recording-body-grid recording-body-grid--scales">
           <div className="recording-content member-pages-main-column">
             <MemberPagesDirectory members={members} />
           </div>
           {routeSidebarEnabled ? (
-            <aside className="recording-sidebar">
+            <aside className="recording-sidebar" style={routeSidebarStyle}>
               <RecordingSidebarPanel
                 boxes={memberPagesSidebarBoxes}
                 pageRoute="/member-pages"
                 isAdmin={isAdmin}
+                initialWidthStep={sidebarWidthConfig?.widthStep}
               />
             </aside>
           ) : null}
