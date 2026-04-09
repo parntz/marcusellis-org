@@ -16,14 +16,6 @@ function stripHtml(input = "") {
     .trim();
 }
 
-function buildExcerpt(item) {
-  const text = stripHtml(item.descriptionHtml || "");
-  if (!text) {
-    return item.mediaType === "video" ? "Open video" : "Open photo";
-  }
-  return text.length > 180 ? `${text.slice(0, 177).trimEnd()}...` : text;
-}
-
 function getCardVariant(item, index) {
   if (item.mediaType === "video") return "featured";
   if (index === 1 || index === 5) return "wide";
@@ -71,7 +63,6 @@ function GalleryCardBody({ item, index, variant }) {
       </div>
       <div className="photo-video-gallery-card__body">
         <h3>{item.title}</h3>
-        <p>{buildExcerpt(item)}</p>
       </div>
     </article>
   );
@@ -118,7 +109,7 @@ export function PhotoVideoGallery({ items, isAdmin = false }) {
               <button
                 key={item.id}
                 type="button"
-                className={`photo-video-gallery-card-button photo-video-gallery-card-button--${variant}`}
+                className="photo-video-gallery-card-button"
                 onClick={() => setActiveItem(item)}
               >
                 <GalleryCardBody item={item} index={index} variant={variant} />
