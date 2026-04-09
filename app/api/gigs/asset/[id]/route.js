@@ -29,10 +29,6 @@ export async function GET(request, context) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (!process.env.NETLIFY) {
-    return NextResponse.redirect(new URL(`/uploads/gigs/${encodeURIComponent(id)}`, request.url));
-  }
-
   const store = await getGigUploadsStore();
   if (store) {
     const result = await store.getWithMetadata(id, { type: "arrayBuffer" });
@@ -50,5 +46,5 @@ export async function GET(request, context) {
     });
   }
 
-  return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.redirect(new URL(`/uploads/gigs/${encodeURIComponent(id)}`, request.url));
 }
