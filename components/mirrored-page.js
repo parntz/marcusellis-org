@@ -1,5 +1,7 @@
+import { randomInt } from "node:crypto";
 import Link from "next/link";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { AssetGallery } from "./asset-gallery";
 import { HomepageExperience } from "./homepage-experience";
@@ -9,11 +11,13 @@ import { MemberSiteLinksIntroAdmin } from "./member-site-links-intro-admin";
 import { MemberSiteLinksCreateButton } from "./member-site-links-create-button";
 import { MemberSiteLinksDirectory } from "./member-site-links-directory";
 import MemberServicesHub from "./member-services-hub";
+import { MediaHub } from "./media-hub";
 import { NewsEventsFeed } from "./news-events-feed";
 import { PageHeaderWithCallout } from "./page-header-with-callout";
 import { ProfilePageEnhancer } from "./profile-page-enhancer";
 import { FaqSearch } from "./faq-search";
 import { NewUseReuseIntroAdmin } from "./new-use-reuse-intro-admin";
+import { LiveScalesGuide } from "./live-scales-guide";
 import { computeMirrorPageDescription } from "../lib/internal-page-description.js";
 import { RecordingSidebarPanel } from "./recording-sidebar-panel";
 import { RecordingVideo } from "./recording-video";
@@ -21,13 +25,18 @@ import { RecordingPageAdmin } from "./recording-page-admin";
 import { RecordingPageOptionsButton } from "./recording-page-options-button";
 import { RehearsalHallHeroAdmin } from "./rehearsal-hall-hero-admin";
 import { RehearsalHallSectionAdmin } from "./rehearsal-hall-section-admin";
+import { LiveScalesDownloads } from "./live-scales-downloads";
 import { PhotoVideoGallery } from "./photo-video-gallery";
 import { ScalesMasterDetail } from "./scales-master-detail";
 import { SitePageBodyAdmin } from "./signatory-body-admin";
 import { authOptions } from "../lib/auth-options";
 import { isAdminSession } from "../lib/authz";
 import { listMemberSiteLinks } from "../lib/member-site-links";
-import { listPhotoGalleryItems } from "../lib/photo-gallery.mjs";
+import {
+  getPhotoGalleryStats,
+  listPhotoGalleryItems,
+  listPhotoGalleryItemsPaged,
+} from "../lib/photo-gallery.mjs";
 import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
 import { primaryNav, siteStats, utilityNav } from "../lib/site-data";
 import { listNewsEventsItems } from "../lib/news-events-items";
@@ -45,11 +54,14 @@ import {
 } from "../lib/live-music-html.mjs";
 import { getMemberServicesIntroForPage } from "../lib/member-services-intro.mjs";
 import { listMemberServicesPanels } from "../lib/member-services-panels.mjs";
+import { getMediaHubConfig } from "../lib/site-config-media-hub.mjs";
+import { getLiveScalesConfig } from "../lib/site-config-live-scales.mjs";
 import { getNewUseReuseIntroInnerForPage } from "../lib/new-use-reuse-intro.mjs";
 import {
   getSignatoryDisplayHtmlFromSource,
   getSignatorySourceFromPageBody,
 } from "../lib/signatory-html.mjs";
+import { LiveScalesLeadAdmin } from "./live-scales-admin";
 
 function AssetIndex({ page }) {
   return (
@@ -139,71 +151,6 @@ function extractNewUseReuseFormOnly(bodyHtml) {
   if (!bodyHtml) return "";
   const formMatch = bodyHtml.match(/<form[\s\S]*?<\/form>/i);
   return enhanceNewUseReuseFormHtml(formMatch?.[0] || "");
-}
-
-function normalizeTitleKey(value) {
-  return cleanText(stripHtml(value)).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-}
-
-function describeLiveScalesResource(title) {
-  const key = normalizeTitleKey(title);
-  if (key.includes("touring pension agreement")) {
-    return "AFM-EP pension paperwork for touring live engagements.";
-  }
-  if (key.includes("road scale")) {
-    return "Touring wage minimums, travel terms, and per diem guidance.";
-  }
-  if (key.includes("afm t2")) {
-    return "Use this contract when traveling outside the Nashville area.";
-  }
-  if (key.includes("afm l1")) {
-    return "Standard contract for local concerts, weddings, parties, and special events.";
-  }
-  if (key.includes("ls 1") || key.includes("ls1")) {
-    return "Single-engagement pension contribution packet with instructions.";
-  }
-  if (key.includes("wage scales")) {
-    return "Current Local 257 live performance wage minimums.";
-  }
-  return "Download the current PDF resource.";
-}
-
-function extractLiveScalesContent(bodyHtml) {
-  const cleaned = cleanDrupalHtml(bodyHtml || "");
-  const leadHtml = cleaned.match(/<p\b[^>]*>[\s\S]*?<\/p>/i)?.[0] || "";
-  const noteHtml = cleaned.match(/<div>\s*<strong>\s*Note:[\s\S]*?<\/strong>\s*<\/div>/i)?.[0] || "";
-
-  const overviewItems = Array.from(
-    cleaned.matchAll(/<div>\s*<(?:strong|b)>([\s\S]*?)<\/(?:strong|b)>([\s\S]*?)<\/div>/gi),
-    (match) => ({
-      title: cleanText(stripHtml(match[1])).replace(/:$/, ""),
-      description: cleanText(stripHtml(match[2])),
-    })
-  ).filter((item) => item.title && item.description && !/^note\b/i.test(item.title));
-
-  const resources = [];
-  const seenHrefs = new Set();
-  for (const match of cleaned.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
-    const href = cleanText(match[1]);
-    if (!/\/sites\/default\/files\//i.test(href) || seenHrefs.has(href)) {
-      continue;
-    }
-    seenHrefs.add(href);
-    const title = cleanText(stripHtml(match[2]));
-    if (!title) continue;
-    resources.push({
-      title,
-      href,
-      summary: describeLiveScalesResource(title),
-    });
-  }
-
-  return {
-    leadHtml,
-    noteHtml,
-    overviewItems,
-    resources,
-  };
 }
 
 function extractRehearsalHallContent(bodyHtml) {
@@ -561,6 +508,7 @@ export async function MirroredPage({
   const rehearsalHallPage = page.kind === "mirror-page" && page.route === "/free-rehearsal-hall";
   const benefitsHubPage = page.kind === "mirror-page" && page.route === "/benefits-union-members";
   const memberServicesPage = page.kind === "mirror-page" && page.route === "/member-services";
+  const mediaHubPage = page.kind === "mirror-page" && page.route === "/media";
   const memberSiteLinksPage = page.kind === "mirror-page" && page.route === "/member-site-links";
   const findArtistPage = page.kind === "mirror-page" && page.route === "/find-an-artist-or-band";
   const photoGalleryPage = page.kind === "mirror-page" && page.route === "/photo-and-video-gallery";
@@ -646,12 +594,13 @@ export async function MirroredPage({
   const liveMusicContentHtml = liveMusicPage ? getLiveMusicDisplayHtmlFromSource(liveMusicSourceHtml) : "";
   /* Match other hubs: if route sidebar is on in site config, always mount the column (same as /gigs, benefits, etc.). */
   const liveMusicRouteSidebarOn = liveMusicPage && routeSidebarEnabled;
-  const liveScalesContent = liveScalesPage ? extractLiveScalesContent(page.bodyHtml || "") : null;
+  const liveScalesContent = liveScalesPage ? await getLiveScalesConfig() : null;
   const rehearsalHallContent = rehearsalHallPage ? extractRehearsalHallContent(page.bodyHtml || "") : null;
   const rehearsalHallHeroConfig = rehearsalHallPage ? await getRehearsalHallHeroConfig() : null;
   const benefitsHubContent = benefitsHubPage ? extractBenefitsHubContent(page.bodyHtml || "") : null;
   const memberServicesIntro = memberServicesPage ? await getMemberServicesIntroForPage() : null;
   const memberServicesPanels = memberServicesPage ? await listMemberServicesPanels() : [];
+  const mediaHubConfig = mediaHubPage ? await getMediaHubConfig() : null;
   const memberSiteLinksContent = memberSiteLinksPage ? extractMemberSiteLinksContent(page.bodyHtml || "") : null;
   const persistedMemberSiteLinks = memberSiteLinksPage ? await listMemberSiteLinks() : null;
   const memberSiteLinksHeroConfig = memberSiteLinksPage ? await getMemberSiteLinksHeroConfig() : null;
@@ -661,7 +610,66 @@ export async function MirroredPage({
   const memberSiteLinksInitialLinks = memberSiteLinksPage
     ? persistedMemberSiteLinks || []
     : null;
-  const photoGalleryItems = photoGalleryPage ? await listPhotoGalleryItems() : [];
+  const rawGalleryQ = searchParams?.q;
+  const gallerySearchQuery =
+    typeof rawGalleryQ === "string" ? rawGalleryQ : Array.isArray(rawGalleryQ) ? rawGalleryQ[0] : "";
+  const rawGalleryP = searchParams?.p;
+  const galleryPageNumRaw = Array.isArray(rawGalleryP) ? rawGalleryP[0] : rawGalleryP;
+  const rawGalleryS = searchParams?.s;
+  const gallerySeedNumRaw = Array.isArray(rawGalleryS) ? rawGalleryS[0] : rawGalleryS;
+  const galleryPage = Math.max(1, Number.parseInt(String(galleryPageNumRaw || "1"), 10) || 1);
+  const galleryPageSize = 96;
+
+  let photoGalleryItems = [];
+  let photoGalleryListMeta = null;
+  if (photoGalleryPage) {
+    const hasGallerySearch = Boolean(String(gallerySearchQuery || "").trim());
+    const parsedGallerySeed = Number.parseInt(String(gallerySeedNumRaw || ""), 10);
+    if (!hasGallerySearch && (!Number.isInteger(parsedGallerySeed) || parsedGallerySeed <= 0)) {
+      const redirectParams = new URLSearchParams();
+      redirectParams.set("s", String(randomInt(1, 2147483001)));
+      if (galleryPage > 1) {
+        redirectParams.set("p", String(galleryPage));
+      }
+      redirect(`${page.route}?${redirectParams.toString()}`);
+    }
+    const galleryShuffleSeed = hasGallerySearch ? null : parsedGallerySeed;
+    const offset = (galleryPage - 1) * galleryPageSize;
+    const [paged, archiveStats, matchingItems] = await Promise.all([
+      listPhotoGalleryItemsPaged({
+        includeUnpublished: isAdmin,
+        searchQuery: gallerySearchQuery,
+        limit: galleryPageSize,
+        offset,
+        shuffleSeed: galleryShuffleSeed,
+      }),
+      getPhotoGalleryStats({ includeUnpublished: isAdmin }),
+      hasGallerySearch
+        ? listPhotoGalleryItems({
+            includeUnpublished: isAdmin,
+            searchQuery: gallerySearchQuery,
+            limit: null,
+          })
+        : Promise.resolve(null),
+    ]);
+    const exactMatchingStats = Array.isArray(matchingItems)
+      ? {
+          total: matchingItems.length,
+          photos: matchingItems.filter((item) => item.mediaType !== "video").length,
+          videos: matchingItems.filter((item) => item.mediaType === "video").length,
+        }
+      : null;
+    photoGalleryItems = paged.items;
+    photoGalleryListMeta = {
+      searchQuery: gallerySearchQuery,
+      page: galleryPage,
+      pageSize: galleryPageSize,
+      totalMatching: exactMatchingStats?.total ?? paged.totalMatching,
+      matchingStats: exactMatchingStats ?? paged.matchingStats,
+      archiveStats,
+      shuffleSeed: galleryShuffleSeed,
+    };
+  }
 
   const bodyHtml =
     isMainRecordingPage ||
@@ -673,6 +681,7 @@ export async function MirroredPage({
     rehearsalHallPage ||
     benefitsHubPage ||
     memberServicesPage ||
+    mediaHubPage ||
     memberSiteLinksPage ||
     photoGalleryPage
       ? ""
@@ -870,60 +879,28 @@ export async function MirroredPage({
               <div className="recording-body-grid recording-body-grid--scales">
                 <section className="page-content live-scales-content">
                   <div className="live-scales-shell">
-                    {liveScalesContent?.leadHtml ? (
-                      <div
-                        className="live-scales-lead"
-                        dangerouslySetInnerHTML={{ __html: liveScalesContent.leadHtml }}
-                      />
+                    {liveScalesContent?.downloads ? (
+                      <LiveScalesDownloads section={liveScalesContent.downloads} isAdmin={isAdmin} />
                     ) : null}
 
-                    {liveScalesContent?.noteHtml ? (
-                      <div
-                        className="live-scales-note"
-                        dangerouslySetInnerHTML={{ __html: liveScalesContent.noteHtml }}
-                      />
+                    {liveScalesContent ? (
+                      isAdmin ? (
+                        <LiveScalesLeadAdmin initialHtml={liveScalesContent.leadHtml}>
+                          <div
+                            className="live-scales-lead"
+                            dangerouslySetInnerHTML={{ __html: liveScalesContent.leadHtml }}
+                          />
+                        </LiveScalesLeadAdmin>
+                      ) : liveScalesContent.leadHtml ? (
+                        <div
+                          className="live-scales-lead"
+                          dangerouslySetInnerHTML={{ __html: liveScalesContent.leadHtml }}
+                        />
+                      ) : null
                     ) : null}
 
-                    {liveScalesContent?.overviewItems?.length ? (
-                      <section className="live-scales-section">
-                        <div className="section-headline live-scales-section-headline">
-                          <p className="eyebrow">Live Department Guide</p>
-                          <h2>Which document do you need?</h2>
-                        </div>
-                        <div className="live-scales-overview-grid">
-                          {liveScalesContent.overviewItems.map((item) => (
-                            <article key={`${item.title}-${item.description}`} className="live-scales-overview-card">
-                              <h3>{item.title}</h3>
-                              <p>{item.description}</p>
-                            </article>
-                          ))}
-                        </div>
-                      </section>
-                    ) : null}
-
-                    {liveScalesContent?.resources?.length ? (
-                      <section className="live-scales-section">
-                        <div className="section-headline live-scales-section-headline">
-                          <p className="eyebrow">Downloads</p>
-                          <h2>Forms and scale sheets</h2>
-                        </div>
-                        <div className="live-scales-resource-grid">
-                          {liveScalesContent.resources.map((resource) => (
-                            <a
-                              key={resource.href}
-                              className="live-scales-resource-card"
-                              href={resource.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <span className="live-scales-resource-kicker">PDF Download</span>
-                              <h3>{resource.title}</h3>
-                              <p>{resource.summary}</p>
-                              <span className="live-scales-resource-link">Open file</span>
-                            </a>
-                          ))}
-                        </div>
-                      </section>
+                    {liveScalesContent?.guide ? (
+                      <LiveScalesGuide section={liveScalesContent.guide} isAdmin={isAdmin} />
                     ) : null}
                   </div>
                 </section>
@@ -1176,6 +1153,29 @@ export async function MirroredPage({
                 ) : null}
               </div>
             </div>
+          ) : mediaHubPage ? (
+            <div
+              className={`recording-page recording-sidebar-layout media-hub-sidebar-layout ${pageTypeClass}`}
+              style={routeSidebarStyle}
+            >
+              <div className="recording-body-grid recording-body-grid--scales">
+                <section className="page-content media-hub-content">
+                  {mediaHubConfig ? (
+                    <MediaHub initialConfig={mediaHubConfig} isAdmin={isAdmin} />
+                  ) : null}
+                </section>
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar media-hub-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
+                  </aside>
+                ) : null}
+              </div>
+            </div>
           ) : memberSiteLinksPage ? (
             <div
               className={`recording-page recording-sidebar-layout member-links-sidebar-layout ${pageTypeClass}`}
@@ -1265,6 +1265,13 @@ export async function MirroredPage({
                   <PhotoVideoGallery
                     items={photoGalleryItems}
                     isAdmin={isAdmin}
+                    searchQuery={photoGalleryListMeta?.searchQuery ?? ""}
+                    page={photoGalleryListMeta?.page ?? 1}
+                    pageSize={photoGalleryListMeta?.pageSize ?? 96}
+                    totalMatching={photoGalleryListMeta?.totalMatching ?? 0}
+                    matchingStats={photoGalleryListMeta?.matchingStats ?? { total: 0, photos: 0, videos: 0 }}
+                    archiveStats={photoGalleryListMeta?.archiveStats ?? { total: 0, photos: 0, videos: 0 }}
+                    shuffleSeed={photoGalleryListMeta?.shuffleSeed ?? null}
                   />
                 </section>
                 {routeSidebarEnabled ? (

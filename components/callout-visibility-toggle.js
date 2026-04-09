@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 
 export function CalloutVisibilityToggle({ className = "", location = "header" }) {
+  const pathname = usePathname();
   const router = useRouter();
   const [enabled, setEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -13,9 +14,12 @@ export function CalloutVisibilityToggle({ className = "", location = "header" })
   useEffect(() => {
     let active = true;
     setLoading(true);
-    fetch(`/api/site-config/callouts/visibility?location=${encodeURIComponent(location)}`, {
-      cache: "no-store",
-    })
+    fetch(
+      `/api/site-config/callouts/visibility?location=${encodeURIComponent(location)}&route=${encodeURIComponent(pathname || "/")}`,
+      {
+        cache: "no-store",
+      }
+    )
       .then((res) => res.json().catch(() => ({})).then((data) => ({ ok: res.ok, data })))
       .then(({ ok, data }) => {
         if (!active || !ok) return;
@@ -31,7 +35,7 @@ export function CalloutVisibilityToggle({ className = "", location = "header" })
     return () => {
       active = false;
     };
-  }, [location]);
+  }, [location, pathname]);
 
   async function handleToggle() {
     const nextEnabled = !enabled;
@@ -44,6 +48,7 @@ export function CalloutVisibilityToggle({ className = "", location = "header" })
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           location,
+          route: pathname || "/",
           enabled: nextEnabled,
         }),
       });

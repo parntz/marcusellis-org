@@ -268,12 +268,18 @@ const ddl = `
     source_image_url TEXT NOT NULL DEFAULT '',
     display_order INTEGER NOT NULL DEFAULT 0,
     is_published INTEGER NOT NULL DEFAULT 1,
+    youtube_video_id TEXT NOT NULL DEFAULT '',
+    transcript TEXT NOT NULL DEFAULT '',
+    discovery_json TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
   CREATE INDEX IF NOT EXISTS idx_photo_gallery_items_order
     ON photo_gallery_items(display_order ASC, id ASC);
+
+  CREATE INDEX IF NOT EXISTS idx_photo_gallery_youtube_video_id
+    ON photo_gallery_items(youtube_video_id);
 `;
 
 await client.executeMultiple(ddl);
@@ -388,6 +394,24 @@ const gigColumnNames = new Set(gigColumns.rows.map((row) => String(row.name || "
 if (!gigColumnNames.has("band_name")) {
   await client.execute("ALTER TABLE gigs ADD COLUMN band_name TEXT NOT NULL DEFAULT ''");
 }
+
+const photoGalleryColumns = await client.execute("PRAGMA table_info(photo_gallery_items)");
+const photoGalleryColumnNames = new Set(
+  photoGalleryColumns.rows.map((row) => String(row.name || "").toLowerCase())
+);
+const photoGalleryAlterStatements = [
+  ["youtube_video_id", "ALTER TABLE photo_gallery_items ADD COLUMN youtube_video_id TEXT NOT NULL DEFAULT ''"],
+  ["transcript", "ALTER TABLE photo_gallery_items ADD COLUMN transcript TEXT NOT NULL DEFAULT ''"],
+  ["discovery_json", "ALTER TABLE photo_gallery_items ADD COLUMN discovery_json TEXT NOT NULL DEFAULT ''"],
+];
+for (const [columnName, sql] of photoGalleryAlterStatements) {
+  if (!photoGalleryColumnNames.has(columnName)) {
+    await client.execute(sql);
+  }
+}
+await client.execute(
+  "CREATE INDEX IF NOT EXISTS idx_photo_gallery_youtube_video_id ON photo_gallery_items(youtube_video_id)"
+);
 
 const defaultHeroPayload = JSON.stringify({
   images: DEFAULT_HERO_IMAGES,

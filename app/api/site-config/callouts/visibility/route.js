@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../../lib/auth-options";
 import { isAdminSession } from "../../../../../lib/authz";
-import { getCalloutConfig, setCalloutConfig } from "../../../../../lib/site-config-callouts";
+import { getRouteCalloutConfig, setRouteCalloutConfig } from "../../../../../lib/site-config-route-callouts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +16,11 @@ function normalizeLocation(value) {
   return location || "header";
 }
 
+function normalizeRoute(value) {
+  const route = String(value || "").trim();
+  return route || "/";
+}
+
 export async function GET(request) {
   const session = await getServerSession(authOptions);
   if (!isAdminSession(session)) {
@@ -24,7 +29,8 @@ export async function GET(request) {
 
   const { searchParams } = new URL(request.url);
   const location = normalizeLocation(searchParams.get("location"));
-  const config = await getCalloutConfig(location);
+  const route = normalizeRoute(searchParams.get("route"));
+  const config = await getRouteCalloutConfig(route, location);
   return NextResponse.json({ location, enabled: config.enabled !== false });
 }
 
@@ -36,11 +42,10 @@ export async function PUT(request) {
 
   const body = await request.json().catch(() => ({}));
   const location = normalizeLocation(body?.location);
-  const currentConfig = await getCalloutConfig(location);
-  const nextConfig = await setCalloutConfig(location, {
-    ...currentConfig,
+  const route = normalizeRoute(body?.route);
+  const nextConfig = await setRouteCalloutConfig(route, location, {
     enabled: body?.enabled !== false,
   });
 
-  return NextResponse.json({ location, enabled: nextConfig.enabled !== false });
+  return NextResponse.json({ location, route, enabled: nextConfig.enabled !== false });
 }

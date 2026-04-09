@@ -6,7 +6,7 @@ alwaysApply: true
 
 # Database policy
 
-- **Turso only** (dev and production). Use `TURSO_DATABASE_URL` (`libsql://…`) and `TURSO_AUTH_TOKEN`. Do not add local `file:` SQLite, Postgres, or other DB clients. All access is via `lib/sqlite.mjs` → `@libsql/client`.
+- **Always Turso, never local SQLite.** Dev and production use the same remote database: `TURSO_DATABASE_URL` must be `libsql://…` and `TURSO_AUTH_TOKEN` is required. `lib/sqlite.mjs` rejects `file:` URLs and refuses a missing token. Do not add local `file:` SQLite, Postgres, or other DB clients. All access is via `lib/sqlite.mjs` → `@libsql/client`.
 
 # Page content and the database
 

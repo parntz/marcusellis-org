@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -145,6 +145,7 @@ function NavList({ items, depth = 0, onNavigate, onPdfLightbox, activePath }) {
 
 export function SiteHeader({ initialBackgroundOpacity = 1 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const isAdmin = isAdminUser(session?.user);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -152,6 +153,11 @@ export function SiteHeader({ initialBackgroundOpacity = 1 }) {
   const [pdfLightbox, setPdfLightbox] = useState(null);
   const joinItem = utilityNav.find((item) => item.label.toLowerCase().includes("join"));
   const visiblePrimaryNav = primaryNav.filter((item) => !HIDDEN_PRIMARY_NAV_HREFS.has(item.href));
+  const callbackUrl = (() => {
+    const qs = searchParams?.toString();
+    return `${pathname || "/"}${qs ? `?${qs}` : ""}`;
+  })();
+  const signInHref = `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   const renderUtilityItems = (onNavigate) => (
     <>
@@ -173,7 +179,7 @@ export function SiteHeader({ initialBackgroundOpacity = 1 }) {
           <button
             type="button"
             className="utility-link utility-button"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => signOut({ callbackUrl })}
           >
             Sign Out
           </button>
@@ -182,7 +188,7 @@ export function SiteHeader({ initialBackgroundOpacity = 1 }) {
         </>
       ) : (
         <>
-          <SmartNavLink href="/sign-in" className="utility-link" onNavigate={onNavigate}>
+          <SmartNavLink href={signInHref} className="utility-link" onNavigate={onNavigate}>
             Sign In
           </SmartNavLink>
           <SmartNavLink href="/register" className="utility-link" onNavigate={onNavigate}>

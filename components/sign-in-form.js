@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
@@ -20,12 +21,15 @@ async function getRecaptchaToken(action) {
 }
 
 export function SignInForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const hasRecaptcha = Boolean(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY);
   const hasGoogle = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true";
+  const callbackUrl = searchParams?.get("callbackUrl") || "/";
 
   const handleCredentialsSignIn = async (event) => {
     event.preventDefault();
@@ -45,6 +49,7 @@ export function SignInForm() {
         password,
         recaptchaToken,
         redirect: false,
+        callbackUrl,
       });
 
       if (result?.error) {
@@ -53,7 +58,8 @@ export function SignInForm() {
         return;
       }
 
-      window.location.href = "/";
+      router.push(result?.url || callbackUrl);
+      router.refresh();
     } catch {
       setError("Unable to sign in right now.");
       setPending(false);
@@ -62,7 +68,7 @@ export function SignInForm() {
 
   const handleGoogleSignIn = async () => {
     setError("");
-    await signIn("google", { callbackUrl: "/" });
+    await signIn("google", { callbackUrl });
   };
 
   return (

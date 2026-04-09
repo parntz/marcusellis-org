@@ -18,6 +18,7 @@
     "db:upsert:site-page": "node scripts/db-upsert-site-page.mjs",
     "db:sync:member-pages": "node scripts/db-sync-member-pages.mjs",
     "gallery:import:photo-video": "node scripts/import-photo-video-gallery.mjs",
+    "gallery:import:youtube-discovery": "node scripts/import-afm-youtube-discovery.mjs",
     "db:clean:member-pages": "node scripts/db-clean-member-pages.mjs",
     "db:seed:sidebar": "node scripts/db-seed-sidebar.mjs",
     "db:seed:signatory-body": "node scripts/db-seed-signatory-body.mjs",
@@ -52,6 +53,7 @@
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.9",
+    "csv-parse": "^6.2.1",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.2"
   }

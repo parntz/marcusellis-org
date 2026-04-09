@@ -49,6 +49,11 @@ const SIDEBAR_STYLE_OPTIONS = [
     label: "Bare Panel",
     description: "Minimal shell that lets the content sit more directly in the sidebar.",
   },
+  {
+    value: "union-banner",
+    label: "Union Banner",
+    description: "Header-inspired sidebar with the site banner blues, white copy, and the AFM eyebrow tone.",
+  },
 ];
 const SIDEBAR_ACCENT_OPTIONS = [
   { value: "cyan", label: "Cyan", hex: "#24d6ff", rgb: "36, 214, 255" },
@@ -128,8 +133,12 @@ function getLayoutOption(value = "standard") {
   return SIDEBAR_LAYOUT_OPTIONS.find((option) => option.value === value) || SIDEBAR_LAYOUT_OPTIONS[0];
 }
 
-function getStyleOption(value = "glass-panel") {
-  return SIDEBAR_STYLE_OPTIONS.find((option) => option.value === value) || SIDEBAR_STYLE_OPTIONS[0];
+function getStyleOption(value = "union-banner") {
+  return (
+    SIDEBAR_STYLE_OPTIONS.find((option) => option.value === value) ||
+    SIDEBAR_STYLE_OPTIONS.find((option) => option.value === "union-banner") ||
+    SIDEBAR_STYLE_OPTIONS[0]
+  );
 }
 
 function getBlockTypeOption(value = "text") {
@@ -140,9 +149,7 @@ function normalizeAppearance(input = {}) {
   const layoutName = SIDEBAR_LAYOUT_OPTIONS.some((option) => option.value === input?.layoutName)
     ? input.layoutName
     : "standard";
-  const styleName = SIDEBAR_STYLE_OPTIONS.some((option) => option.value === input?.styleName)
-    ? input.styleName
-    : "glass-panel";
+  const styleName = "union-banner";
   const accent = getAccentOption(input?.accentColor);
   return {
     layoutName,
@@ -370,7 +377,7 @@ function createEmptySidebarBox() {
       heading: "New Sidebar Panel",
       appearance: {
         layoutName: "standard",
-        styleName: "glass-panel",
+        styleName: "union-banner",
         accentColor: "cyan",
         showAccentStrip: true,
       },
@@ -397,6 +404,14 @@ function toSavePayload(box) {
 }
 
 function getBoxStyleVars(appearance) {
+  if (appearance?.styleName === "union-banner") {
+    return {
+      "--sidebar-accent": "var(--header-brand-light)",
+      "--sidebar-accent-rgb": "var(--header-brand-light-rgb)",
+      "--sidebar-brand-deep": "var(--header-brand-deep)",
+      "--sidebar-brand-deep-rgb": "var(--header-brand-deep-rgb)",
+    };
+  }
   const accent = getAccentOption(appearance?.accentColor);
   return {
     "--sidebar-accent": accent.hex,
@@ -451,6 +466,7 @@ function renderLinkedElement({ href, external = false, className, children, key 
 function SidebarAppearanceFields({ appearance, onChange }) {
   const layoutOption = getLayoutOption(appearance.layoutName);
   const styleOption = getStyleOption(appearance.styleName);
+  const accentLocked = appearance.styleName === "union-banner";
 
   return (
     <section className="recording-sidebar-modal__section recording-sidebar-modal__section--appearance">
@@ -493,6 +509,7 @@ function SidebarAppearanceFields({ appearance, onChange }) {
           <select
             value={appearance.accentColor}
             onChange={(event) => onChange({ ...appearance, accentColor: event.target.value })}
+            disabled={accentLocked}
           >
             {SIDEBAR_ACCENT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -519,6 +536,11 @@ function SidebarAppearanceFields({ appearance, onChange }) {
 
       <p className="recording-sidebar-modal__help">{layoutOption.description}</p>
       <p className="recording-sidebar-modal__help">{styleOption.description}</p>
+      {accentLocked ? (
+        <p className="recording-sidebar-modal__help">
+          Union Banner uses the site header palette automatically, so the accent color is fixed for this appearance.
+        </p>
+      ) : null}
     </section>
   );
 }

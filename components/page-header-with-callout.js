@@ -4,6 +4,7 @@ import { isAdminSession } from "../lib/authz";
 import { listCallouts, listCalloutsForAdmin } from "../lib/callouts";
 import { getPageHeaderOverride } from "../lib/page-header-editor";
 import { getCalloutConfig } from "../lib/site-config-callouts";
+import { getRouteCalloutConfig } from "../lib/site-config-route-callouts";
 import { CalloutRotator } from "./callout-rotator";
 import { PageHeaderTextAdmin } from "./page-header-text-admin";
 
@@ -27,11 +28,13 @@ export async function PageHeaderWithCallout({
   const headerCallouts = await listCallouts("header");
   const adminCallouts = isAdmin ? await listCalloutsForAdmin("header") : [];
   const calloutConfig = await getCalloutConfig("header");
+  const routeCalloutConfig = route ? await getRouteCalloutConfig(route, "header") : { enabled: true };
   const suppressCalloutByRoute =
     typeof route === "string" && (route.startsWith("/users/") || route.startsWith("/user/"));
   const hasCallout =
     !hideCallout &&
     !suppressCalloutByRoute &&
+    routeCalloutConfig.enabled !== false &&
     calloutConfig.enabled !== false &&
     (headerCallouts.length > 0 || isAdmin);
   const headerOverride = route ? await getPageHeaderOverride(route) : null;

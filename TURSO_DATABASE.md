@@ -7,7 +7,7 @@ This app uses **Turso** (LibSQL) for **development and production**. There is no
 - **`TURSO_DATABASE_URL`** — required. Must be a **`libsql://…`** URL from the Turso dashboard (not `file:`).
 - **`TURSO_AUTH_TOKEN`** — required for remote access (or **`LIBSQL_AUTH_TOKEN`** as an alias for the same Turso token).
 
-`lib/sqlite.mjs` rejects non-`libsql:` URLs so only Turso is used.
+`lib/sqlite.mjs` rejects non-`libsql:` URLs and refuses a missing auth token so only remote Turso is used (never local `file:` SQLite).
 
 ## Commands
 
