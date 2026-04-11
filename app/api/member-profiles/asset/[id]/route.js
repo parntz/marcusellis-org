@@ -22,10 +22,6 @@ export async function GET(request, { params }) {
     return new NextResponse("Not found", { status: 404 });
   }
 
-  if (!process.env.NETLIFY) {
-    return NextResponse.redirect(new URL(`/uploads/member-profiles/${encodeURIComponent(id)}`, request.url));
-  }
-
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     const { getStore } = await import("@netlify/blobs");
     const store = getStore("member-profile-media");
@@ -39,6 +35,10 @@ export async function GET(request, { params }) {
         },
       });
     }
+  }
+
+  if (!process.env.NETLIFY) {
+    return NextResponse.redirect(new URL(`/uploads/member-profiles/${encodeURIComponent(id)}`, request.url));
   }
 
   return new NextResponse("Not found", { status: 404 });
