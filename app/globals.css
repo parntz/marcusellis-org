@@ -2105,31 +2105,39 @@ input[type="search"] {
 
 @media (max-width: 1099px) {
   .recording-sidebar {
-    display: grid;
-    grid-template-columns: repeat(
-      auto-fit,
-      minmax(min(100%, var(--recording-sidebar-width)), var(--recording-sidebar-width))
-    );
-    grid-auto-flow: dense;
-    align-items: stretch;
-    justify-content: center;
+    display: block;
     width: 100%;
     max-width: 100%;
-    margin-inline: auto;
+    min-width: 0;
+    margin-inline: 0;
+    justify-self: stretch;
+    align-self: stretch;
+  }
+
+  .recording-sidebar-stack {
+    position: relative;
+    display: grid;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 350px));
+    grid-auto-flow: dense;
+    align-items: stretch;
+    justify-content: start;
     justify-items: stretch;
   }
 
   /* Panel map wrapper: fill grid row height so sibling cards match. */
-  .recording-sidebar > * {
+  .recording-sidebar-stack > * {
     display: flex;
     flex-direction: column;
     min-width: 0;
     width: 100%;
-    max-width: var(--recording-sidebar-width);
+    max-width: 350px;
     height: 100%;
   }
 
-  .recording-sidebar > * > .recording-sidebar-box-wrap {
+  .recording-sidebar-stack > * > .recording-sidebar-box-wrap {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
@@ -2140,10 +2148,10 @@ input[type="search"] {
     height: 100%;
   }
 
-  .recording-sidebar .recording-sidebar-box,
-  .recording-sidebar .recording-callout.recording-rate-callout,
-  .recording-sidebar .recording-callout.recording-bforms-callout,
-  .recording-sidebar .recording-cta-box {
+  .recording-sidebar-stack .recording-sidebar-box,
+  .recording-sidebar-stack .recording-callout.recording-rate-callout,
+  .recording-sidebar-stack .recording-callout.recording-bforms-callout,
+  .recording-sidebar-stack .recording-cta-box {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
@@ -6129,18 +6137,18 @@ body:has(.gigs-calendar-layout) aside.news-events-sidebar-portal .news-events-ca
 }
 
 /*
- * Mobile member notices (layout.js, below <main>): tile like wrapped recording sidebars
- * (repeat auto-fit, 260–350px tracks), cap card at 350px. Slide dots are suppressed in JS.
+ * Bottom member notices (layout.js, below <main>): once sidebars wrap under content (<1100px),
+ * tile this dock the same way so it visually joins the sidebar cards instead of centering alone.
  */
-@media (max-width: 900px) {
+@media (max-width: 1099px) {
   #mobile-member-notice-slot {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 350px));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 350px));
     gap: 16px;
-    justify-content: center;
+    justify-content: start;
     width: 100%;
-    max-width: min(920px, 100%);
-    margin-inline: auto;
+    max-width: 100%;
+    margin-inline: 0;
     padding: 0 clamp(16px, 3.5vw, 28px) 16px;
     box-sizing: border-box;
   }
@@ -6149,11 +6157,11 @@ body:has(.gigs-calendar-layout) aside.news-events-sidebar-portal .news-events-ca
     width: 100%;
     max-width: 350px;
     min-width: 0;
-    justify-self: center;
+    justify-self: start;
   }
 }
 
-@media (min-width: 901px) {
+@media (min-width: 1100px) {
   #mobile-member-notice-slot {
     display: block;
   }
