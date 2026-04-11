@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/auth-options";
 import { canEditMemberPage, isAdminUser } from "../../../../lib/authz";
-import { deleteMemberProfile, getMemberProfileBySlug, updateMemberProfile } from "../../../../lib/member-profiles";
+import {
+  deleteMemberProfile,
+  getMemberProfileBySlug,
+  listMemberProfileIdsForDirectoryEntry,
+  updateMemberProfile,
+} from "../../../../lib/member-profiles";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,8 +57,14 @@ export async function DELETE(_request, { params }) {
   }
 
   try {
-    await deleteMemberProfile(existing.id);
-    return NextResponse.json({ ok: true });
+    const memberPageIds = await listMemberProfileIdsForDirectoryEntry(existing);
+    const idsToDelete = memberPageIds.length ? memberPageIds : [existing.id];
+
+    for (const memberPageId of idsToDelete) {
+      await deleteMemberProfile(memberPageId);
+    }
+
+    return NextResponse.json({ ok: true, deletedCount: idsToDelete.length });
   } catch (error) {
     return NextResponse.json({ error: error?.message || "Delete failed." }, { status: 400 });
   }

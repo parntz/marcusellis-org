@@ -233,8 +233,7 @@ export function ArtistBandProfileEditor({
 
       setOpen(false);
       showDbToastSuccess();
-      router.push(deleteRedirectHref);
-      router.refresh();
+      window.location.replace(deleteRedirectHref);
     } catch {
       setError("Delete failed.");
       showDbToastError("Delete failed.");

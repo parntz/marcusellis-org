@@ -81,9 +81,12 @@ function isAppRouteHref(href = "") {
   return true;
 }
 
-function SmartNavLink({ href, className, children, onNavigate }) {
+function SmartNavLink({ href, className, children, onNavigate, newWindow = false }) {
   const normalizedHref = normalizeNavHref(href);
   const pdfHref = isPdfHref(normalizedHref);
+  const openInNewWindow = Boolean(newWindow || pdfHref);
+  const rel = openInNewWindow ? "noopener noreferrer" : undefined;
+  const target = openInNewWindow ? "_blank" : undefined;
 
   function handleClick(e) {
     onNavigate?.();
@@ -95,7 +98,7 @@ function SmartNavLink({ href, className, children, onNavigate }) {
 
   if (isAppRouteHref(normalizedHref)) {
     return (
-      <Link href={normalizedHref} className={className} onClick={handleClick}>
+      <Link href={normalizedHref} className={className} onClick={handleClick} target={target} rel={rel}>
         {children}
       </Link>
     );
@@ -106,8 +109,8 @@ function SmartNavLink({ href, className, children, onNavigate }) {
       href={normalizedHref}
       className={className}
       onClick={handleClick}
-      target={pdfHref ? "_blank" : undefined}
-      rel={pdfHref ? "noopener noreferrer" : undefined}
+      target={target}
+      rel={rel}
     >
       {children}
     </a>
@@ -129,6 +132,7 @@ function NavList({ items, depth = 0, onNavigate, activePath }) {
             href={item.href}
             className={linkClassName}
             onNavigate={onNavigate}
+            newWindow={item.newWindow}
           >
             {item.label}
           </SmartNavLink>

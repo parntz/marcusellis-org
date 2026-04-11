@@ -53,7 +53,7 @@ async function fetchMembers() {
   const client = getClient();
   const list = (
     await client.execute({
-      sql: `SELECT slug, title, description_html, contact_html, personnel_html, canonical_url, picture_url
+      sql: `SELECT slug, title, first_name, last_name, description_html, contact_html, personnel_html, canonical_url, picture_url
             FROM member_pages
             ORDER BY title ASC`,
     })

@@ -19,12 +19,7 @@ export function MagazineArchive({ introHtml = "", issues = [], latestIssue = nul
                     {issue.imageSrc ? <img src={issue.imageSrc} alt={issue.title} loading="lazy" /> : null}
                   </div>
                   <div className="magazine-issue-card__body">
-                    <p className="magazine-issue-card__eyebrow">{issue.year || "Archive issue"}</p>
                     <h3>{issue.label}</h3>
-                    <span className="magazine-issue-card__link">
-                      Read online
-                      <span aria-hidden="true">↗</span>
-                    </span>
                   </div>
                 </a>
               ))}

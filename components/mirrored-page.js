@@ -1487,24 +1487,31 @@ export async function MirroredPage({
                       screenshotSrc={afmEntertainmentConfig?.screenshotSrc || "/images/afm-entertainment-home-raw.png"}
                     />
                   ) : (
-                    membersOnlyDirectoryPage && isAdmin ? (
-                      <SitePageBodyAdmin
-                        route={page.route}
-                        initialSourceHtml={page.bodyHtml || ""}
-                        dialogTitle="Edit Members Only Directory main content"
-                        overlayLabel="Edit members only directory main content"
-                        helpText="This page uses a single HTML field. Edit the full main column here with the HTML editor."
-                        fieldLabel="Main content HTML"
-                      >
+                    membersOnlyDirectoryPage ? (
+                      isAdmin ? (
+                        <SitePageBodyAdmin
+                          route={page.route}
+                          initialSourceHtml={page.bodyHtml || ""}
+                          dialogTitle="Edit Members Only Directory main content"
+                          overlayLabel="Edit members only directory main content"
+                          helpText="This page uses a single HTML field. Edit the full main column here with the HTML editor."
+                          fieldLabel="Main content HTML"
+                        >
+                          <section
+                            className="members-only-directory-main"
+                            dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
+                          />
+                        </SitePageBodyAdmin>
+                      ) : (
                         <section
                           className="members-only-directory-main"
                           dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
                         />
-                      </SitePageBodyAdmin>
+                      )
                     ) : (
                       <section
-                        className="members-only-directory-main"
-                        dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
+                        className="page-content"
+                        dangerouslySetInnerHTML={{ __html: bodyHtml }}
                       />
                     )
                   )}
@@ -1570,24 +1577,31 @@ export async function MirroredPage({
                   screenshotSrc={afmEntertainmentConfig?.screenshotSrc || "/images/afm-entertainment-home-raw.png"}
                 />
               ) : (
-                membersOnlyDirectoryPage && isAdmin ? (
-                  <SitePageBodyAdmin
-                    route={page.route}
-                    initialSourceHtml={page.bodyHtml || ""}
-                    dialogTitle="Edit Members Only Directory main content"
-                    overlayLabel="Edit members only directory main content"
-                    helpText="This page uses a single HTML field. Edit the full main column here with the HTML editor."
-                    fieldLabel="Main content HTML"
-                  >
+                membersOnlyDirectoryPage ? (
+                  isAdmin ? (
+                    <SitePageBodyAdmin
+                      route={page.route}
+                      initialSourceHtml={page.bodyHtml || ""}
+                      dialogTitle="Edit Members Only Directory main content"
+                      overlayLabel="Edit members only directory main content"
+                      helpText="This page uses a single HTML field. Edit the full main column here with the HTML editor."
+                      fieldLabel="Main content HTML"
+                    >
+                      <section
+                        className="members-only-directory-main"
+                        dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
+                      />
+                    </SitePageBodyAdmin>
+                  ) : (
                     <section
                       className="members-only-directory-main"
                       dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
                     />
-                  </SitePageBodyAdmin>
+                  )
                 ) : (
                   <section
-                    className="members-only-directory-main"
-                    dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
+                    className="page-content"
+                    dangerouslySetInnerHTML={{ __html: bodyHtml }}
                   />
                 )
               )}

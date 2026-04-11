@@ -174,7 +174,11 @@ export function ProfileShowcase({
       ) : null}
 
       <div className="find-artist-profile__hero">
-        <div className="find-artist-profile__media">
+        <div
+          className={`find-artist-profile__media ${
+            imageUrl ? "find-artist-profile__media--image" : "find-artist-profile__media--placeholder"
+          }`}
+        >
           {imageUrl ? (
             <img src={imageUrl} alt={title} />
           ) : (

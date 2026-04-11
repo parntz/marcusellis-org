@@ -3,26 +3,18 @@
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState, startTransition } from "react";
 
-const PAGE_SIZE = 24;
-const DEFAULT_IMAGE_MEMBER_COUNT = 20;
+const PAGE_SIZE = 20;
 
-function pickRandomMembersWithImages(members = [], count = DEFAULT_IMAGE_MEMBER_COUNT) {
-  const pool = (Array.isArray(members) ? members : []).filter((member) => String(member?.pictureUrl || "").trim());
-  const shuffled = [...pool];
-
-  for (let index = shuffled.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
-  }
-
-  return shuffled.slice(0, count);
-}
-
-function sortMembersByImageFirst(members = []) {
+function sortMembersWithImagesFirst(members = []) {
   return [...(Array.isArray(members) ? members : [])].sort((left, right) => {
-    const leftHasImage = Number(Boolean(String(left?.pictureUrl || "").trim()));
-    const rightHasImage = Number(Boolean(String(right?.pictureUrl || "").trim()));
-    return rightHasImage - leftHasImage;
+    const leftHasImage = Boolean(String(left?.pictureUrl || "").trim());
+    const rightHasImage = Boolean(String(right?.pictureUrl || "").trim());
+    if (leftHasImage !== rightHasImage) {
+      return leftHasImage ? -1 : 1;
+    }
+    return String(left?.title || "").localeCompare(String(right?.title || ""), undefined, {
+      sensitivity: "base",
+    });
   });
 }
 
@@ -98,6 +90,8 @@ export function MemberPagesDirectory({ members }) {
   const [view, setView] = useState("list");
   const deferredQuery = useDeferredValue(query);
   const normalizedQuery = deferredQuery.trim().toLowerCase();
+  const hasSearch = normalizedQuery.length > 0;
+  const totalMembers = Array.isArray(members) ? members.length : 0;
 
   useEffect(() => {
     const stored = window.localStorage.getItem("member-pages-view");
@@ -106,18 +100,17 @@ export function MemberPagesDirectory({ members }) {
     }
   }, []);
 
-  const defaultMembers = useMemo(() => pickRandomMembersWithImages(members, DEFAULT_IMAGE_MEMBER_COUNT), [members]);
+  const orderedMembers = useMemo(() => sortMembersWithImagesFirst(members), [members]);
 
   const filteredMembers = useMemo(() => {
-    if (!normalizedQuery) {
-      return defaultMembers;
-    }
-
-    return sortMembersByImageFirst(members.filter((member) => member.searchText.includes(normalizedQuery)));
-  }, [defaultMembers, members, normalizedQuery]);
+    if (!hasSearch) return orderedMembers;
+    return orderedMembers.filter((member) => member.searchText.includes(normalizedQuery));
+  }, [hasSearch, orderedMembers, normalizedQuery]);
 
   const total = filteredMembers.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(page * PAGE_SIZE, total);
 
   useEffect(() => {
     if (page <= totalPages) return;
@@ -184,7 +177,9 @@ export function MemberPagesDirectory({ members }) {
           </div>
         </div>
         <p className="member-count">
-          {total} {total === 1 ? "member" : "members"}
+          {hasSearch
+            ? `${total} matching ${total === 1 ? "member" : "members"}`
+            : `${totalMembers} ${totalMembers === 1 ? "member" : "members"}`}
         </p>
       </section>
 
@@ -201,7 +196,8 @@ export function MemberPagesDirectory({ members }) {
       {totalPages > 1 ? (
         <footer className="member-pagination" aria-label="Pagination">
           <span>
-            Page {page} of {totalPages} ({total} {total === 1 ? "member" : "members"})
+            Page {page} of {totalPages} (showing {rangeStart}-{rangeEnd} of {total}{" "}
+            {hasSearch ? "matches" : total === 1 ? "member" : "members"})
           </span>
           <button type="button" onClick={() => changePage(page - 1)} disabled={page <= 1}>
             ← Prev

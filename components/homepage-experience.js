@@ -22,7 +22,11 @@ import { DEFAULT_HOME_VALUE_STRIP } from "../lib/home-value-strip-defaults";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { DEFAULT_HOME_PANELS } from "../lib/home-panels-defaults";
 import { isAdminUser } from "../lib/authz";
+import { ModalLightbox } from "./modal-lightbox";
 import { UploadFieldStatus } from "./upload-field-status";
+
+const DEFAULT_TRAVEL_TIPS_PDF =
+  "/_downloaded/sites/default/files/Media%20Root/Travel%20Tips%20for%20Musicians2023.pdf";
 
 /** After moving one item from `from` to `to`, map an index that pointed at a slide before the move. */
 function mapIndexAfterReorder(oldIndex, from, to) {
@@ -317,6 +321,7 @@ export function HomepageExperience({
     titleLine1: String(homeHeroTextConfig?.titleLine1 || "Nashville Musicians"),
     titleLine2: String(homeHeroTextConfig?.titleLine2 || "Association"),
     subheading: String(homeHeroTextConfig?.subheading || "AFM Local 257 — Since 1902"),
+    linkHref: String(homeHeroTextConfig?.linkHref || ""),
   };
   const initialHomePanels = normalizeHomePanels(homePanelsConfig);
   const initialHomeValueStrip = normalizeHomeValueStrip(homeValueStripConfig);
@@ -346,14 +351,22 @@ export function HomepageExperience({
   const [heroTitleLine1, setHeroTitleLine1] = useState(initialHeroText.titleLine1);
   const [heroTitleLine2, setHeroTitleLine2] = useState(initialHeroText.titleLine2);
   const [heroSubheading, setHeroSubheading] = useState(initialHeroText.subheading);
+  const [heroLinkHref, setHeroLinkHref] = useState(initialHeroText.linkHref);
   const [heroTitleLine1Draft, setHeroTitleLine1Draft] = useState(initialHeroText.titleLine1);
   const [heroTitleLine2Draft, setHeroTitleLine2Draft] = useState(initialHeroText.titleLine2);
   const [heroSubheadingDraft, setHeroSubheadingDraft] = useState(initialHeroText.subheading);
+  const [heroLinkHrefDraft, setHeroLinkHrefDraft] = useState(initialHeroText.linkHref);
   const [heroTextOverlayActive, setHeroTextOverlayActive] = useState(false);
   const [heroTextGlassVariant, setHeroTextGlassVariant] = useState(HERO_TEXT_GLASS_VARIANTS[0]);
   const [heroTextGlassCycle, setHeroTextGlassCycle] = useState(0);
   const [heroTextEditorPortalReady, setHeroTextEditorPortalReady] = useState(false);
+  const [parkingMapLightboxOpen, setParkingMapLightboxOpen] = useState(false);
+  const [travelTipsLightboxOpen, setTravelTipsLightboxOpen] = useState(false);
   const [homePanels, setHomePanels] = useState(initialHomePanels);
+  const travelTipsPdfHref =
+    homePanels.travel.ctaHref && homePanels.travel.ctaHref !== "/news-and-events"
+      ? homePanels.travel.ctaHref
+      : DEFAULT_TRAVEL_TIPS_PDF;
   const [homePanelsDraft, setHomePanelsDraft] = useState(initialHomePanels);
   const [homePanelsEditorOpen, setHomePanelsEditorOpen] = useState(false);
   const [homePanelsSaveBusy, setHomePanelsSaveBusy] = useState(false);
@@ -668,18 +681,21 @@ export function HomepageExperience({
       setHeroTitleLine1(String(data.titleLine1 || ""));
       setHeroTitleLine2(String(data.titleLine2 || ""));
       setHeroSubheading(String(data.subheading || ""));
+      setHeroLinkHref(String(data.linkHref || ""));
       setHeroTitleLine1Draft(String(data.titleLine1 || ""));
       setHeroTitleLine2Draft(String(data.titleLine2 || ""));
       setHeroSubheadingDraft(String(data.subheading || ""));
+      setHeroLinkHrefDraft(String(data.linkHref || ""));
     } catch (err) {
       setHeroTextError(err instanceof Error ? err.message : "Could not load hero text.");
       setHeroTitleLine1Draft(heroTitleLine1);
       setHeroTitleLine2Draft(heroTitleLine2);
       setHeroSubheadingDraft(heroSubheading);
+      setHeroLinkHrefDraft(heroLinkHref);
     } finally {
       setHeroTextEditorOpen(true);
     }
-  }, [heroSubheading, heroTitleLine1, heroTitleLine2]);
+  }, [heroLinkHref, heroSubheading, heroTitleLine1, heroTitleLine2]);
 
   const saveHeroText = useCallback(
     async (event) => {
@@ -694,6 +710,7 @@ export function HomepageExperience({
             titleLine1: heroTitleLine1Draft,
             titleLine2: heroTitleLine2Draft,
             subheading: heroSubheadingDraft,
+            linkHref: heroLinkHrefDraft,
           }),
         });
         const data = await res.json().catch(() => ({}));
@@ -706,6 +723,7 @@ export function HomepageExperience({
         setHeroTitleLine1(String(data.titleLine1 || ""));
         setHeroTitleLine2(String(data.titleLine2 || ""));
         setHeroSubheading(String(data.subheading || ""));
+        setHeroLinkHref(String(data.linkHref || ""));
         setHeroTextEditorOpen(false);
         showDbToastSuccess();
       } catch (err) {
@@ -715,7 +733,7 @@ export function HomepageExperience({
         setHeroTextSaveBusy(false);
       }
     },
-    [heroSubheadingDraft, heroTitleLine1Draft, heroTitleLine2Draft]
+    [heroLinkHrefDraft, heroSubheadingDraft, heroTitleLine1Draft, heroTitleLine2Draft]
   );
 
   const updateHomePanelDraft = useCallback((panelKey, field, value) => {
@@ -1115,9 +1133,13 @@ export function HomepageExperience({
         <p className="parking-panel-copy">
           {homePanels.parking.body}
         </p>
-        <HomePanelButton href={homePanels.parking.ctaHref} className="btn btn-primary parking-panel-cta">
+        <button
+          type="button"
+          className="btn btn-primary parking-panel-cta"
+          onClick={() => setParkingMapLightboxOpen(true)}
+        >
           {homePanels.parking.ctaLabel}
-        </HomePanelButton>
+        </button>
         {isAdmin ? (
           <button
             type="button"
@@ -1160,9 +1182,13 @@ export function HomepageExperience({
         <p className="panel-kicker">{homePanels.travel.kicker}</p>
         <h3 className="parking-panel-title">{homePanels.travel.title}</h3>
         <p className="parking-panel-copy">{homePanels.travel.body}</p>
-        <HomePanelButton href={homePanels.travel.ctaHref} className="btn btn-primary parking-panel-cta">
+        <button
+          type="button"
+          className="btn btn-primary parking-panel-cta"
+          onClick={() => setTravelTipsLightboxOpen(true)}
+        >
           {homePanels.travel.ctaLabel}
-        </HomePanelButton>
+        </button>
         {isAdmin ? (
           <button
             type="button"
@@ -1271,11 +1297,23 @@ export function HomepageExperience({
             }
           }}
         >
-          <h1 className="hero-image-title">
-            {heroTitleLine1}
-            <span>{heroTitleLine2}</span>
-          </h1>
-          <p className="hero-image-sub">{heroSubheading}</p>
+          {!isAdmin && heroLinkHref ? (
+            <HomePanelButton href={heroLinkHref} className="hero-image-link">
+              <h1 className="hero-image-title">
+                {heroTitleLine1}
+                <span>{heroTitleLine2}</span>
+              </h1>
+              <p className="hero-image-sub">{heroSubheading}</p>
+            </HomePanelButton>
+          ) : (
+            <>
+              <h1 className="hero-image-title">
+                {heroTitleLine1}
+                <span>{heroTitleLine2}</span>
+              </h1>
+              <p className="hero-image-sub">{heroSubheading}</p>
+            </>
+          )}
           {isAdmin ? (
             <span
               className="hero-image-content__admin-overlay"
@@ -1415,6 +1453,33 @@ export function HomepageExperience({
         ) : null}
       </section>
 
+      <ModalLightbox
+        open={parkingMapLightboxOpen}
+        onClose={() => setParkingMapLightboxOpen(false)}
+        closeLabel="Close parking map"
+      >
+        <div className="parking-map-lightbox">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/Parkingmap.png"
+            alt="Downtown parking map for AFM Local 257 members"
+            className="parking-map-lightbox__image"
+          />
+        </div>
+      </ModalLightbox>
+
+      <ModalLightbox
+        open={travelTipsLightboxOpen}
+        onClose={() => setTravelTipsLightboxOpen(false)}
+        closeLabel="Close travel tips PDF"
+        aspectRatio="pdf"
+      >
+        <iframe
+          src={travelTipsPdfHref}
+          title="Travel Tips for Musicians PDF"
+        />
+      </ModalLightbox>
+
       {heroTextEditorPortalReady && heroTextEditorOpen
         ? createPortal(
             <div className="page-header-editor-backdrop" role="presentation">
@@ -1457,6 +1522,16 @@ export function HomepageExperience({
                       onChange={(event) => setHeroSubheadingDraft(event.target.value)}
                       maxLength={220}
                       required
+                    />
+                  </label>
+                  <label>
+                    Optional link
+                    <input
+                      type="text"
+                      value={heroLinkHrefDraft}
+                      onChange={(event) => setHeroLinkHrefDraft(event.target.value)}
+                      maxLength={500}
+                      placeholder="/find-an-artist-or-band or https://example.com"
                     />
                   </label>
                   {heroTextError ? <p className="hero-admin-error">{heroTextError}</p> : null}
