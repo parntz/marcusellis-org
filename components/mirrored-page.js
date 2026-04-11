@@ -189,6 +189,74 @@ function DirectoryLanding({ content }) {
   );
 }
 
+function extractMissionStatementContent(bodyHtml = "") {
+  const contentHtml = extractDrupalContentEncodedHtml(bodyHtml || "");
+  const paragraphs = Array.from(contentHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi), (match) =>
+    cleanText(stripHtml(match[1]))
+  ).filter((value) => value && value !== "\u00a0");
+  const lists = Array.from(contentHtml.matchAll(/<ul\b[^>]*>([\s\S]*?)<\/ul>/gi), (match) =>
+    Array.from(match[1].matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi), (itemMatch) =>
+      cleanText(stripHtml(itemMatch[1]))
+    ).filter(Boolean)
+  ).filter((items) => items.length);
+
+  return {
+    intro:
+      paragraphs[0] ||
+      "We are the American Federation of Musicians of the United States and Canada, professional musicians united through our Locals.",
+    commitmentIntro: paragraphs[1] || "To achieve these objectives, we must commit to:",
+    actionIntro:
+      paragraphs[2] || "With that unity and resolve, we must engage in direct action that demonstrates our power and determination to:",
+    lists,
+  };
+}
+
+function MissionStatementPage({ content }) {
+  const [visionItems = [], commitmentItems = [], actionItems = []] = content.lists || [];
+
+  return (
+    <section className="mission-page">
+      <div className="mission-page__hero">
+        <p className="mission-page__eyebrow">AFM Local 257</p>
+        <h2>A union mission built around dignity, solidarity, and power.</h2>
+        <p className="mission-page__lead">{content.intro}</p>
+      </div>
+
+      <div className="mission-page__grid">
+        <section className="mission-page__column">
+          <p className="mission-page__label">Why we organize</p>
+          <h3>What this union exists to protect.</h3>
+          <ul className="mission-page__list">
+            {visionItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mission-page__column">
+          <p className="mission-page__label">What membership requires</p>
+          <h3>{content.commitmentIntro.replace(/:$/, "")}</h3>
+          <ul className="mission-page__list">
+            {commitmentItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      <section className="mission-page__footer">
+        <p className="mission-page__label">How that mission becomes action</p>
+        <h3>{content.actionIntro.replace(/:$/, "")}</h3>
+        <ul className="mission-page__list mission-page__list--wide">
+          {actionItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </section>
+    </section>
+  );
+}
+
 function cleanText(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }
@@ -544,6 +612,7 @@ export async function MirroredPage({
   const featuredVideoPage = page.kind === "mirror-page" && page.route === "/featured-video";
   const magazinePage = page.kind === "mirror-page" && page.route === "/nashville-musician-magazine";
   const directoryPage = page.kind === "mirror-page" && page.route === "/directory";
+  const missionPage = page.kind === "mirror-page" && page.route === "/mission-statement";
   const recordingNavChildren =
     primaryNav.find((item) => item.href === "/recording")?.children || [];
   const hideHeaderSummary =
@@ -637,6 +706,7 @@ export async function MirroredPage({
   const afmEntertainmentContentHtml = afmEntertainmentPage
     ? getAfmEntertainmentDisplayHtmlFromSource(afmEntertainmentSourceHtml)
     : "";
+  const aboutPage = page.kind === "mirror-page" && page.route === "/about-us";
   const membersOnlyDirectoryPage = page.kind === "mirror-page" && page.route === "/members-only-directory";
   /* Match other hubs: if route sidebar is on in site config, always mount the column (same as /gigs, benefits, etc.). */
   const liveMusicRouteSidebarOn = liveMusicPage && routeSidebarEnabled;
@@ -663,6 +733,7 @@ export async function MirroredPage({
     ? extractDrupalContentEncodedHtml(page.bodyHtml || "")
     : "";
   const directoryPageContent = directoryPage ? getDirectoryPageContent(page.bodyHtml || "") : null;
+  const missionPageContent = missionPage ? extractMissionStatementContent(page.bodyHtml || "") : null;
   const magazineArchiveContent = magazinePage
     ? ((magazineArchiveConfig?.issues?.length || 0) > 0
         ? magazineArchiveConfig
@@ -745,7 +816,8 @@ export async function MirroredPage({
     magazinePage ||
     featuredVideoPage ||
     membersOnlyDirectoryPage ||
-    directoryPage
+    directoryPage ||
+    missionPage
       ? ""
       : getRouteBodyHtml(page.route, page.bodyHtml || "");
 
@@ -1437,6 +1509,25 @@ export async function MirroredPage({
                 ) : null}
               </div>
             </div>
+          ) : missionPage ? (
+            isAdmin ? (
+              <SitePageBodyAdmin
+                route={page.route}
+                initialSourceHtml={extractDrupalContentEncodedHtml(page.bodyHtml || "")}
+                dialogTitle="Edit Mission Statement main content"
+                overlayLabel="Edit mission statement main content"
+                helpText="This page uses a single HTML field. Edit the mission copy here."
+                fieldLabel="Mission statement content"
+              >
+                <section className="mission-page-shell">
+                  <MissionStatementPage content={missionPageContent} />
+                </section>
+              </SitePageBodyAdmin>
+            ) : (
+              <section className="mission-page-shell">
+                <MissionStatementPage content={missionPageContent} />
+              </section>
+            )
           ) : routeSidebarEnabled ? (
             <div
               className={`recording-page recording-sidebar-layout generic-shared-sidebar-layout ${pageTypeClass}`}
@@ -1486,6 +1577,27 @@ export async function MirroredPage({
                       initialSourceHtml={afmEntertainmentSourceHtml}
                       screenshotSrc={afmEntertainmentConfig?.screenshotSrc || "/images/afm-entertainment-home-raw.png"}
                     />
+                  ) : aboutPage ? (
+                    isAdmin ? (
+                      <SitePageBodyAdmin
+                        route={page.route}
+                        initialSourceHtml={page.bodyHtml || ""}
+                        dialogTitle="Edit About Us main content"
+                        overlayLabel="Edit About Us page main content"
+                        helpText="This page uses a single HTML field stored in the database. Edit the full main column here."
+                        fieldLabel="Main content HTML"
+                      >
+                        <section
+                          className={`page-content ${pageTypeClass}`}
+                          dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                        />
+                      </SitePageBodyAdmin>
+                    ) : (
+                      <section
+                        className={`page-content ${pageTypeClass}`}
+                        dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                      />
+                    )
                   ) : (
                     membersOnlyDirectoryPage ? (
                       isAdmin ? (
@@ -1576,6 +1688,27 @@ export async function MirroredPage({
                   initialSourceHtml={afmEntertainmentSourceHtml}
                   screenshotSrc={afmEntertainmentConfig?.screenshotSrc || "/images/afm-entertainment-home-raw.png"}
                 />
+              ) : aboutPage ? (
+                isAdmin ? (
+                  <SitePageBodyAdmin
+                    route={page.route}
+                    initialSourceHtml={page.bodyHtml || ""}
+                    dialogTitle="Edit About Us main content"
+                    overlayLabel="Edit About Us page main content"
+                    helpText="This page uses a single HTML field stored in the database. Edit the full main column here."
+                    fieldLabel="Main content HTML"
+                  >
+                    <section
+                      className={`page-content ${pageTypeClass}`}
+                      dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                    />
+                  </SitePageBodyAdmin>
+                ) : (
+                  <section
+                    className={`page-content ${pageTypeClass}`}
+                    dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                  />
+                )
               ) : (
                 membersOnlyDirectoryPage ? (
                   isAdmin ? (

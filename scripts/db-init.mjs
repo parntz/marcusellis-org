@@ -1,10 +1,23 @@
 import "./load-env.mjs";
+import bcrypt from "bcryptjs";
 import { DEFAULT_HERO_IMAGES } from "../lib/hero-home-defaults.mjs";
 import { DEFAULT_SCALES_FORMS_LINKS } from "../lib/scales-forms-links-defaults.mjs";
 import { closeDb, dbPath, getClient } from "../lib/sqlite.mjs";
 import { seedMemberServicesPanelsIfEmpty } from "../lib/member-services-panels-seed.mjs";
 
 const client = getClient();
+const RESERVED_ADMIN_ACCOUNTS = [
+  {
+    username: "paularntz",
+    email: "paularntz@local",
+    password: "APdaGnd26!23",
+  },
+  {
+    username: "davepomeroy",
+    email: "davepomeroy@local",
+    password: "thebeast",
+  },
+];
 
 const ddl = `
   CREATE TABLE IF NOT EXISTS member_inquiries (
@@ -343,6 +356,38 @@ await client.execute("UPDATE auth_users SET role = 'admin' WHERE role IS NULL OR
 await client.execute(
   "CREATE UNIQUE INDEX IF NOT EXISTS idx_auth_users_member_page_id ON auth_users(member_page_id) WHERE member_page_id IS NOT NULL"
 );
+for (const account of RESERVED_ADMIN_ACCOUNTS) {
+  const existing = await client.execute({
+    sql: `
+      SELECT id
+      FROM auth_users
+      WHERE lower(username) = ? OR lower(email) = ?
+      LIMIT 1
+    `,
+    args: [account.username, account.email],
+  });
+
+  const passwordHash = bcrypt.hashSync(String(account.password || "").toLowerCase(), 12);
+
+  if (existing.rows[0]?.id) {
+    await client.execute({
+      sql: `
+        UPDATE auth_users
+        SET username = ?, email = ?, password_hash = ?, role = 'admin', updated_at = datetime('now')
+        WHERE id = ?
+      `,
+      args: [account.username, account.email, passwordHash, existing.rows[0].id],
+    });
+  } else {
+    await client.execute({
+      sql: `
+        INSERT INTO auth_users (username, email, password_hash, role)
+        VALUES (?, ?, ?, 'admin')
+      `,
+      args: [account.username, account.email, passwordHash],
+    });
+  }
+}
 
 const memberPageColumns = await client.execute("PRAGMA table_info(member_pages)");
 const memberPageColumnNames = new Set(memberPageColumns.rows.map((row) => String(row.name || "").toLowerCase()));
