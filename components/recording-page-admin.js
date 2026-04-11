@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ModalLightbox } from "./modal-lightbox";
 import { NewsEventsBodyEditor } from "./news-events-body-editor";
+import { UploadFieldStatus } from "./upload-field-status";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 
 const GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
@@ -203,14 +204,11 @@ export function RecordingPageAdmin({ initialConfig, target = "main", children })
                       onChange={handleThumbnailUpload}
                       disabled={uploadBusy}
                     />
-                  </label>
-                  <label className="recording-sidebar-form-grid__wide">
-                    Thumbnail URL
-                    <input
-                      type="text"
-                      value={draft.thumbnailSrc}
-                      onChange={(event) => setDraft((current) => ({ ...current, thumbnailSrc: event.target.value }))}
-                      placeholder="/images/recording-thumb.jpg"
+                    <UploadFieldStatus
+                      url={draft.thumbnailSrc}
+                      kind="image"
+                      imageAlt="Recording thumbnail preview"
+                      emptyLabel="No thumbnail uploaded yet."
                     />
                   </label>
                   <label>

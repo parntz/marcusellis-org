@@ -79,11 +79,16 @@ export function PhotoVideoGallery({
   const router = useRouter();
   const [activeItem, setActiveItem] = useState(null);
   const [queryInput, setQueryInput] = useState(searchQuery);
+  const [mediaReady, setMediaReady] = useState(false);
   const allItems = useMemo(() => (Array.isArray(items) ? items.filter(Boolean) : []), [items]);
 
   useEffect(() => {
     setQueryInput(searchQuery);
   }, [searchQuery]);
+
+  useEffect(() => {
+    setMediaReady(false);
+  }, [activeItem?.id, activeItem?.imageUrl, activeItem?.videoUrl, activeItem?.mediaType]);
 
   const totalPages = Math.max(1, Math.ceil(Math.max(0, totalMatching) / pageSize));
 
@@ -92,9 +97,13 @@ export function PhotoVideoGallery({
     router.push(buildGalleryHref(queryInput, 1));
   }
 
-  function onClearSearch() {
-    setQueryInput("");
-    router.push(GALLERY_ROUTE);
+  function handleQueryChange(event) {
+    const nextValue = event.target.value;
+    setQueryInput(nextValue);
+
+    if (!String(nextValue || "").trim() && String(searchQuery || "").trim()) {
+      router.push(buildGalleryHref("", 1, shuffleSeed));
+    }
   }
 
   return (
@@ -108,17 +117,12 @@ export function PhotoVideoGallery({
                 type="search"
                 name="q"
                 value={queryInput}
-                onChange={(event) => setQueryInput(event.target.value)}
+                onChange={handleQueryChange}
                 placeholder="Search photos and videos"
                 autoComplete="off"
                 aria-label="Search photo and video gallery"
               />
               <button type="submit">Search</button>
-              {queryInput ? (
-                <button type="button" className="news-events-search-clear" onClick={onClearSearch}>
-                  Clear
-                </button>
-              ) : null}
             </div>
           </form>
           <Stats
@@ -190,25 +194,34 @@ export function PhotoVideoGallery({
       >
         {activeItem ? (
           <div className="photo-video-gallery-lightbox photo-video-gallery-lightbox--modal">
-            <div
-              className={
+          <div
+              className={[
+                "photo-video-gallery-lightbox__media-stage",
                 activeItem.mediaType === "video"
-                  ? "photo-video-gallery-lightbox__media-stage photo-video-gallery-lightbox__media-stage--video"
-                  : "photo-video-gallery-lightbox__media-stage photo-video-gallery-lightbox__media-stage--photo"
-              }
+                  ? "photo-video-gallery-lightbox__media-stage--video"
+                  : "photo-video-gallery-lightbox__media-stage--photo",
+                mediaReady ? "is-ready" : "is-loading",
+              ].join(" ")}
             >
+              {!mediaReady ? (
+                <div className="photo-video-gallery-lightbox__media-loading" aria-hidden="true">
+                  <img src="/images/nma-logo.png" alt="" />
+                </div>
+              ) : null}
               {activeItem.mediaType === "video" ? (
                 <iframe
                   src={activeItem.videoUrl}
                   title={activeItem.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                  onLoad={() => setMediaReady(true)}
                 />
               ) : (
                 <img
                   className="photo-video-gallery-lightbox__image"
                   src={activeItem.imageUrl}
                   alt={activeItem.imageAlt || activeItem.title}
+                  onLoad={() => setMediaReady(true)}
                 />
               )}
             </div>

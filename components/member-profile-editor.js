@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ModalLightbox } from "./modal-lightbox";
+import { UploadFieldStatus } from "./upload-field-status";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 
 function htmlToPlainText(value) {
@@ -85,6 +86,7 @@ function getInitialDraft(profile) {
     websiteUrl: String(profile?.websiteUrl || ""),
     facebookUrl: String(profile?.facebookUrl || ""),
     reverbnationUrl: String(profile?.reverbnationUrl || ""),
+    xUrl: String(profile?.xUrl || ""),
     featuredVideoTitle: String(profile?.featuredVideoTitle || ""),
     featuredVideoUrl: String(profile?.featuredVideoUrl || ""),
     primaryInstruments: linesFromArray(profile?.primaryInstruments),
@@ -224,6 +226,7 @@ export function MemberProfileEditor({ profile, canDelete = false }) {
           websiteUrl: draft.websiteUrl,
           facebookUrl: draft.facebookUrl,
           reverbnationUrl: draft.reverbnationUrl,
+          xUrl: draft.xUrl,
           featuredVideoTitle: draft.featuredVideoTitle,
           featuredVideoUrl: draft.featuredVideoUrl,
           primaryInstruments: draft.primaryInstruments,
@@ -422,8 +425,12 @@ export function MemberProfileEditor({ profile, canDelete = false }) {
                   <input type="text" value={draft.facebookUrl} onChange={(event) => updateDraftField("facebookUrl", event.target.value)} placeholder="https://facebook.com/..." />
                 </label>
                 <label>
-                  ReverbNation URL
-                  <input type="text" value={draft.reverbnationUrl} onChange={(event) => updateDraftField("reverbnationUrl", event.target.value)} placeholder="https://www.reverbnation.com/..." />
+                  Instagram URL
+                  <input type="text" value={draft.reverbnationUrl} onChange={(event) => updateDraftField("reverbnationUrl", event.target.value)} placeholder="https://www.instagram.com/..." />
+                </label>
+                <label>
+                  X URL
+                  <input type="text" value={draft.xUrl} onChange={(event) => updateDraftField("xUrl", event.target.value)} placeholder="https://x.com/..." />
                 </label>
               </div>
 
@@ -640,6 +647,16 @@ export function MemberProfileEditor({ profile, canDelete = false }) {
                             onChange={(event) => updateRepeaterItem("media", item.localId, { assetUrl: event.target.value })}
                             placeholder={item.mediaType === "video" ? "https://youtu.be/..." : "/uploads/member-profiles/..."}
                           />
+                          {item.mediaType === "image" || item.mimeType ? (
+                            <UploadFieldStatus
+                              url={item.assetUrl}
+                              kind={item.mediaType === "image" ? "image" : "file"}
+                              mimeType={item.mimeType}
+                              imageAlt={`${item.label || "Member"} media preview`}
+                              emptyLabel={item.mediaType === "image" ? "No image uploaded yet." : "No file selected yet."}
+                              statusLabel={item.mediaType === "image" ? "Image ready" : "Media ready"}
+                            />
+                          ) : null}
                         </label>
                       </div>
                     </div>

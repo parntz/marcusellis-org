@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { AssetGallery } from "./asset-gallery";
 import { HomepageExperience } from "./homepage-experience";
-import { FindArtistEnhancer } from "./find-artist-enhancer";
+import { FindArtistGalleryClient } from "./find-artist-gallery-client";
 import BenefitsHub from "./benefits-hub";
 import { MemberSiteLinksHeroAdmin } from "./member-site-links-hero-admin";
 import { MemberSiteLinksIntroAdmin } from "./member-site-links-intro-admin";
@@ -24,9 +24,12 @@ import { RecordingSidebarPanel } from "./recording-sidebar-panel";
 import { RecordingVideo } from "./recording-video";
 import { RecordingPageAdmin } from "./recording-page-admin";
 import { RecordingPageOptionsButton } from "./recording-page-options-button";
+import { FeaturedVideoPageAdmin } from "./featured-video-page-admin";
 import { RehearsalHallHeroAdmin } from "./rehearsal-hall-hero-admin";
 import { RehearsalHallSectionAdmin } from "./rehearsal-hall-section-admin";
 import { LiveScalesDownloads } from "./live-scales-downloads";
+import { AfmEntertainmentAdmin } from "./afm-entertainment-admin";
+import { MagazineArchive } from "./magazine-archive";
 import { PhotoVideoGallery } from "./photo-video-gallery";
 import { ScalesMasterDetail } from "./scales-master-detail";
 import { SitePageBodyAdmin } from "./signatory-body-admin";
@@ -39,17 +42,25 @@ import {
   listPhotoGalleryItemsPaged,
   PHOTO_GALLERY_PAGE_SIZE,
 } from "../lib/photo-gallery.mjs";
+import { listArtistBandProfiles } from "../lib/find-artist-directory.mjs";
 import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
 import { primaryNav, siteStats, utilityNav } from "../lib/site-data";
 import { listNewsEventsItems } from "../lib/news-events-items";
 import { getMemberSiteLinksHeroConfig } from "../lib/site-config-member-site-links-hero";
 import { getMemberSiteLinksIntroConfig } from "../lib/site-config-member-site-links-intro";
 import { getRecordingPageConfig } from "../lib/site-config-recording-page";
+import { getFeaturedVideoPageConfig } from "../lib/site-config-featured-video";
 import { getRehearsalHallHeroConfig } from "../lib/site-config-rehearsal-hall";
 import { getRouteSidebarConfig } from "../lib/site-config-route-sidebar";
 import { getSidebarWidthConfig } from "../lib/site-config-sidebar-width";
 import { getScalesFormsLinksConfig } from "../lib/site-config-scales-forms-links";
+import { getAfmEntertainmentPageConfig } from "../lib/site-config-afm-entertainment";
 import { cleanDrupalHtml, extractDrupalContentEncodedHtml } from "../lib/drupal-html-clean.js";
+import { getMagazineArchiveContent } from "../lib/magazine-archive.mjs";
+import {
+  getAfmEntertainmentDisplayHtmlFromSource,
+  getAfmEntertainmentSourceFromPageBody,
+} from "../lib/afm-entertainment-html.mjs";
 import {
   getLiveMusicDisplayHtmlFromSource,
   getLiveMusicSourceFromPageBody,
@@ -58,6 +69,7 @@ import { getMemberServicesIntroForPage } from "../lib/member-services-intro.mjs"
 import { listMemberServicesPanels } from "../lib/member-services-panels.mjs";
 import { getBenefitsHubConfig } from "../lib/site-config-benefits-hub.mjs";
 import { getMediaHubConfig } from "../lib/site-config-media-hub.mjs";
+import { getMagazineArchiveConfig } from "../lib/site-config-magazine-archive.mjs";
 import { getLiveScalesConfig } from "../lib/site-config-live-scales.mjs";
 import { getNewUseReuseIntroInnerForPage } from "../lib/new-use-reuse-intro.mjs";
 import {
@@ -65,6 +77,7 @@ import {
   getSignatorySourceFromPageBody,
 } from "../lib/signatory-html.mjs";
 import { LiveScalesLeadAdmin } from "./live-scales-admin";
+import { extractDirectorySourceHtml, getDirectoryPageContent } from "../lib/directory-page.mjs";
 
 function AssetIndex({ page }) {
   return (
@@ -90,6 +103,89 @@ function AssetIndex({ page }) {
         />
       ))}
     </section>
+  );
+}
+
+function AfmEntertainmentPromo({ contentHtml, isAdmin, initialSourceHtml, screenshotSrc }) {
+  if (isAdmin) {
+    return (
+      <AfmEntertainmentAdmin
+        initialSourceHtml={initialSourceHtml}
+        initialScreenshotSrc={screenshotSrc}
+        displayHtml={contentHtml}
+      />
+    );
+  }
+
+  const promoContent = (
+    <section className="afm-entertainment-promo-shell">
+      <div
+        className="afm-entertainment-promo"
+      >
+        <div className="afm-entertainment-promo__copy">
+          <p className="afm-entertainment-promo__eyebrow">External booking resource</p>
+          <div
+            className="afm-entertainment-promo__prose"
+            dangerouslySetInnerHTML={{ __html: contentHtml }}
+          />
+        </div>
+
+        <div className="afm-entertainment-promo__visual">
+          <div className="afm-entertainment-promo__frame">
+            <Image
+              src={screenshotSrc}
+              alt="Preview of the AFM Entertainment website"
+              width={1600}
+              height={1600}
+              unoptimized
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  return promoContent;
+}
+
+function DirectoryLanding({ content }) {
+  return (
+    <div className="directory-landing">
+      <section className="directory-column directory-column--intro">
+        <p className="directory-kicker">Two directory options</p>
+        <h2>Private roster for members, public profiles for booking.</h2>
+        {content.note ? <p className="directory-note">{content.note}</p> : null}
+        {content.supportText ? <p className="directory-support-line">{content.supportText}</p> : null}
+      </section>
+
+      <section className="directory-column directory-column--members">
+        <p className="directory-section__label">Members only</p>
+        <h3>{content.privateTitle}</h3>
+        {content.privateCopy ? (
+          <div
+            className="directory-section__copy"
+            dangerouslySetInnerHTML={{ __html: content.privateCopy }}
+          />
+        ) : null}
+        <p className="directory-section__action">
+          <a href={content.privateLink.href}>{content.privateLink.label}</a>
+        </p>
+      </section>
+
+      <section className="directory-column directory-column--public">
+        <p className="directory-section__label">Public showcase</p>
+        <h3>{content.publicTitle}</h3>
+        {content.publicCopy ? (
+          <div
+            className="directory-section__copy"
+            dangerouslySetInnerHTML={{ __html: content.publicCopy }}
+          />
+        ) : null}
+        <p className="directory-section__action">
+          <Link href={content.publicLink.href}>{content.publicLink.label}</Link>
+        </p>
+      </section>
+    </div>
   );
 }
 
@@ -436,6 +532,7 @@ export async function MirroredPage({
   const newUseReusePage = page.kind === "mirror-page" && page.route === "/new-use-reuse";
   const signatoryPage = page.kind === "mirror-page" && page.route === "/signatory-information";
   const liveMusicPage = page.kind === "mirror-page" && page.route === "/live-music";
+  const afmEntertainmentPage = page.kind === "mirror-page" && page.route === "/afm-entertainment";
   const liveScalesPage = page.kind === "mirror-page" && page.route === "/live-scales-contracts-pension";
   const rehearsalHallPage = page.kind === "mirror-page" && page.route === "/free-rehearsal-hall";
   const benefitsHubPage = page.kind === "mirror-page" && page.route === "/benefits-union-members";
@@ -444,7 +541,9 @@ export async function MirroredPage({
   const memberSiteLinksPage = page.kind === "mirror-page" && page.route === "/member-site-links";
   const findArtistPage = page.kind === "mirror-page" && page.route === "/find-an-artist-or-band";
   const photoGalleryPage = page.kind === "mirror-page" && page.route === "/photo-and-video-gallery";
+  const featuredVideoPage = page.kind === "mirror-page" && page.route === "/featured-video";
   const magazinePage = page.kind === "mirror-page" && page.route === "/nashville-musician-magazine";
+  const directoryPage = page.kind === "mirror-page" && page.route === "/directory";
   const recordingNavChildren =
     primaryNav.find((item) => item.href === "/recording")?.children || [];
   const hideHeaderSummary =
@@ -469,7 +568,7 @@ export async function MirroredPage({
     if (r === "/live-scales-contracts-pension") return "pg-scales-live";
     if (r === "/form-ls1-qa") return "pg-faq";
     if (r === "/afm-entertainment") return "pg-hub pg-afm-entertainment";
-    if (r === "/what-sound-exchange") return "pg-video";
+    if (r === "/featured-video") return "pg-video";
     if (r === "/nashville-musician-magazine") return "pg-magazine";
     if (r === "/members-only-directory") return "pg-directory";
     if (r === "/signatory-information") return "pg-info";
@@ -510,6 +609,14 @@ export async function MirroredPage({
         videoHeadline: "Single song overdub scale",
       })
     : null;
+  const featuredVideoConfig = featuredVideoPage
+    ? await getFeaturedVideoPageConfig({
+        pageTitle: page.title || "Featured Video",
+        pageDescription: computeMirrorPageDescription(page),
+        videoEmbedSrc: "",
+        thumbnailSrc: "",
+      })
+    : null;
   const recordingMainHtml = recordingPageConfig?.mainHtml
     ? `<div class="recording-flow">${recordingPageConfig.mainHtml}</div>`
     : "";
@@ -524,10 +631,18 @@ export async function MirroredPage({
   const signatoryContentHtml = signatoryPage ? getSignatoryDisplayHtmlFromSource(signatorySourceHtml) : "";
   const liveMusicSourceHtml = liveMusicPage ? getLiveMusicSourceFromPageBody(page.bodyHtml || "") : "";
   const liveMusicContentHtml = liveMusicPage ? getLiveMusicDisplayHtmlFromSource(liveMusicSourceHtml) : "";
+  const afmEntertainmentSourceHtml = afmEntertainmentPage
+    ? getAfmEntertainmentSourceFromPageBody(page.bodyHtml || "")
+    : "";
+  const afmEntertainmentContentHtml = afmEntertainmentPage
+    ? getAfmEntertainmentDisplayHtmlFromSource(afmEntertainmentSourceHtml)
+    : "";
   const membersOnlyDirectoryPage = page.kind === "mirror-page" && page.route === "/members-only-directory";
   /* Match other hubs: if route sidebar is on in site config, always mount the column (same as /gigs, benefits, etc.). */
   const liveMusicRouteSidebarOn = liveMusicPage && routeSidebarEnabled;
   const liveScalesContent = liveScalesPage ? await getLiveScalesConfig() : null;
+  const afmEntertainmentConfig = afmEntertainmentPage ? await getAfmEntertainmentPageConfig() : null;
+  const magazineArchiveConfig = magazinePage ? await getMagazineArchiveConfig() : null;
   const rehearsalHallContent = rehearsalHallPage ? extractRehearsalHallContent(page.bodyHtml || "") : null;
   const rehearsalHallHeroConfig = rehearsalHallPage ? await getRehearsalHallHeroConfig() : null;
   const benefitsHubConfig = benefitsHubPage ? await getBenefitsHubConfig({ bodyHtmlFallback: page.bodyHtml || "" }) : null;
@@ -543,9 +658,16 @@ export async function MirroredPage({
   const memberSiteLinksInitialLinks = memberSiteLinksPage
     ? persistedMemberSiteLinks || []
     : null;
+  const artistBandProfiles = findArtistPage ? await listArtistBandProfiles() : [];
   const membersOnlyDirectoryContentHtml = membersOnlyDirectoryPage
     ? extractDrupalContentEncodedHtml(page.bodyHtml || "")
     : "";
+  const directoryPageContent = directoryPage ? getDirectoryPageContent(page.bodyHtml || "") : null;
+  const magazineArchiveContent = magazinePage
+    ? ((magazineArchiveConfig?.issues?.length || 0) > 0
+        ? magazineArchiveConfig
+        : getMagazineArchiveContent(extractDrupalContentEncodedHtml(page.bodyHtml || "")))
+    : null;
   const rawGalleryQ = searchParams?.q;
   const gallerySearchQuery =
     typeof rawGalleryQ === "string" ? rawGalleryQ : Array.isArray(rawGalleryQ) ? rawGalleryQ[0] : "";
@@ -620,7 +742,10 @@ export async function MirroredPage({
     mediaHubPage ||
     memberSiteLinksPage ||
     photoGalleryPage ||
-    membersOnlyDirectoryPage
+    magazinePage ||
+    featuredVideoPage ||
+    membersOnlyDirectoryPage ||
+    directoryPage
       ? ""
       : getRouteBodyHtml(page.route, page.bodyHtml || "");
 
@@ -651,21 +776,57 @@ export async function MirroredPage({
         ) : (
           <PageHeaderWithCallout
             route={page.route}
-            title={page.title}
-            description={computeMirrorPageDescription(page, {
-              scalesFormsPage,
-              hideHeaderSummary,
-              isMainRecordingPage,
-            })}
+            title={featuredVideoPage ? featuredVideoConfig?.pageTitle || page.title : page.title}
+            description={
+              featuredVideoPage
+                ? featuredVideoConfig?.pageDescription || computeMirrorPageDescription(page)
+                : computeMirrorPageDescription(page, {
+                    scalesFormsPage,
+                    hideHeaderSummary,
+                    isMainRecordingPage,
+                  })
+            }
             titleAction={
               memberSiteLinksPage && isAdmin ? (
                 <MemberSiteLinksCreateButton />
               ) : isMainRecordingPage && isAdmin && recordingPageConfig ? (
                 <RecordingPageOptionsButton initialConfig={recordingPageConfig} />
+              ) : featuredVideoPage && isAdmin && featuredVideoConfig ? (
+                <FeaturedVideoPageAdmin initialConfig={featuredVideoConfig} />
               ) : null
             }
           />
         )}
+
+        {page.kind === "mirror-page" && !homeRoute && featuredVideoPage ? (
+          <div className="recording-page recording-sidebar-layout" style={routeSidebarStyle}>
+            <div className="recording-body-grid">
+              <div className="recording-video-area recording-video-area--featured">
+                {featuredVideoConfig?.videoEmbedSrc ? (
+                  <RecordingVideo
+                    embedSrc={featuredVideoConfig.videoEmbedSrc}
+                    thumbnailSrc={featuredVideoConfig.thumbnailSrc}
+                    youtubeKicker=""
+                    captionTitle={featuredVideoConfig.pageTitle}
+                    captionSubtitle=""
+                  />
+                ) : isAdmin ? (
+                  <div className="recording-page-editable__empty">No featured video configured.</div>
+                ) : null}
+              </div>
+              {routeSidebarEnabled ? (
+                <aside className="recording-sidebar" style={routeSidebarStyle}>
+                  <RecordingSidebarPanel
+                    boxes={sharedSidebarBoxes}
+                    pageRoute={page.route}
+                    isAdmin={isAdmin}
+                    initialWidthStep={sidebarWidthConfig?.widthStep}
+                  />
+                </aside>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         {page.kind === "mirror-page" && !homeRoute && isMainRecordingPage ? (
           <div className="recording-page recording-sidebar-layout" style={routeSidebarStyle}>
@@ -740,7 +901,7 @@ export async function MirroredPage({
           </div>
         ) : null}
 
-        {page.kind === "mirror-page" && !homeRoute && !isMainRecordingPage && !scalesFormsPage ? (
+        {page.kind === "mirror-page" && !homeRoute && !featuredVideoPage && !isMainRecordingPage && !scalesFormsPage ? (
           newsEventsRoute ? (
             <div
               className={`recording-page recording-sidebar-layout news-events-sidebar-layout ${pageTypeClass}`}
@@ -769,6 +930,61 @@ export async function MirroredPage({
                 ) : null}
               </div>
             </div>
+          ) : directoryPage ? (
+            routeSidebarEnabled ? (
+              <div
+                className={`recording-page recording-sidebar-layout directory-sidebar-layout ${pageTypeClass}`}
+                style={routeSidebarStyle}
+              >
+                <div className="recording-body-grid recording-body-grid--scales">
+                  {isAdmin ? (
+                    <SitePageBodyAdmin
+                      route={page.route}
+                      initialSourceHtml={extractDirectorySourceHtml(page.bodyHtml || "")}
+                      dialogTitle="Edit Directory main content"
+                      overlayLabel="Edit directory page main content"
+                      helpText="This page uses a single HTML field. Edit the full directory page content here."
+                      fieldLabel="Directory content"
+                    >
+                      <section className={`page-content directory-content ${pageTypeClass}`}>
+                        <DirectoryLanding content={directoryPageContent} />
+                      </section>
+                    </SitePageBodyAdmin>
+                  ) : (
+                    <section className={`page-content directory-content ${pageTypeClass}`}>
+                      <DirectoryLanding content={directoryPageContent} />
+                    </section>
+                  )}
+                  <aside className="recording-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
+                  </aside>
+                </div>
+              </div>
+            ) : (
+              isAdmin ? (
+                <SitePageBodyAdmin
+                  route={page.route}
+                  initialSourceHtml={extractDirectorySourceHtml(page.bodyHtml || "")}
+                  dialogTitle="Edit Directory main content"
+                  overlayLabel="Edit directory page main content"
+                  helpText="This page uses a single HTML field. Edit the full directory page content here."
+                  fieldLabel="Directory content"
+                >
+                  <section className={`page-content directory-content ${pageTypeClass}`}>
+                    <DirectoryLanding content={directoryPageContent} />
+                  </section>
+                </SitePageBodyAdmin>
+              ) : (
+                <section className={`page-content directory-content ${pageTypeClass}`}>
+                  <DirectoryLanding content={directoryPageContent} />
+                </section>
+              )
+            )
           ) : signatoryPage ? (
             <div
               className={`recording-page recording-sidebar-layout signatory-sidebar-layout ${pageTypeClass}`}
@@ -1138,6 +1354,31 @@ export async function MirroredPage({
                 ) : null}
               </div>
             </div>
+          ) : magazinePage ? (
+            <div
+              className={`recording-page ${pageTypeClass}${
+                routeSidebarEnabled ? " recording-sidebar-layout magazine-sidebar-layout" : ""
+              }`}
+              style={routeSidebarEnabled ? routeSidebarStyle : undefined}
+            >
+              <div className={`recording-body-grid${routeSidebarEnabled ? " recording-body-grid--scales" : ""}`}>
+                <MagazineArchive
+                  introHtml={magazineArchiveContent?.introHtml || ""}
+                  issues={magazineArchiveContent?.issues || []}
+                  latestIssue={magazineArchiveContent?.latestIssue || null}
+                />
+                {routeSidebarEnabled ? (
+                  <aside className="recording-sidebar magazine-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
+                  </aside>
+                ) : null}
+              </div>
+            </div>
           ) : liveMusicPage ? (
             <div
               className={`recording-page ${pageTypeClass}${
@@ -1181,11 +1422,9 @@ export async function MirroredPage({
               style={routeSidebarStyle}
             >
               <div className="recording-body-grid recording-body-grid--scales">
-                <section
-                  className="recording-content find-artist-main"
-                  dangerouslySetInnerHTML={{ __html: bodyHtml }}
-                />
-                <FindArtistEnhancer />
+                <section className="page-content find-artist-main">
+                  <FindArtistGalleryClient items={artistBandProfiles} />
+                </section>
                 {routeSidebarEnabled ? (
                   <aside className="recording-sidebar" style={routeSidebarStyle}>
                     <RecordingSidebarPanel
@@ -1240,6 +1479,13 @@ export async function MirroredPage({
                         dangerouslySetInnerHTML={{ __html: bodyHtml }}
                       />
                     </>
+                  ) : afmEntertainmentPage ? (
+                    <AfmEntertainmentPromo
+                      contentHtml={afmEntertainmentContentHtml}
+                      isAdmin={isAdmin}
+                      initialSourceHtml={afmEntertainmentSourceHtml}
+                      screenshotSrc={afmEntertainmentConfig?.screenshotSrc || "/images/afm-entertainment-home-raw.png"}
+                    />
                   ) : (
                     membersOnlyDirectoryPage && isAdmin ? (
                       <SitePageBodyAdmin
@@ -1316,6 +1562,13 @@ export async function MirroredPage({
                     dangerouslySetInnerHTML={{ __html: bodyHtml }}
                   />
                 </>
+              ) : afmEntertainmentPage ? (
+                <AfmEntertainmentPromo
+                  contentHtml={afmEntertainmentContentHtml}
+                  isAdmin={isAdmin}
+                  initialSourceHtml={afmEntertainmentSourceHtml}
+                  screenshotSrc={afmEntertainmentConfig?.screenshotSrc || "/images/afm-entertainment-home-raw.png"}
+                />
               ) : (
                 membersOnlyDirectoryPage && isAdmin ? (
                   <SitePageBodyAdmin

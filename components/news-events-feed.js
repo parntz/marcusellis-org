@@ -608,11 +608,6 @@ export function NewsEventsFeed({ items, isAdmin = false }) {
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search by title, summary, date, or keywords…"
               />
-              {query ? (
-                <button type="button" className="news-events-search-clear" onClick={() => setQuery("")}>
-                  Clear
-                </button>
-              ) : null}
             </div>
           </div>
 

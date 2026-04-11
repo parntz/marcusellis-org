@@ -96,6 +96,7 @@ const ddl = `
     website_url TEXT NOT NULL DEFAULT '',
     facebook_url TEXT NOT NULL DEFAULT '',
     reverbnation_url TEXT NOT NULL DEFAULT '',
+    x_url TEXT NOT NULL DEFAULT '',
     contact_html TEXT NOT NULL DEFAULT '',
     description_html TEXT NOT NULL DEFAULT '',
     personnel_html TEXT NOT NULL DEFAULT '',
@@ -280,6 +281,29 @@ const ddl = `
 
   CREATE INDEX IF NOT EXISTS idx_photo_gallery_youtube_video_id
     ON photo_gallery_items(youtube_video_id);
+
+  CREATE TABLE IF NOT EXISTS artist_band_profiles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL DEFAULT '',
+    profile_href TEXT NOT NULL DEFAULT '',
+    source_page_index INTEGER NOT NULL DEFAULT 0,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    listing_personnel_html TEXT NOT NULL DEFAULT '',
+    contact_html TEXT NOT NULL DEFAULT '',
+    description_html TEXT NOT NULL DEFAULT '',
+    personnel_html TEXT NOT NULL DEFAULT '',
+    picture_url TEXT NOT NULL DEFAULT '',
+    web_links_json TEXT NOT NULL DEFAULT '[]',
+    musical_styles_json TEXT NOT NULL DEFAULT '[]',
+    featured_video_url TEXT NOT NULL DEFAULT '',
+    featured_video_title TEXT NOT NULL DEFAULT '',
+    source_path TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_artist_band_profiles_display_order
+    ON artist_band_profiles(display_order ASC, id ASC);
 `;
 
 await client.executeMultiple(ddl);
@@ -324,6 +348,7 @@ const memberPageAlterStatements = [
   ["website_url", "ALTER TABLE member_pages ADD COLUMN website_url TEXT NOT NULL DEFAULT ''"],
   ["facebook_url", "ALTER TABLE member_pages ADD COLUMN facebook_url TEXT NOT NULL DEFAULT ''"],
   ["reverbnation_url", "ALTER TABLE member_pages ADD COLUMN reverbnation_url TEXT NOT NULL DEFAULT ''"],
+  ["x_url", "ALTER TABLE member_pages ADD COLUMN x_url TEXT NOT NULL DEFAULT ''"],
 ];
 for (const [columnName, sql] of memberPageAlterStatements) {
   if (!memberPageColumnNames.has(columnName)) {

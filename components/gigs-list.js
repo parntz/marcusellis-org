@@ -134,7 +134,6 @@ export function GigsList({ gigs = [], isAdmin = false, onEditGig = null }) {
   const calLayoutObserverRef = useRef(null);
   const normalizedQuery = query.trim().toLowerCase();
   const hasSearchQuery = normalizedQuery.length > 0;
-  const clearDateRelevant = Boolean(selectedDateRange.startKey) || hasSearchQuery;
   const isDraggingDateRange = Boolean(dragStartKey);
 
   const calendarPortaledToBody = useSyncExternalStore(
@@ -325,20 +324,6 @@ export function GigsList({ gigs = [], isAdmin = false, onEditGig = null }) {
         <div className="news-events-calendar-head">
           <div className="gigs-calendar-head-row">
             <h3>{monthLabel}</h3>
-            <button
-              type="button"
-              className="gigs-calendar-clear-date"
-              onClick={() => {
-                setSelectedDateRange({ startKey: "", endKey: "" });
-                setDragRange({ startKey: "", endKey: "" });
-                setDragStartKey("");
-                setQuery("");
-              }}
-              disabled={!clearDateRelevant}
-              aria-label="Clear calendar date filter and search text"
-            >
-              Clear Date
-            </button>
           </div>
           {todayLabel ? <p>{todayLabel}</p> : null}
         </div>
@@ -443,11 +428,6 @@ export function GigsList({ gigs = [], isAdmin = false, onEditGig = null }) {
               }}
               placeholder="Search venue, address, artists, notes, date, or place ID..."
             />
-            {query ? (
-              <button type="button" className="news-events-search-clear" onClick={() => setQuery("")}>
-                Clear
-              </button>
-            ) : null}
           </div>
         </div>
 

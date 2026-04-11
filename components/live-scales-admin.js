@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ModalLightbox } from "./modal-lightbox";
 import { NewsEventsBodyEditor } from "./news-events-body-editor";
+import { UploadFieldStatus } from "./upload-field-status";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 
 const GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
@@ -502,6 +503,13 @@ export function LiveScalesItemAdmin({ section, index, initialItem, children }) {
                           ? "Uploading PDF…"
                           : "Choose a PDF to upload and automatically replace the current file link."}
                       </span>
+                      <UploadFieldStatus
+                        url={draft.href}
+                        kind="file"
+                        mimeType="application/pdf"
+                        statusLabel="PDF ready"
+                        emptyLabel="No PDF uploaded yet."
+                      />
                     </label>
                     <label>
                       Link label

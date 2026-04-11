@@ -4,6 +4,27 @@ import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState, startTransition } from "react";
 
 const PAGE_SIZE = 24;
+const DEFAULT_IMAGE_MEMBER_COUNT = 20;
+
+function pickRandomMembersWithImages(members = [], count = DEFAULT_IMAGE_MEMBER_COUNT) {
+  const pool = (Array.isArray(members) ? members : []).filter((member) => String(member?.pictureUrl || "").trim());
+  const shuffled = [...pool];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+
+  return shuffled.slice(0, count);
+}
+
+function sortMembersByImageFirst(members = []) {
+  return [...(Array.isArray(members) ? members : [])].sort((left, right) => {
+    const leftHasImage = Number(Boolean(String(left?.pictureUrl || "").trim()));
+    const rightHasImage = Number(Boolean(String(right?.pictureUrl || "").trim()));
+    return rightHasImage - leftHasImage;
+  });
+}
 
 function GridIcon() {
   return (
@@ -57,46 +78,17 @@ function MemberPortrait({ member, view = "list" }) {
 
 function MemberCard({ member, view = "list" }) {
   return (
-    <article className={`member-card member-card--${view}`}>
+    <Link href={`/users/${member.slug}`} className={`member-card member-card--${view} member-card--link`}>
       <MemberPortrait member={member} view={view} />
 
       <div className="member-card__content">
         <div className="member-card__identity">
           <h3 className="member-card__headline">
-            <Link href={`/users/${member.slug}`} className="member-card__name">
-              {member.title}
-            </Link>
-            {member.summary ? <span className="member-card__summary"> - {member.summary}</span> : null}
+            <span className="member-card__name">{member.title}</span>
           </h3>
         </div>
-
-        {member.instruments.length ? (
-          <p className="member-card__meta" aria-label="Personnel / instrumentation">
-            {member.instruments.join(", ")}
-          </p>
-        ) : null}
-
-        <div className="member-card__links">
-          <Link href={`/users/${member.slug}`} className="member-card__link-button">
-            View profile
-          </Link>
-          <Link href={`/user/${member.slug}/contact`} className="member-card__link-button">
-            Contact
-          </Link>
-          {member.website ? (
-            member.website.isInternal ? (
-              <Link href={member.website.href} className="member-card__link-button">
-                Website
-              </Link>
-            ) : (
-              <a href={member.website.href} className="member-card__link-button" target="_blank" rel="noreferrer">
-                Website
-              </a>
-            )
-          ) : null}
-        </div>
       </div>
-    </article>
+    </Link>
   );
 }
 
@@ -114,13 +106,15 @@ export function MemberPagesDirectory({ members }) {
     }
   }, []);
 
+  const defaultMembers = useMemo(() => pickRandomMembersWithImages(members, DEFAULT_IMAGE_MEMBER_COUNT), [members]);
+
   const filteredMembers = useMemo(() => {
     if (!normalizedQuery) {
-      return members;
+      return defaultMembers;
     }
 
-    return members.filter((member) => member.searchText.includes(normalizedQuery));
-  }, [members, normalizedQuery]);
+    return sortMembersByImageFirst(members.filter((member) => member.searchText.includes(normalizedQuery)));
+  }, [defaultMembers, members, normalizedQuery]);
 
   const total = filteredMembers.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -138,11 +132,6 @@ export function MemberPagesDirectory({ members }) {
   function handleQueryChange(event) {
     const nextQuery = event.target.value;
     setQuery(nextQuery);
-    startTransition(() => setPage(1));
-  }
-
-  function clearQuery() {
-    setQuery("");
     startTransition(() => setPage(1));
   }
 
@@ -192,11 +181,6 @@ export function MemberPagesDirectory({ members }) {
                 <ListIcon />
               </button>
             </div>
-            {query ? (
-              <button type="button" className="news-events-search-clear" onClick={clearQuery}>
-                Clear
-              </button>
-            ) : null}
           </div>
         </div>
         <p className="member-count">

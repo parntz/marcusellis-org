@@ -186,11 +186,6 @@ export function MemberSiteLinksDirectory({ initialLinks = [], isAdmin = false })
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by member name..."
           />
-          {query ? (
-            <button type="button" className="news-events-search-clear" onClick={() => setQuery("")}>
-              Clear
-            </button>
-          ) : null}
         </div>
       </div>
 

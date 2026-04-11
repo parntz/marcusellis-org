@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ModalLightbox } from "./modal-lightbox";
+import { NewsEventsBodyEditor } from "./news-events-body-editor";
+import { UploadFieldStatus } from "./upload-field-status";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 
 const GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
@@ -202,26 +204,25 @@ export function PhotoGalleryItemAdmin({ item, children }) {
                   </select>
                 </label>
                 <label className="recording-sidebar-form-grid__wide">
-                  Description
-                  <textarea
-                    value={draft.descriptionHtml}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, descriptionHtml: event.target.value }))
-                    }
-                    rows={6}
-                  />
+                  <span id="photo-gallery-description-label">Description HTML</span>
+                  <div className="recording-page-editor__richtext">
+                    <NewsEventsBodyEditor
+                      value={draft.descriptionHtml}
+                      onChange={(value) =>
+                        setDraft((current) => ({ ...current, descriptionHtml: value }))
+                      }
+                      labelledBy="photo-gallery-description-label"
+                    />
+                  </div>
                 </label>
                 <label className="recording-sidebar-form-grid__wide">
                   Image upload
                   <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadBusy} />
-                </label>
-                <label className="recording-sidebar-form-grid__wide">
-                  Image URL
-                  <input
-                    type="text"
-                    value={draft.imageUrl}
-                    onChange={(event) => setDraft((current) => ({ ...current, imageUrl: event.target.value }))}
-                    placeholder="/uploads/photo-gallery/example.jpg"
+                  <UploadFieldStatus
+                    url={draft.imageUrl}
+                    kind="image"
+                    imageAlt="Gallery image preview"
+                    emptyLabel="No image uploaded yet."
                   />
                 </label>
                 <label className="recording-sidebar-form-grid__wide">

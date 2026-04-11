@@ -106,6 +106,7 @@ const memberPageAlterStatements = [
   ["website_url", "ALTER TABLE member_pages ADD COLUMN website_url TEXT NOT NULL DEFAULT ''"],
   ["facebook_url", "ALTER TABLE member_pages ADD COLUMN facebook_url TEXT NOT NULL DEFAULT ''"],
   ["reverbnation_url", "ALTER TABLE member_pages ADD COLUMN reverbnation_url TEXT NOT NULL DEFAULT ''"],
+  ["x_url", "ALTER TABLE member_pages ADD COLUMN x_url TEXT NOT NULL DEFAULT ''"],
 ];
 for (const [columnName, sql] of memberPageAlterStatements) {
   if (!memberPageColumnNames.has(columnName)) {

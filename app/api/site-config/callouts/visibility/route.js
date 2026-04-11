@@ -4,7 +4,7 @@ import { authOptions } from "../../../../../lib/auth-options";
 import { isAdminSession } from "../../../../../lib/authz";
 import { listCallouts } from "../../../../../lib/callouts";
 import { computeHeaderNoticeStripVisible } from "../../../../../lib/callout-strip-visibility.js";
-import { getCalloutConfig } from "../../../../../lib/site-config-callouts";
+import { getCalloutConfig, setCalloutConfig } from "../../../../../lib/site-config-callouts";
 import { getRouteCalloutConfig, setRouteCalloutConfig } from "../../../../../lib/site-config-route-callouts";
 import { normalizeSidebarRoute } from "../../../../../lib/normalize-sidebar-route.mjs";
 
@@ -78,6 +78,13 @@ export async function PUT(request) {
 
   if (location !== "header") {
     return NextResponse.json({ location, route, enabled: routeEnabled, stripVisible: routeEnabled });
+  }
+
+  if (routeEnabled) {
+    const calloutConfig = await getCalloutConfig("header");
+    if (calloutConfig.enabled === false) {
+      await setCalloutConfig("header", { ...calloutConfig, enabled: true });
+    }
   }
 
   const { stripVisible } = await headerStripVisibilityState(route, session);

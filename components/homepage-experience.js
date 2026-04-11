@@ -22,6 +22,7 @@ import { DEFAULT_HOME_VALUE_STRIP } from "../lib/home-value-strip-defaults";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 import { DEFAULT_HOME_PANELS } from "../lib/home-panels-defaults";
 import { isAdminUser } from "../lib/authz";
+import { UploadFieldStatus } from "./upload-field-status";
 
 /** After moving one item from `from` to `to`, map an index that pointed at a slide before the move. */
 function mapIndexAfterReorder(oldIndex, from, to) {
@@ -1569,18 +1570,6 @@ export function HomepageExperience({
                               required
                             />
                           </label>
-                          <label className="home-panels-editor-grid__wide">
-                            Background image URL
-                            <input
-                              type="text"
-                              value={panel.backgroundImageSrc}
-                              onChange={(event) =>
-                                updateHomePanelDraft(panelKey, "backgroundImageSrc", event.target.value)
-                              }
-                              maxLength={1000}
-                              placeholder="/images/example.jpg"
-                            />
-                          </label>
                           <div className="home-panels-editor-upload-row home-panels-editor-grid__wide">
                             <input
                               ref={inputRef}
@@ -1604,6 +1593,12 @@ export function HomepageExperience({
                             >
                               Upload background image
                             </button>
+                            <UploadFieldStatus
+                              url={panel.backgroundImageSrc}
+                              kind="image"
+                              imageAlt={`${panel.title || panelKey} background preview`}
+                              emptyLabel="No background image selected."
+                            />
                             <button
                               type="button"
                               className="btn btn-ghost"

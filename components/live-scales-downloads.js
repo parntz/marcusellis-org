@@ -46,11 +46,6 @@ export function LiveScalesDownloads({ section, isAdmin = false }) {
             autoComplete="off"
             aria-label="Search all downloadable forms"
           />
-          {query ? (
-            <button type="button" className="news-events-search-clear" onClick={() => setQuery("")}>
-              Clear
-            </button>
-          ) : null}
         </div>
       </div>
 

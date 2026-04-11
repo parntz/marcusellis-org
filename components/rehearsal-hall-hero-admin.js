@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ModalLightbox } from "./modal-lightbox";
+import { UploadFieldStatus } from "./upload-field-status";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 
 const GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
@@ -209,14 +210,11 @@ export function RehearsalHallHeroAdmin({ initialConfig, children }) {
                 <label className="recording-sidebar-form-grid__wide">
                   Image upload
                   <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadBusy} />
-                </label>
-                <label className="recording-sidebar-form-grid__wide">
-                  Image URL
-                  <input
-                    type="text"
-                    value={draft.imageSrc}
-                    onChange={(event) => setDraft((current) => ({ ...current, imageSrc: event.target.value }))}
-                    placeholder="/uploads/rehearsal-hall/example.jpg"
+                  <UploadFieldStatus
+                    url={draft.imageSrc}
+                    kind="image"
+                    imageAlt="Rehearsal hall image preview"
+                    emptyLabel="No image uploaded yet."
                   />
                 </label>
                 <label className="recording-sidebar-form-grid__wide">

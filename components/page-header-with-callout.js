@@ -23,6 +23,8 @@ export async function PageHeaderWithCallout({
   titleAction,
   children,
   hideCallout = false,
+  hideDescription = false,
+  disableHeaderEditing = false,
 }) {
   const session = await getServerSession(authOptions);
   const isAdmin = isAdminSession(session);
@@ -38,9 +40,10 @@ export async function PageHeaderWithCallout({
     headerCalloutCount: headerCallouts.length,
     isAdmin,
   });
-  const headerOverride = route ? await getPageHeaderOverride(route) : null;
+  const headerOverride = route && !disableHeaderEditing ? await getPageHeaderOverride(route) : null;
   const resolvedTitle = headerOverride ? headerOverride.title : title;
   const resolvedDescription = headerOverride ? headerOverride.description : description ?? "";
+  const shouldRenderDescription = !hideDescription && Boolean(String(resolvedDescription || "").trim());
 
   const main = children ? (
     <div className="page-header-main__inner">{children}</div>
@@ -53,11 +56,13 @@ export async function PageHeaderWithCallout({
         </h1>
         {titleAction ? <div className="page-header-main__title-action">{titleAction}</div> : null}
       </div>
-      <p className="page-summary page-summary--internal" data-page-header-description>
-        {resolvedDescription}
-      </p>
+      {shouldRenderDescription ? (
+        <p className="page-summary page-summary--internal" data-page-header-description>
+          {resolvedDescription}
+        </p>
+      ) : null}
       {trailing ? <div className="page-header-main__trailing">{trailing}</div> : null}
-      {isAdmin ? <PageHeaderTextAdmin route={route} /> : null}
+      {isAdmin && !disableHeaderEditing ? <PageHeaderTextAdmin route={route} /> : null}
     </div>
   );
 

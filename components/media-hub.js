@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DEFAULT_MEDIA_HUB, MEDIA_HUB_PANEL_ORDER } from "../lib/media-hub-defaults.mjs";
 import { NewsEventsBodyEditor } from "./news-events-body-editor";
+import { UploadFieldStatus } from "./upload-field-status";
 import { showDbToastError, showDbToastSuccess } from "../lib/db-toast";
 
 const GLASS_VARIANTS = ["sweep", "prism", "ripple", "flare"];
@@ -381,15 +382,6 @@ export function MediaHub({ initialConfig, isAdmin = false }) {
                   maxLength={40}
                 />
               </label>
-              <label className="home-panels-editor-grid__wide">
-                Background image URL
-                <input
-                  type="text"
-                  value={panelDraft.backgroundImageSrc}
-                  onChange={(e) => setPanelDraft((d) => ({ ...d, backgroundImageSrc: e.target.value }))}
-                  maxLength={500}
-                />
-              </label>
               <div className="home-panels-editor-upload-row home-panels-editor-grid__wide">
                 <label>
                   Upload background image
@@ -407,6 +399,12 @@ export function MediaHub({ initialConfig, isAdmin = false }) {
                         showDbToastError(err instanceof Error ? err.message : "Upload failed.");
                       }
                     }}
+                  />
+                  <UploadFieldStatus
+                    url={panelDraft.backgroundImageSrc}
+                    kind="image"
+                    imageAlt={`${PANEL_LABELS[editingPanelKey]} background preview`}
+                    emptyLabel="No background image selected."
                   />
                 </label>
               </div>

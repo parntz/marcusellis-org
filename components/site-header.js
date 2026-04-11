@@ -30,6 +30,44 @@ function normalizeNavHref(href = "") {
   return normalizedHref;
 }
 
+function isPdfHref(href = "") {
+  if (!href || String(href).trim().startsWith("#")) return false;
+  try {
+    const pathname = new URL(String(href).trim(), "https://placeholder.local").pathname;
+    return /\.pdf$/i.test(pathname.replace(/[?#].*$/, ""));
+  } catch {
+    return false;
+  }
+}
+
+function resolvePdfHref(href = "", baseUrl = "https://placeholder.local") {
+  const rawHref = String(href || "").trim();
+  if (!rawHref) return "";
+
+  try {
+    const base = new URL(baseUrl, "https://placeholder.local");
+    const url = new URL(rawHref, base);
+    let pathname = url.pathname;
+
+    if (pathname.startsWith("/file/")) {
+      pathname = `/_downloaded${pathname}--asset`;
+    } else if (pathname.startsWith("/sites/default/files/")) {
+      pathname = `/_downloaded${pathname}`;
+    }
+
+    const isMirroredDrupalHost = /(^|\.)nashvillemusicians\.org$/i.test(url.hostname);
+    const isCurrentOrigin = url.origin === base.origin;
+
+    if (isMirroredDrupalHost || isCurrentOrigin) {
+      return `${pathname}${url.search}${url.hash}`;
+    }
+
+    return `${url.origin}${pathname}${url.search}${url.hash}`;
+  } catch {
+    return normalizeNavHref(rawHref);
+  }
+}
+
 function isAppRouteHref(href = "") {
   if (!href.startsWith("/") || href.startsWith("//")) {
     return false;
@@ -43,50 +81,11 @@ function isAppRouteHref(href = "") {
   return true;
 }
 
-/**
- * Tennessee Credit Union member PDF — match nav (`/...`), mirrored body
- * (`/sites/default/files/...` or absolute nashvillemusicians.org URLs after build rewrite).
- */
-function isTtcuPdfLinkHref(href = "") {
-  if (!href || href.startsWith("#")) return false;
-  let pathname = href;
-  try {
-    pathname = new URL(href, "https://placeholder.local").pathname;
-  } catch {
-    return false;
-  }
-  if (!/\.pdf$/i.test(pathname.replace(/[?#].*$/, ""))) return false;
-  try {
-    return decodeURIComponent(pathname).includes("300210 TTCU Look Services_MAIN.pdf");
-  } catch {
-    return pathname.includes("TTCU") && pathname.includes("Look%20Services_MAIN");
-  }
-}
-
-/** Use local mirror in the iframe (same-origin) when the href pointed at Drupal `/sites/default/files/`. */
-function localTtcuPdfIframeSrc(href, baseUrl) {
-  try {
-    const u = new URL(href, baseUrl);
-    const path = u.pathname;
-    const suffix = `${u.search}${u.hash}`;
-    if (path.startsWith("/sites/default/files/")) {
-      return `/_downloaded${path}${suffix}`;
-    }
-    return `${path}${suffix}`;
-  } catch {
-    return href;
-  }
-}
-
-function SmartNavLink({ href, className, children, onNavigate, onPdfLightbox }) {
+function SmartNavLink({ href, className, children, onNavigate }) {
   const normalizedHref = normalizeNavHref(href);
+  const pdfHref = isPdfHref(normalizedHref);
 
   function handleClick(e) {
-    if (onPdfLightbox && isTtcuPdfLinkHref(normalizedHref)) {
-      e.preventDefault();
-      const title = typeof children === "string" ? children : "Document";
-      onPdfLightbox({ url: normalizedHref, title });
-    }
     onNavigate?.();
   }
 
@@ -103,13 +102,19 @@ function SmartNavLink({ href, className, children, onNavigate, onPdfLightbox }) 
   }
 
   return (
-    <a href={normalizedHref} className={className} onClick={handleClick}>
+    <a
+      href={normalizedHref}
+      className={className}
+      onClick={handleClick}
+      target={pdfHref ? "_blank" : undefined}
+      rel={pdfHref ? "noopener noreferrer" : undefined}
+    >
       {children}
     </a>
   );
 }
 
-function NavList({ items, depth = 0, onNavigate, onPdfLightbox, activePath }) {
+function NavList({ items, depth = 0, onNavigate, activePath }) {
   const listClassName = depth === 0 ? "main-nav-list" : "sub-nav";
   const linkClassName = depth === 0 ? "nav-link" : "sub-nav-link";
 
@@ -124,7 +129,6 @@ function NavList({ items, depth = 0, onNavigate, onPdfLightbox, activePath }) {
             href={item.href}
             className={linkClassName}
             onNavigate={onNavigate}
-            onPdfLightbox={onPdfLightbox}
           >
             {item.label}
           </SmartNavLink>
@@ -133,7 +137,6 @@ function NavList({ items, depth = 0, onNavigate, onPdfLightbox, activePath }) {
               items={item.children}
               depth={depth + 1}
               onNavigate={onNavigate}
-              onPdfLightbox={onPdfLightbox}
               activePath={activePath}
             />
           ) : null}
@@ -150,7 +153,7 @@ function SiteHeaderContent({ initialBackgroundOpacity = 1 }) {
   const isAdmin = isAdminUser(session?.user);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [pdfLightbox, setPdfLightbox] = useState(null);
+  const [pdfPrompt, setPdfPrompt] = useState(null);
   const joinItem = utilityNav.find((item) => item.label.toLowerCase().includes("join"));
   const visiblePrimaryNav = primaryNav.filter((item) => !HIDDEN_PRIMARY_NAV_HREFS.has(item.href));
   const callbackUrl = (() => {
@@ -210,7 +213,44 @@ function SiteHeaderContent({ initialBackgroundOpacity = 1 }) {
     return () => window.removeEventListener("scroll", update);
   }, []);
 
-  // Mirrored page body uses raw <a href>; those are not SmartNavLink, so we cancel navigation here.
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+
+    function applyPdfLinkAttrs(root) {
+      if (!(root instanceof Element) && !(root instanceof Document)) return;
+      root.querySelectorAll("a[href]").forEach((anchor) => {
+        const href = anchor.getAttribute("href");
+        if (!isPdfHref(href)) return;
+        anchor.setAttribute("target", "_blank");
+        anchor.setAttribute("rel", "noopener noreferrer");
+      });
+    }
+
+    applyPdfLinkAttrs(document);
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.target instanceof Element && mutation.type === "attributes" && mutation.target.matches("a[href]")) {
+          applyPdfLinkAttrs(mutation.target);
+        }
+        mutation.addedNodes.forEach((node) => {
+          if (node instanceof Element) {
+            applyPdfLinkAttrs(node);
+          }
+        });
+      });
+    });
+
+    observer.observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["href"],
+    });
+
+    return () => observer.disconnect();
+  }, [pathname]);
+
+  // Sitewide PDF speed bump: intercept regular clicks and open PDFs in a new tab after confirmation.
   useEffect(() => {
     const onDocClickCapture = (e) => {
       if (e.defaultPrevented) return;
@@ -219,16 +259,22 @@ function SiteHeaderContent({ initialBackgroundOpacity = 1 }) {
       const anchor = e.target instanceof Element ? e.target.closest("a[href]") : null;
       if (!anchor) return;
       const href = anchor.getAttribute("href");
-      if (!href || !isTtcuPdfLinkHref(href)) return;
+      if (!isPdfHref(href)) return;
       e.preventDefault();
-      setPdfLightbox({
-        url: localTtcuPdfIframeSrc(href, window.location.href),
-        title: anchor.textContent?.trim() || "Document",
+      setPdfPrompt({
+        url: resolvePdfHref(href, window.location.href),
+        title: anchor.textContent?.trim() || "PDF Document",
       });
     };
     document.addEventListener("click", onDocClickCapture, true);
     return () => document.removeEventListener("click", onDocClickCapture, true);
   }, []);
+
+  function openPdfInNewTab() {
+    if (!pdfPrompt?.url) return;
+    window.open(pdfPrompt.url, "_blank", "noopener,noreferrer");
+    setPdfPrompt(null);
+  }
 
   return (
     <header className={`site-header ${isScrolled ? "is-scrolled" : ""}`}>
@@ -282,10 +328,6 @@ function SiteHeaderContent({ initialBackgroundOpacity = 1 }) {
                 <NavList
                   items={visiblePrimaryNav}
                   onNavigate={() => setMenuOpen(false)}
-                  onPdfLightbox={(payload) => {
-                    setPdfLightbox(payload);
-                    setMenuOpen(false);
-                  }}
                   activePath={pathname}
                 />
               </nav>
@@ -300,13 +342,27 @@ function SiteHeaderContent({ initialBackgroundOpacity = 1 }) {
         </div>
       </div>
       <ModalLightbox
-        open={Boolean(pdfLightbox)}
-        onClose={() => setPdfLightbox(null)}
-        aspectRatio="pdf"
-        closeLabel="Close document"
+        open={Boolean(pdfPrompt)}
+        onClose={() => setPdfPrompt(null)}
+        closeLabel="Close PDF notice"
       >
-        {pdfLightbox ? (
-          <iframe title={pdfLightbox.title} src={pdfLightbox.url} />
+        {pdfPrompt ? (
+          <div className="pdf-speedbump">
+            <p className="pdf-speedbump__eyebrow">PDF Link</p>
+            <h2>Open document in a new tab?</h2>
+            <p className="pdf-speedbump__body">
+              {pdfPrompt.title || "This PDF"} will open in a separate browser tab so you do not lose your place on
+              the site.
+            </p>
+            <div className="pdf-speedbump__actions">
+              <button type="button" className="btn btn-ghost" onClick={() => setPdfPrompt(null)}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary" onClick={openPdfInNewTab}>
+                Open PDF
+              </button>
+            </div>
+          </div>
         ) : null}
       </ModalLightbox>
     </header>
