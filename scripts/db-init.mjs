@@ -282,6 +282,29 @@ const ddl = `
   CREATE INDEX IF NOT EXISTS idx_photo_gallery_youtube_video_id
     ON photo_gallery_items(youtube_video_id);
 
+  CREATE TABLE IF NOT EXISTS member_media_discovery_state (
+    key TEXT PRIMARY KEY,
+    value_text TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS member_media_discovery_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_type TEXT NOT NULL DEFAULT 'nightly',
+    status TEXT NOT NULL DEFAULT 'running',
+    cursor_before INTEGER NOT NULL DEFAULT 0,
+    cursor_after INTEGER NOT NULL DEFAULT 0,
+    member_limit INTEGER NOT NULL DEFAULT 0,
+    members_processed INTEGER NOT NULL DEFAULT 0,
+    videos_upserted INTEGER NOT NULL DEFAULT 0,
+    notes TEXT NOT NULL DEFAULT '',
+    started_at TEXT NOT NULL DEFAULT (datetime('now')),
+    finished_at TEXT NOT NULL DEFAULT ''
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_member_media_discovery_runs_started_at
+    ON member_media_discovery_runs(started_at DESC, id DESC);
+
   CREATE TABLE IF NOT EXISTS artist_band_profiles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slug TEXT NOT NULL UNIQUE,

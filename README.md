@@ -84,6 +84,15 @@ This site is a Next.js app for Nashville Musicians Association / AFM 257.
   - inserts/updates future performances
   - avoids duplicates by matching date/time + band + venue
 
+### Member media discovery
+
+- `npm run media:discover`  
+  Runs the YouTube member-media discovery job against `member_pages` and upserts discovered videos into `photo_gallery_items`.
+
+  Optional flags:
+  - `npm run media:discover -- --limit 10`
+  - `npm run media:discover -- --max-results-per-member 5`
+
 ### Additional direct script (not in `package.json` scripts)
 
 - `node scripts/upsert-auth-user.mjs <username> <email> <password> [previousUsername] [previousEmail]`  
@@ -100,3 +109,31 @@ This site is a Next.js app for Nashville Musicians Association / AFM 257.
 - Scripts rely on environment variables from `.env` / `.env.local` (loaded by `scripts/load-env.mjs`).
 - The only database is Turso, via `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`.
 - This repo does not use or keep a local SQLite database.
+
+## Netlify member media discovery
+
+This repo now includes Netlify functions for nightly YouTube discovery:
+
+- scheduled: `netlify/functions/nightly-member-media-discovery.mjs`
+- manual: `netlify/functions/manual-member-media-discovery.mjs`
+
+Required env:
+
+- `YOUTUBE_API_KEY`
+- `TURSO_DATABASE_URL`
+- `TURSO_AUTH_TOKEN`
+- `MEMBER_MEDIA_DISCOVERY_MANUAL_TOKEN` for the manual HTTP trigger
+
+Optional env:
+
+- `MEMBER_MEDIA_DISCOVERY_MEMBER_LIMIT` default `25`
+- `MEMBER_MEDIA_DISCOVERY_MAX_RESULTS_PER_MEMBER` default `10`
+- `MEMBER_MEDIA_DISCOVERY_QUERY_SUFFIX`
+
+Nightly behavior:
+
+- runs as a Netlify scheduled function
+- reads members from `member_pages`
+- writes discovered videos into `photo_gallery_items`
+- stores cursor/run state in `member_media_discovery_state` and `member_media_discovery_runs`
+- rotates through members using the stored cursor so the nightly cap advances over time
