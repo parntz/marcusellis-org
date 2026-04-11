@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { headers } from "next/headers";
 import { LocalhostAutoSignIn } from "../../components/localhost-auto-sign-in";
 import { PageHeaderWithCallout } from "../../components/page-header-with-callout";
@@ -11,26 +10,14 @@ export const metadata = {
 };
 
 export default async function SignInPage() {
-  const hasGoogle = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true";
   const requestHeaders = await headers();
   const isLocalhost = isLocalhostAuthEnabled() && isLocalhostRequestLike({ headers: requestHeaders });
 
   return (
     <article className="page-frame">
       <PageHeaderWithCallout route="/sign-in" title="Sign In" description={INTERNAL_PAGE_DESCRIPTION.SIGN_IN} />
-      <section className="auth-layout">
+      <section className="auth-layout auth-layout-single">
         {isLocalhost ? <LocalhostAutoSignIn /> : <SignInForm />}
-        <aside className="auth-side">
-          <h3>Need an account?</h3>
-          <p>
-            {hasGoogle
-              ? "Register with a strong password or sign in with Google."
-              : "Register with a strong password to create your account."}
-          </p>
-          <Link href="/register" className="btn btn-secondary">
-            Create Account
-          </Link>
-        </aside>
       </section>
     </article>
   );

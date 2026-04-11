@@ -61,6 +61,7 @@ export default async function ArtistBandProfilePage({ params }) {
       <ProfileShowcase
         title={artist.title}
         imageUrl={heroImage}
+        sourcePath={artist.sourcePath}
         summary={getSummary(artist)}
         musicalStyles={artist.musicalStyles}
         contactHtml={artist.contactHtml}

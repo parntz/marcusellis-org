@@ -78,6 +78,19 @@ const ddl = `
   CREATE INDEX IF NOT EXISTS idx_auth_users_email
     ON auth_users(email);
 
+  CREATE TABLE IF NOT EXISTS auth_password_reset_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    auth_user_id INTEGER NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    expires_at TEXT NOT NULL,
+    used_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (auth_user_id) REFERENCES auth_users(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_auth_password_reset_user
+    ON auth_password_reset_tokens(auth_user_id, created_at DESC);
+
   CREATE TABLE IF NOT EXISTS member_pages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slug TEXT NOT NULL UNIQUE,

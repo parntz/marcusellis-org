@@ -2,8 +2,40 @@
 "use client";
 
 import Link from "next/link";
-import { useDeferredValue, useState } from "react";
-import { getCardImage, getInitials, stripHtml } from "../lib/find-artist-directory-ui";
+import { useDeferredValue, useEffect, useState } from "react";
+import { getArtistBandImageCandidates, getInitials, stripHtml } from "../lib/find-artist-directory-ui";
+
+function ArtistCardImage({ item }) {
+  const candidates = getArtistBandImageCandidates(item);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    setIndex(0);
+  }, [item.slug, item.pictureUrl, item.sourcePath, item.featuredVideoUrl]);
+
+  const current = candidates[index] || "";
+  if (!current) {
+    return (
+      <div className="find-artist-directory-card__placeholder" aria-hidden="true">
+        {getInitials(item.title) || "AFM"}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={current}
+      alt={item.title}
+      onError={() => {
+        if (index < candidates.length - 1) {
+          setIndex(index + 1);
+        } else {
+          setIndex(candidates.length);
+        }
+      }}
+    />
+  );
+}
 
 function matchesItem(item, query) {
   if (!query) return true;
@@ -47,7 +79,6 @@ export function FindArtistGallery({ items = [] }) {
 
       <section className="find-artist-directory-grid" aria-label="Artist cards">
         {cardItems.map((item) => {
-          const cardImage = getCardImage(item);
           return (
             <Link
               key={item.slug}
@@ -57,13 +88,7 @@ export function FindArtistGallery({ items = [] }) {
             >
               <article className="find-artist-directory-card">
                 <div className="find-artist-directory-card__media">
-                  {cardImage ? (
-                    <img src={cardImage} alt={item.title} />
-                  ) : (
-                    <div className="find-artist-directory-card__placeholder" aria-hidden="true">
-                      {getInitials(item.title) || "AFM"}
-                    </div>
-                  )}
+                  <ArtistCardImage item={item} />
                 </div>
                 <div className="find-artist-directory-card__body">
                   <h3>{item.title}</h3>

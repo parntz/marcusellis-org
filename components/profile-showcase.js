@@ -1,7 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
+"use client";
 
 import Link from "next/link";
-import { getInitials, stripHtml } from "../lib/find-artist-directory-ui.js";
+import { useEffect, useState } from "react";
+import { getArtistBandImageCandidates, getInitials, stripHtml } from "../lib/find-artist-directory-ui.js";
 import { rewriteLegacyNashvilleSiteInHtml } from "../lib/legacy-site-url.js";
 
 function normalizeHref(value) {
@@ -147,9 +149,42 @@ function DetailSection({ title, html, tone = "default", displayLabel = title }) 
   );
 }
 
+function ProfileImage({ title, item }) {
+  const candidates = getArtistBandImageCandidates(item);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    setIndex(0);
+  }, [item.pictureUrl, item.sourcePath, item.featuredVideoUrl, title]);
+
+  const current = candidates[index] || "";
+  if (!current) {
+    return (
+      <div className="find-artist-directory-card__placeholder" aria-hidden="true">
+        {getInitials(title) || "AFM"}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={current}
+      alt={title}
+      onError={() => {
+        if (index < candidates.length - 1) {
+          setIndex(index + 1);
+        } else {
+          setIndex(candidates.length);
+        }
+      }}
+    />
+  );
+}
+
 export function ProfileShowcase({
   title,
   imageUrl = "",
+  sourcePath = "",
   summary = "",
   musicalStyles = [],
   contactHtml = "",
@@ -179,13 +214,7 @@ export function ProfileShowcase({
             imageUrl ? "find-artist-profile__media--image" : "find-artist-profile__media--placeholder"
           }`}
         >
-          {imageUrl ? (
-            <img src={imageUrl} alt={title} />
-          ) : (
-            <div className="find-artist-directory-card__placeholder" aria-hidden="true">
-              {getInitials(title) || "AFM"}
-            </div>
-          )}
+          <ProfileImage title={title} item={{ pictureUrl: imageUrl, sourcePath, featuredVideoUrl }} />
         </div>
 
         <div className="find-artist-profile__intro">

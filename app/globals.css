@@ -6306,6 +6306,7 @@ body:has(.gigs-calendar-layout) aside.news-events-sidebar-portal .news-events-ca
 
 .auth-layout-single {
   grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
 }
 
 .auth-card,
@@ -6348,9 +6349,19 @@ body:has(.gigs-calendar-layout) aside.news-events-sidebar-portal .news-events-ca
   width: 100%;
 }
 
+.auth-card--narrow {
+  width: min(100%, 610px);
+  margin-inline: auto;
+}
+
 .auth-error {
   margin: 0;
   color: #ff9caa;
+}
+
+.auth-success {
+  margin: 0;
+  color: #9ef2c1;
 }
 
 .auth-google {
@@ -6360,6 +6371,41 @@ body:has(.gigs-calendar-layout) aside.news-events-sidebar-portal .news-events-ca
 
 .auth-helper {
   margin: 12px 0 0;
+}
+
+.auth-inline-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+
+.auth-reset-modal {
+  width: min(100%, 610px);
+  border: 1px solid var(--line);
+  background: rgba(22, 28, 44, 0.96);
+  padding: 22px;
+}
+
+.auth-reset-modal__header {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.auth-reset-modal__header h3,
+.auth-reset-modal__header p {
+  margin: 0;
+}
+
+.auth-reset-modal__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .password-rules {
