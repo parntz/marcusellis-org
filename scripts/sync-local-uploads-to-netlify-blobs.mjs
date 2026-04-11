@@ -28,7 +28,11 @@ const STORE_DIRS = [
   { store: "rehearsal-hall-uploads", dir: "rehearsal-hall" },
   { store: "recording-page-uploads", dir: "recording-page" },
   { store: "photo-gallery-uploads", dir: "photo-gallery" },
+  { store: "featured-video-uploads", dir: "featured-video" },
+  { store: "afm-entertainment-uploads", dir: "afm-entertainment" },
+  { store: "live-scales-uploads", dir: "live-scales" },
   { store: "member-profile-media", dir: "member-profiles" },
+  { store: "artist-band-profile-media", dir: "artist-band-profiles" },
 ];
 
 function getToken() {
@@ -73,6 +77,17 @@ function listFlatFiles(absDir) {
 async function main() {
   const force = process.argv.includes("--force");
   const verbose = process.argv.includes("--verbose");
+  const storesWithFiles = STORE_DIRS.map(({ store, dir }) => {
+    const absDir = path.join(UPLOADS_ROOT, dir);
+    const files = listFlatFiles(absDir);
+    return { store, dir, absDir, files };
+  }).filter(({ files }) => files.length > 0);
+
+  if (storesWithFiles.length === 0) {
+    console.log("No local uploads found in public/uploads. Nothing to sync.");
+    process.exit(0);
+  }
+
   const siteID = getSiteId();
   const token = getToken();
   if (!siteID || !token) {
@@ -86,13 +101,7 @@ async function main() {
   let skipped = 0;
   let errors = 0;
 
-  for (const { store: storeName, dir: subdir } of STORE_DIRS) {
-    const dir = path.join(UPLOADS_ROOT, subdir);
-    const files = listFlatFiles(dir);
-    if (files.length === 0) {
-      continue;
-    }
-
+  for (const { store: storeName, absDir: dir, files } of storesWithFiles) {
     const store = getStore(storeName, { siteID, token });
     let storeSkipped = 0;
     let storeUploaded = 0;
