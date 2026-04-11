@@ -21,7 +21,7 @@ export default async function nightlyMemberMediaDiscovery() {
     const result = await runMemberMediaDiscovery({
       scheduleLabel: "nightly",
       memberLimit:
-        Math.max(1, Number.parseInt(process.env.MEMBER_MEDIA_DISCOVERY_MEMBER_LIMIT || "25", 10) || 25), // Conservative nightly member cap for Netlify scheduled runs; increase only after confirming runtime/quota headroom.
+        Math.max(1, Number.parseInt(process.env.MEMBER_MEDIA_DISCOVERY_MEMBER_LIMIT || "100", 10) || 100),
     });
     return json(result);
   } catch (error) {
