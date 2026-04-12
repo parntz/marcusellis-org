@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getBaseUrlFromRequest } from "../../../../../lib/auth-url.js";
-import { createPasswordResetToken } from "../../../../../lib/password-reset.js";
-import { sendResendEmail } from "../../../../../lib/resend-mail.js";
+import { getBaseUrlFromRequest } from "../../../../lib/auth-url.js";
+import { createPasswordResetToken } from "../../../../lib/password-reset.js";
+import { sendResendEmail } from "../../../../lib/resend-mail.js";
 
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

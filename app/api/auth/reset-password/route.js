@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { consumePasswordResetToken } from "../../../../../lib/password-reset.js";
+import { consumePasswordResetToken } from "../../../../lib/password-reset.js";
 
 export async function POST(request) {
   try {
