@@ -124,7 +124,7 @@ function useRevealOnScroll(reducedMotion) {
  * so the incoming slide matches the outgoing slide’s oscillating zoom phase at crossfade.
  */
 const HeroImageWithGrow = forwardRef(function HeroImageWithGrow(
-  { src, alt, className, style, growEnabled, animationDelayMs },
+  { src, alt, className, style, growEnabled, animationDelayMs, loading = "eager" },
   ref
 ) {
   const [armed, setArmed] = useState(false);
@@ -175,6 +175,8 @@ const HeroImageWithGrow = forwardRef(function HeroImageWithGrow(
       alt={alt}
       className={[className, zoomClass].filter(Boolean).join(" ")}
       style={mergedStyle}
+      loading={loading}
+      fetchPriority="high"
       onLoad={handleLoad}
       width={1600}
       height={900}

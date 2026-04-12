@@ -36,6 +36,8 @@ export function LegacyHomeHero({ slides }) {
               className="legacy-hero-image"
               width={1600}
               height={900}
+              loading="eager"
+              fetchPriority="high"
               priority
             />
           </div>

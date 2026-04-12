@@ -72,12 +72,20 @@ import { getMediaHubConfig } from "../lib/site-config-media-hub.mjs";
 import { getMagazineArchiveConfig } from "../lib/site-config-magazine-archive.mjs";
 import { getLiveScalesConfig } from "../lib/site-config-live-scales.mjs";
 import { getNewUseReuseIntroInnerForPage } from "../lib/new-use-reuse-intro.mjs";
+import { getUnionPlusProgramContent } from "../lib/union-plus-program-html.mjs";
 import {
   getSignatoryDisplayHtmlFromSource,
   getSignatorySourceFromPageBody,
 } from "../lib/signatory-html.mjs";
 import { LiveScalesLeadAdmin } from "./live-scales-admin";
 import { extractDirectorySourceHtml, getDirectoryPageContent } from "../lib/directory-page.mjs";
+import { listAboutUsStaff } from "../lib/about-us-staff.mjs";
+import { getAboutUsIntro } from "../lib/about-us-intro.mjs";
+import { AboutUsPageClient } from "./about-us-page-client";
+import { UnionPlusProgramPage } from "./union-plus-program-page";
+import { listSidebarBoxesForPage } from "../lib/site-config-sidebar.mjs";
+import { MissionStatementAdmin } from "./mission-statement-admin";
+import { parseMissionStatementBody, MISSION_STATEMENT_DEFAULTS } from "../lib/mission-statement-body.mjs";
 
 function AssetIndex({ page }) {
   return (
@@ -189,69 +197,67 @@ function DirectoryLanding({ content }) {
   );
 }
 
-function extractMissionStatementContent(bodyHtml = "") {
-  const contentHtml = extractDrupalContentEncodedHtml(bodyHtml || "");
-  const paragraphs = Array.from(contentHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi), (match) =>
-    cleanText(stripHtml(match[1]))
-  ).filter((value) => value && value !== "\u00a0");
-  const lists = Array.from(contentHtml.matchAll(/<ul\b[^>]*>([\s\S]*?)<\/ul>/gi), (match) =>
-    Array.from(match[1].matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi), (itemMatch) =>
-      cleanText(stripHtml(itemMatch[1]))
-    ).filter(Boolean)
-  ).filter((items) => items.length);
 
-  return {
-    intro:
-      paragraphs[0] ||
-      "We are the American Federation of Musicians of the United States and Canada, professional musicians united through our Locals.",
-    commitmentIntro: paragraphs[1] || "To achieve these objectives, we must commit to:",
-    actionIntro:
-      paragraphs[2] || "With that unity and resolve, we must engage in direct action that demonstrates our power and determination to:",
-    lists,
-  };
+function extractMissionStatementContent(bodyHtml = "") {
+  return parseMissionStatementBody(bodyHtml || "");
 }
 
 function MissionStatementPage({ content }) {
-  const [visionItems = [], commitmentItems = [], actionItems = []] = content.lists || [];
-
   return (
     <section className="mission-page">
       <div className="mission-page__hero">
-        <p className="mission-page__eyebrow">AFM Local 257</p>
-        <h2>A union mission built around dignity, solidarity, and power.</h2>
-        <p className="mission-page__lead">{content.intro}</p>
+        <p className="mission-page__eyebrow">{content.eyebrow || MISSION_STATEMENT_DEFAULTS.eyebrow}</p>
+        <h2>{content.header || MISSION_STATEMENT_DEFAULTS.header}</h2>
+        <p className="mission-page__lead">{content.description || MISSION_STATEMENT_DEFAULTS.description}</p>
       </div>
 
       <div className="mission-page__grid">
         <section className="mission-page__column">
-          <p className="mission-page__label">Why we organize</p>
-          <h3>What this union exists to protect.</h3>
-          <ul className="mission-page__list">
-            {visionItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+          <p className="mission-page__label">{content.whyLabel || MISSION_STATEMENT_DEFAULTS.whyLabel}</p>
+          <h3>{content.whyHeader || MISSION_STATEMENT_DEFAULTS.whyHeader}</h3>
+          <div
+            className="mission-page__list"
+            dangerouslySetInnerHTML={{
+              __html:
+                content.whyHtml ||
+                `<ul>${(content.whyItems || MISSION_STATEMENT_DEFAULTS.whyItems)
+                  .map((item) => `<li>${item}</li>`)
+                  .join("")}</ul>`,
+            }}
+          />
         </section>
 
         <section className="mission-page__column">
-          <p className="mission-page__label">What membership requires</p>
-          <h3>{content.commitmentIntro.replace(/:$/, "")}</h3>
-          <ul className="mission-page__list">
-            {commitmentItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+          <p className="mission-page__label">
+            {content.membershipLabel || MISSION_STATEMENT_DEFAULTS.membershipLabel}
+          </p>
+          <h3>{content.membershipHeader || MISSION_STATEMENT_DEFAULTS.membershipHeader}</h3>
+          <div
+            className="mission-page__list"
+            dangerouslySetInnerHTML={{
+              __html:
+                content.membershipHtml ||
+                `<ul>${(content.membershipItems || MISSION_STATEMENT_DEFAULTS.membershipItems)
+                  .map((item) => `<li>${item}</li>`)
+                  .join("")}</ul>`,
+            }}
+          />
         </section>
       </div>
 
       <section className="mission-page__footer">
-        <p className="mission-page__label">How that mission becomes action</p>
-        <h3>{content.actionIntro.replace(/:$/, "")}</h3>
-        <ul className="mission-page__list mission-page__list--wide">
-          {actionItems.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
+        <p className="mission-page__label">{content.actionLabel || MISSION_STATEMENT_DEFAULTS.actionLabel}</p>
+        <h3>{content.actionHeader || MISSION_STATEMENT_DEFAULTS.actionHeader}</h3>
+        <div
+          className="mission-page__list mission-page__list--wide"
+          dangerouslySetInnerHTML={{
+            __html:
+              content.actionHtml ||
+              `<ul>${(content.actionItems || MISSION_STATEMENT_DEFAULTS.actionItems)
+                .map((item) => `<li>${item}</li>`)
+                .join("")}</ul>`,
+          }}
+        />
       </section>
     </section>
   );
@@ -622,6 +628,7 @@ export async function MirroredPage({
     if (page.kind !== "mirror-page") return "";
     const r = page.route;
     if (r === "/about-us") return "pg-about";
+    if (r === "/union-plus-program") return "pg-union-plus";
     if (r === "/mission-statement") return "pg-mission";
     if (r === "/live-music") return "pg-hub pg-live";
     if (r === "/member-services") return "pg-hub pg-services";
@@ -734,6 +741,12 @@ export async function MirroredPage({
     : "";
   const directoryPageContent = directoryPage ? getDirectoryPageContent(page.bodyHtml || "") : null;
   const missionPageContent = missionPage ? extractMissionStatementContent(page.bodyHtml || "") : null;
+  const aboutUsStaff = aboutPage ? await listAboutUsStaff() : null;
+  const aboutUsIntro = aboutPage ? await getAboutUsIntro() : null;
+  const unionPlusPage = page.kind === "mirror-page" && page.route === "/union-plus-program";
+  const unionPlusContent = unionPlusPage ? getUnionPlusProgramContent(page.bodyHtml || "") : null;
+  const unionPlusSavedSidebarBoxes = unionPlusPage ? await listSidebarBoxesForPage(page.route) : [];
+  const unionPlusSidebarVisible = unionPlusPage && routeSidebarEnabled && unionPlusSavedSidebarBoxes.length > 0;
   const magazineArchiveContent = magazinePage
     ? ((magazineArchiveConfig?.issues?.length || 0) > 0
         ? magazineArchiveConfig
@@ -810,6 +823,7 @@ export async function MirroredPage({
     rehearsalHallPage ||
     benefitsHubPage ||
     memberServicesPage ||
+    unionPlusPage ||
     mediaHubPage ||
     memberSiteLinksPage ||
     photoGalleryPage ||
@@ -858,6 +872,7 @@ export async function MirroredPage({
                     isMainRecordingPage,
                   })
             }
+            hideDescription={unionPlusPage}
             titleAction={
               memberSiteLinksPage && isAdmin ? (
                 <MemberSiteLinksCreateButton />
@@ -1510,23 +1525,45 @@ export async function MirroredPage({
               </div>
             </div>
           ) : missionPage ? (
-            isAdmin ? (
-              <SitePageBodyAdmin
-                route={page.route}
-                initialSourceHtml={extractDrupalContentEncodedHtml(page.bodyHtml || "")}
-                dialogTitle="Edit Mission Statement main content"
-                overlayLabel="Edit mission statement main content"
-                helpText="This page uses a single HTML field. Edit the mission copy here."
-                fieldLabel="Mission statement content"
+            routeSidebarEnabled ? (
+              <div
+                className={`recording-page recording-sidebar-layout generic-shared-sidebar-layout ${pageTypeClass}`}
+                style={routeSidebarStyle}
               >
-                <section className="mission-page-shell">
-                  <MissionStatementPage content={missionPageContent} />
-                </section>
-              </SitePageBodyAdmin>
-            ) : (
-              <section className="mission-page-shell">
+                <div className="recording-body-grid recording-body-grid--scales">
+                  <div>
+                    <section className="mission-page-shell">
+                      {isAdmin ? (
+                        <MissionStatementAdmin
+                          route={page.route}
+                          initialSourceHtml={extractDrupalContentEncodedHtml(page.bodyHtml || "")}
+                        />
+                      ) : (
+                        <MissionStatementPage content={missionPageContent} />
+                      )}
+                    </section>
+                  </div>
+                  <aside className="recording-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
+                  </aside>
+              </div>
+            </div>
+          ) : (
+            <section className="mission-page-shell">
+              {isAdmin ? (
+                <MissionStatementAdmin
+                  route={page.route}
+                  initialSourceHtml={extractDrupalContentEncodedHtml(page.bodyHtml || "")}
+                />
+              ) : (
                 <MissionStatementPage content={missionPageContent} />
-              </section>
+              )}
+            </section>
             )
           ) : routeSidebarEnabled ? (
             <div
@@ -1578,48 +1615,84 @@ export async function MirroredPage({
                       screenshotSrc={afmEntertainmentConfig?.screenshotSrc || "/images/afm-entertainment-home-raw.png"}
                     />
                   ) : aboutPage ? (
+                    routeSidebarEnabled ? (
+                      <div className={`page-columns ${pageTypeClass}`} style={routeSidebarStyle}>
+                        <section className={`page-content ${pageTypeClass}`}>
+                          <AboutUsPageClient
+                            initialIntro={aboutUsIntro}
+                            initialStaff={aboutUsStaff}
+                            isAdmin={isAdmin}
+                          />
+                        </section>
+                        <aside className="page-sidebar" style={routeSidebarStyle}>
+                          <RecordingSidebarPanel
+                            boxes={sharedSidebarBoxes}
+                            pageRoute={page.route}
+                            isAdmin={isAdmin}
+                            initialWidthStep={sidebarWidthConfig?.widthStep}
+                          />
+                        </aside>
+                      </div>
+                    ) : (
+                      <div className={`page-columns ${pageTypeClass}`}>
+                        <section className={`page-content ${pageTypeClass}`}>
+                          <AboutUsPageClient
+                            initialIntro={aboutUsIntro}
+                            initialStaff={aboutUsStaff}
+                            isAdmin={isAdmin}
+                          />
+                        </section>
+                      </div>
+                    )
+                  ) : unionPlusPage ? (
                     isAdmin ? (
                       <SitePageBodyAdmin
                         route={page.route}
                         initialSourceHtml={page.bodyHtml || ""}
-                        dialogTitle="Edit About Us main content"
-                        overlayLabel="Edit About Us page main content"
-                        helpText="This page uses a single HTML field stored in the database. Edit the full main column here."
-                        fieldLabel="Main content HTML"
+                        dialogTitle="Edit Union Plus page content"
+                        overlayLabel="Edit Union Plus page content"
+                        helpText="This page uses a single HTML field stored in Turso. Edit the source content here; the layout is generated from that body copy."
+                        fieldLabel="Union Plus content"
                       >
-                        <section
-                          className={`page-content ${pageTypeClass}`}
-                          dangerouslySetInnerHTML={{ __html: bodyHtml }}
-                        />
+                        <UnionPlusProgramPage content={unionPlusContent} />
                       </SitePageBodyAdmin>
                     ) : (
-                      <section
-                        className={`page-content ${pageTypeClass}`}
-                        dangerouslySetInnerHTML={{ __html: bodyHtml }}
-                      />
+                      <UnionPlusProgramPage content={unionPlusContent} />
                     )
                   ) : (
                     membersOnlyDirectoryPage ? (
-                      isAdmin ? (
-                        <SitePageBodyAdmin
-                          route={page.route}
-                          initialSourceHtml={page.bodyHtml || ""}
-                          dialogTitle="Edit Members Only Directory main content"
-                          overlayLabel="Edit members only directory main content"
-                          helpText="This page uses a single HTML field. Edit the full main column here with the HTML editor."
-                          fieldLabel="Main content HTML"
-                        >
-                          <section
-                            className="members-only-directory-main"
-                            dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
+                      <div className={`page-columns ${pageTypeClass}`} style={routeSidebarStyle}>
+                        <section className={`page-content ${pageTypeClass}`}>
+                          {isAdmin ? (
+                            <SitePageBodyAdmin
+                              route={page.route}
+                              initialSourceHtml={page.bodyHtml || ""}
+                              dialogTitle="Edit Members Only Directory main content"
+                              overlayLabel="Edit members only directory main content"
+                              helpText="This page uses a single HTML field. Edit the full main column here with the HTML editor."
+                              fieldLabel="Main content HTML"
+                            >
+                              <section
+                                className="members-only-directory-main"
+                                dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
+                              />
+                            </SitePageBodyAdmin>
+                          ) : (
+                            <section
+                              className="members-only-directory-main"
+                              dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
+                            />
+                          )}
+                        </section>
+                        <aside className="page-sidebar" style={routeSidebarStyle}>
+                          <RecordingSidebarPanel
+                            boxes={sharedSidebarBoxes}
+                            pageRoute={page.route}
+                            isAdmin={isAdmin}
+                            initialWidthStep={sidebarWidthConfig?.widthStep}
                           />
-                        </SitePageBodyAdmin>
-                      ) : (
-                        <section
-                          className="members-only-directory-main"
-                          dangerouslySetInnerHTML={{ __html: membersOnlyDirectoryContentHtml }}
-                        />
-                      )
+                        </aside>
+                      </div>
                     ) : (
                       <section
                         className="page-content"
@@ -1634,14 +1707,27 @@ export async function MirroredPage({
                     </section>
                   ) : null}
                 </div>
-                <aside className="recording-sidebar" style={routeSidebarStyle}>
-                  <RecordingSidebarPanel
-                    boxes={sharedSidebarBoxes}
-                    pageRoute={page.route}
-                    isAdmin={isAdmin}
-                    initialWidthStep={sidebarWidthConfig?.widthStep}
-                  />
-                </aside>
+                {unionPlusPage ? (
+                  unionPlusSidebarVisible ? (
+                    <aside className="recording-sidebar" style={routeSidebarStyle}>
+                      <RecordingSidebarPanel
+                        boxes={unionPlusSavedSidebarBoxes}
+                        pageRoute={page.route}
+                        isAdmin={isAdmin}
+                        initialWidthStep={sidebarWidthConfig?.widthStep}
+                      />
+                    </aside>
+                  ) : null
+                ) : !aboutPage && !membersOnlyDirectoryPage ? (
+                  <aside className="recording-sidebar" style={routeSidebarStyle}>
+                    <RecordingSidebarPanel
+                      boxes={sharedSidebarBoxes}
+                      pageRoute={page.route}
+                      isAdmin={isAdmin}
+                      initialWidthStep={sidebarWidthConfig?.widthStep}
+                    />
+                  </aside>
+                ) : null}
               </div>
             </div>
           ) : (
@@ -1650,17 +1736,16 @@ export async function MirroredPage({
                 <div className="new-use-grid">
                   <section className="page-content new-use-copy">
                     {isAdmin ? (
-                      <NewUseReuseIntroAdmin initialIntroHtml={newUseReuseCopyInnerHtml} />
+                      <NewUseReuseIntroAdmin initialIntroHtml={newUseReuseCopyInnerHtml}>
+                        <div dangerouslySetInnerHTML={{ __html: newUseReuseCopyInnerHtml }} />
+                      </NewUseReuseIntroAdmin>
                     ) : (
-                      <div
-                        className="new-use-intro-copy"
-                        dangerouslySetInnerHTML={{ __html: newUseReuseCopyInnerHtml }}
-                      />
+                      <div dangerouslySetInnerHTML={{ __html: newUseReuseCopyInnerHtml }} />
                     )}
                   </section>
                   <section className="page-content new-use-form">
                     {newUseStatus ? (
-                      <p className={`form-status form-status--${newUseStatus.tone}`}>
+                      <p className={`new-use-status ${newUseStatus.ok ? "new-use-status--ok" : "new-use-status--error"}`}>
                         {newUseStatus.message}
                       </p>
                     ) : null}
@@ -1689,25 +1774,49 @@ export async function MirroredPage({
                   screenshotSrc={afmEntertainmentConfig?.screenshotSrc || "/images/afm-entertainment-home-raw.png"}
                 />
               ) : aboutPage ? (
+                routeSidebarEnabled ? (
+                  <div className={`page-columns ${pageTypeClass}`} style={routeSidebarStyle}>
+                    <section className={`page-content ${pageTypeClass}`}>
+                      <AboutUsPageClient
+                        initialIntro={aboutUsIntro}
+                        initialStaff={aboutUsStaff}
+                        isAdmin={isAdmin}
+                      />
+                    </section>
+                    <aside className="page-sidebar" style={routeSidebarStyle}>
+                      <RecordingSidebarPanel
+                        boxes={sharedSidebarBoxes}
+                        pageRoute={page.route}
+                        isAdmin={isAdmin}
+                        initialWidthStep={sidebarWidthConfig?.widthStep}
+                      />
+                    </aside>
+                  </div>
+                ) : (
+                  <div className={`page-columns ${pageTypeClass}`}>
+                    <section className={`page-content ${pageTypeClass}`}>
+                      <AboutUsPageClient
+                        initialIntro={aboutUsIntro}
+                        initialStaff={aboutUsStaff}
+                        isAdmin={isAdmin}
+                      />
+                    </section>
+                  </div>
+                )
+              ) : unionPlusPage ? (
                 isAdmin ? (
                   <SitePageBodyAdmin
                     route={page.route}
                     initialSourceHtml={page.bodyHtml || ""}
-                    dialogTitle="Edit About Us main content"
-                    overlayLabel="Edit About Us page main content"
-                    helpText="This page uses a single HTML field stored in the database. Edit the full main column here."
-                    fieldLabel="Main content HTML"
+                    dialogTitle="Edit Union Plus page content"
+                    overlayLabel="Edit Union Plus page content"
+                    helpText="This page uses a single HTML field stored in Turso. Edit the source content here; the layout is generated from that body copy."
+                    fieldLabel="Union Plus content"
                   >
-                    <section
-                      className={`page-content ${pageTypeClass}`}
-                      dangerouslySetInnerHTML={{ __html: bodyHtml }}
-                    />
+                    <UnionPlusProgramPage content={unionPlusContent} />
                   </SitePageBodyAdmin>
                 ) : (
-                  <section
-                    className={`page-content ${pageTypeClass}`}
-                    dangerouslySetInnerHTML={{ __html: bodyHtml }}
-                  />
+                  <UnionPlusProgramPage content={unionPlusContent} />
                 )
               ) : (
                 membersOnlyDirectoryPage ? (

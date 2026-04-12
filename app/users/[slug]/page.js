@@ -6,7 +6,10 @@ import { ProfileShowcase } from "../../../components/profile-showcase";
 import { authOptions } from "../../../lib/auth-options";
 import { canEditMemberPage, isAdminUser } from "../../../lib/authz";
 import { decodeHtmlEntities } from "../../../lib/decode-html-entities.js";
-import { resolveMemberWebsiteHref } from "../../../lib/legacy-site-url.js";
+import {
+  normalizeLikelyExternalHref,
+  resolveMemberWebsiteHref,
+} from "../../../lib/legacy-site-url.js";
 import { getMemberProfileBySlug } from "../../../lib/member-profiles";
 import { siteMeta } from "../../../lib/site-data";
 
@@ -14,13 +17,31 @@ function hasText(value) {
   return Boolean(String(value || "").trim());
 }
 
+function plainTextFromHtml(value) {
+  return decodeHtmlEntities(
+    String(value || "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
+}
+
 function normalizeMemberLinks(member) {
+  const websiteUrl = normalizeLikelyExternalHref(member.websiteUrl);
+  const facebookUrl = normalizeLikelyExternalHref(member.facebookUrl);
+  const instagramUrl = normalizeLikelyExternalHref(member.reverbnationUrl);
+  const xUrl = normalizeLikelyExternalHref(member.xUrl);
   const primaryLinks = [
-    ...(hasText(member.websiteUrl) ? [{ label: "Website", url: member.websiteUrl }] : []),
-    ...(hasText(member.facebookUrl) ? [{ label: "Facebook", url: member.facebookUrl }] : []),
-    ...(hasText(member.reverbnationUrl) ? [{ label: "Instagram", url: member.reverbnationUrl }] : []),
-    ...(hasText(member.xUrl) ? [{ label: "X", url: member.xUrl }] : []),
-    ...(Array.isArray(member.webLinks) ? member.webLinks.map((item) => ({ label: item.label, url: item.url || item.href })) : []),
+    ...(hasText(websiteUrl) ? [{ label: "Website", url: websiteUrl }] : []),
+    ...(hasText(facebookUrl) ? [{ label: "Facebook", url: facebookUrl }] : []),
+    ...(hasText(instagramUrl) ? [{ label: "Instagram", url: instagramUrl }] : []),
+    ...(hasText(xUrl) ? [{ label: "X", url: xUrl }] : []),
+    ...(Array.isArray(member.webLinks)
+      ? member.webLinks.map((item) => ({
+          label: item.label,
+          url: normalizeLikelyExternalHref(item.url || item.href),
+        }))
+      : []),
   ];
 
   return primaryLinks
@@ -47,11 +68,8 @@ export async function generateMetadata({ params }) {
   }
 
   return {
-      title: `${member.title} | Member Profile | ${siteMeta.title}`,
-    description: String(member.descriptionHtml || "")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim(),
+    title: `${member.title} | Member Profile | ${siteMeta.title}`,
+    description: plainTextFromHtml(member.descriptionHtml),
   };
 }
 
@@ -95,10 +113,7 @@ export default async function MemberProfilePage({ params }) {
       <ProfileShowcase
         title={title}
         imageUrl={member.pictureUrl}
-        summary={String(member.descriptionHtml || "")
-          .replace(/<[^>]+>/g, " ")
-          .replace(/\s+/g, " ")
-          .trim()}
+        summary={plainTextFromHtml(member.descriptionHtml)}
         musicalStyles={member.musicalStyles}
         contactHtml={member.contactHtml}
         personnelHtml={member.personnelHtml}

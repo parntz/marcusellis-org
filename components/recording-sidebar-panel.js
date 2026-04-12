@@ -1092,12 +1092,12 @@ export function RecordingSidebarPanel({
   }, [initialWidthStep]);
 
   useLayoutEffect(() => {
-    const sidebar = stackRef.current?.closest(".recording-sidebar");
+    const sidebar = stackRef.current?.closest(".recording-sidebar, .page-sidebar");
     if (!sidebar) return;
     const px = `${sidebarWidthPxFromStep(widthStep)}px`;
     sidebar.style.setProperty("--recording-sidebar-width", px);
-    /* Grid tracks read var() from .recording-page (sibling of aside); aside-only updates never reached the grid. */
-    sidebar.closest(".recording-page")?.style.setProperty("--recording-sidebar-width", px);
+    /* Grid tracks read var() from the page shell; keep both layout families in sync live. */
+    sidebar.closest(".recording-page, .page-columns")?.style.setProperty("--recording-sidebar-width", px);
   }, [widthStep]);
 
   const commitWidthIfDirty = useCallback(async () => {
