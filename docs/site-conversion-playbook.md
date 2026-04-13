@@ -767,6 +767,10 @@ Current implementation note:
 - the live header band background is controlled by `--brand-background` in [app/globals.css](/Users/paularntz/Sites/site-model-one/app/globals.css:28)
 - the visible header row uses that variable in `.brand-band` in [app/globals.css](/Users/paularntz/Sites/site-model-one/app/globals.css:433)
 - if the header appearance changes, the playbook/handoff should name this source of truth explicitly so the builder knows whether the change came from framework CSS variables, DB-backed content, or page-level styling
+- target-site color and header decisions must be derived from the active site's own reference material, not from framework fallback colors and not from a previous site's palette
+- if a local visual reference is captured from the live target site, store it in `docs/reference/` and treat that capture as a stronger guide than framework fallback colors or previous placeholder styling
+- shared branding/build rules should remain generic; keep project-specific screenshots and palette decisions in the active project's local references or handoff notes
+- use [docs/target-site-branding-rules.md](/Users/paularntz/Sites/paularntz.com/docs/target-site-branding-rules.md:1) as the generic rule set for color sourcing, local reference capture, and final-push preparation
 
 ## Database Model Guidance
 
@@ -823,11 +827,11 @@ The agent should aim for:
 
 ## SQLite Migration Rules
 
-The current repo is Turso-only. The target architecture is repo-hosted SQLite.
+The current repo should be treated as a local-SQLite-first project.
 
 Migration objectives:
 
-- remove hard requirements for Turso-specific URLs and auth tokens
+- remove hard requirements for vendor-specific remote database URLs and auth tokens
 - support local SQLite as the primary DB for the converted framework
 - preserve current schema and behaviors where practical
 - update scripts, bootstrap logic, and runtime access accordingly
@@ -983,7 +987,7 @@ Recommended order:
 5. Move homepage sections and reusable blocks into the DB.
 6. Replace public assets with target-site or fallback assets.
 7. Preserve and rebind member/auth/gallery/admin functionality.
-8. Replace Turso with SQLite.
+8. Replace remote-runtime assumptions with SQLite-first runtime behavior.
 9. Remove remaining source-site remnants.
 10. Verify build, editing, and deploy behavior.
 
@@ -1161,11 +1165,20 @@ The conversion is not complete until all of the following are true:
 - target primary and footer navigation are implemented
 - homepage structure and copy reflect the target site
 - static pages are represented accurately
+- text contrast is sufficient across all major surfaces, including secondary text and admin overlays
+- component surface treatments match the target site; dark sites do not regress to generic white cards unless the reference site actually uses them
+- main-content spacing is balanced between the hero/header above and the footer below
 - database-derived sections show representative proof-of-concept content
 - editable site content is stored in the database
 - editing workflows still function
 - auth/member/gallery functionality still works
+- server-side auth/session reads have been tested on real page renders
+- stale or undecryptable auth cookies do not crash page rendering; they must degrade to a logged-out state if necessary
+- site-level admin config controls write to local SQLite when they are intended to be local project configuration
+- notice and callout toggles do not stop at visibility state alone; if a notice region is enabled, the underlying notice records must also exist so the page has content to render
+- inline admin edit overlays use the active target-site palette and match the established hover/focus interaction model on every newly editable surface
 - build succeeds
+- `npm install` has been run before the final repository push
 - deployment path is documented
 
 ## Open Working Rules

@@ -21,8 +21,8 @@ Decouple this repo from the live remote database by creating a local SQLite copy
 
 The snapshot script currently reads:
 
-- `TURSO_DATABASE_URL`
-- `TURSO_AUTH_TOKEN`
+- `DATABASE_SOURCE_URL`
+- `DATABASE_SOURCE_AUTH_TOKEN`
 
 These are migration-time inputs only. They are no longer required for normal local runtime.
 
@@ -47,7 +47,7 @@ The snapshot also copied the wider site content/config tables used by the curren
 
 ## Known Follow-Up Work
 
-- remove remaining Turso-specific wording from scripts, docs, and comments
+- remove remaining vendor-specific wording from scripts, docs, and comments
 - verify the full app runtime against local SQLite under `npm run dev`
 - audit SQL compatibility assumptions between remote LibSQL and local SQLite
 - decide whether to keep `DATABASE_URL` remote support after migration is complete or make local SQLite the only supported runtime path
