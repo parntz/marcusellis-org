@@ -2,18 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { isAdminUser } from "../lib/authz";
 import { primaryNav, siteMeta, utilityNav } from "../lib/site-data";
 import { ModalLightbox } from "./modal-lightbox";
 import { CalloutVisibilityToggle } from "./callout-visibility-toggle";
+import { DefaultBrandMark } from "./default-brand-mark";
 import { RouteSidebarToggle } from "./route-sidebar-toggle";
 import { SiteBackgroundOpacitySlider } from "./site-background-opacity-slider";
-
-/** Static brand logo (see public/images/nma-logo.png) */
-const BRAND_LOGO_SRC = "/images/nma-logo.png";
 const HIDDEN_PRIMARY_NAV_HREFS = new Set(["/downloaded-assets"]);
 
 function normalizeNavHref(href = "") {
@@ -198,9 +195,6 @@ function SiteHeaderContent({ initialBackgroundOpacity = 1 }) {
           <SmartNavLink href={signInHref} className="utility-link" onNavigate={onNavigate}>
             Sign In
           </SmartNavLink>
-          <SmartNavLink href="/register" className="utility-link" onNavigate={onNavigate}>
-            Register
-          </SmartNavLink>
         </>
       )}
     </>
@@ -284,7 +278,7 @@ function SiteHeaderContent({ initialBackgroundOpacity = 1 }) {
     <header className={`site-header ${isScrolled ? "is-scrolled" : ""}`}>
       <div className="brand-band">
         <Link href="/" className="brand-lockup">
-          <Image src={BRAND_LOGO_SRC} alt={siteMeta.title} className="brand-mark" width={64} height={64} />
+          <DefaultBrandMark className="brand-mark" title={siteMeta.title} />
           <div>
             <p className="brand-kicker">{siteMeta.kicker}</p>
             <h1 className="brand-name">{siteMeta.title}</h1>

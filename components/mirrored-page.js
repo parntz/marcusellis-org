@@ -44,7 +44,7 @@ import {
 } from "../lib/photo-gallery.mjs";
 import { listArtistBandProfiles } from "../lib/find-artist-directory.mjs";
 import { resolveSidebarBoxes } from "../lib/resolve-sidebar-boxes.mjs";
-import { primaryNav, siteStats, utilityNav } from "../lib/site-data";
+import { primaryNav, utilityNav } from "../lib/site-data";
 import { listNewsEventsItems } from "../lib/news-events-items";
 import { getMemberSiteLinksHeroConfig } from "../lib/site-config-member-site-links-hero";
 import { getMemberSiteLinksIntroConfig } from "../lib/site-config-member-site-links-intro";
@@ -578,9 +578,6 @@ export async function MirroredPage({
   page,
   heroHomeConfig = null,
   homeHeroTextConfig = null,
-  homeHeroContentConfig = null,
-  homePanelsConfig = null,
-  homeValueStripConfig = null,
   searchParams = {},
 }) {
   const session = await getServerSession(authOptions);
@@ -850,14 +847,9 @@ export async function MirroredPage({
     <article className={`page-frame ${memberPagesRoute ? "member-pages-shell" : ""} ${pageTypeClass}`}>
         {homeRoute ? (
           <HomepageExperience
-            siteStats={siteStats}
-            homePage={page}
             joinHref={joinHref}
             heroHomeConfig={heroHomeConfig}
             homeHeroTextConfig={homeHeroTextConfig}
-            homeHeroContentConfig={homeHeroContentConfig}
-            homePanelsConfig={homePanelsConfig}
-            homeValueStripConfig={homeValueStripConfig}
           />
         ) : (
           <PageHeaderWithCallout

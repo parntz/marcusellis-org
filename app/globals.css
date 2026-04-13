@@ -1,6 +1,6 @@
 :root {
-  /* True black base so page-frame wash never reads gray-white when background opacity is low */
-  --bg: #000000;
+  /* Site background intentionally matches the header grey. */
+  --bg: #757575;
   --surface: rgba(24, 30, 48, 0.78);
   --surface-strong: rgba(30, 36, 54, 0.94);
   --ink: #f0f4ff;
@@ -25,12 +25,16 @@
   --page-background:
     radial-gradient(95% 48% at 50% 100%, rgba(160, 205, 255, 0.5) 0%, transparent 56%),
     radial-gradient(110% 125% at 15% 0%, #5a7eb8 0%, #3d5f8c 40%, #243a58 74%, #0f141f 100%);
-  --brand-background: linear-gradient(
-    120deg,
-    rgba(42, 72, 130, 0.4) 0%,
-    rgba(22, 48, 95, 0.42) 52%,
-    rgba(18, 24, 42, 0.78) 100%
-  );
+  /*
+   * Header/menu chrome intentionally overridden by the building agent:
+   * the header stays light grey, the main menu band is one step darker,
+   * and the 1px separators above/below the menu are a darker grey still.
+   */
+  --brand-background: #757575;
+  --header-frame-background: #757575;
+  --header-frame-stroke: #5e5e5e;
+  --menu-background: #686868;
+  --menu-stroke: #4f4f4f;
   /* Space below page title so sidebar stacks align (recording, scales, news) */
   --sidebar-stack-page-offset: 35px;
   /* Gap below site nav and gap above main content when a page-header callout is present */
@@ -322,11 +326,8 @@ input[type="search"] {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: var(--site-page-wash-strength);
-  background:
-    radial-gradient(70vw 34vw at 5% 15%, rgba(150, 200, 255, 0.34) 0%, rgba(150, 200, 255, 0) 70%),
-    radial-gradient(50vw 40vw at 92% 8%, rgba(170, 220, 255, 0.36) 0%, rgba(170, 220, 255, 0) 72%),
-    var(--page-background);
+  opacity: 1;
+  background: var(--header-frame-background);
 }
 
 .page-shell > * {
@@ -369,17 +370,7 @@ input[type="search"] {
 }
 
 .page-frame {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, calc((1 - var(--site-page-wash-strength)) * 0.78)),
-      rgba(0, 0, 0, calc((1 - var(--site-page-wash-strength)) * 0.7))
-    ),
-    linear-gradient(
-      180deg,
-      rgba(18, 22, 35, calc(0.18 + (var(--site-page-wash-strength) * 0.8))),
-      rgba(10, 14, 24, calc(0.14 + (var(--site-page-wash-strength) * 0.82)))
-    );
+  background: var(--header-frame-background);
   transition: background 180ms ease;
 }
 
@@ -395,11 +386,13 @@ input[type="search"] {
   content: "";
   position: absolute;
   inset: 0;
-  width: 205px;
-  height: 161px;
+  width: 160px;
+  height: 160px;
   margin: auto;
-  background: url("/images/nma-logo.png") center / 205px 161px no-repeat;
-  opacity: 0.7;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px rgba(5, 10, 18, 0.26);
+  opacity: 0.85;
   pointer-events: none;
 }
 
@@ -408,30 +401,31 @@ input[type="search"] {
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 205px;
-  height: 161px;
-  opacity: 0.7;
+  width: 160px;
+  height: 160px;
+  opacity: 0.9;
   pointer-events: none;
-}
-
-.route-loading-mark img {
-  display: block;
-  width: 205px;
-  height: 161px;
 }
 
 .site-header {
   position: sticky;
   top: 0;
   z-index: 50;
+  background: var(--header-frame-background);
+  border-color: var(--header-frame-stroke);
   transition: background 220ms ease, border-color 220ms ease;
   border-left: 0;
   border-right: 0;
 }
 
+.site-footer {
+  background: var(--header-frame-background);
+  border-color: var(--header-frame-stroke);
+}
+
 .site-header.is-scrolled {
-  background: rgba(14, 18, 32, 0.94);
-  border-color: rgba(159, 190, 255, 0.42);
+  background: var(--header-frame-background);
+  border-color: var(--header-frame-stroke);
 }
 
 .brand-band {
@@ -441,7 +435,7 @@ input[type="search"] {
   gap: 14px;
   padding: 16px 20px;
   background: var(--brand-background);
-  border-bottom: 1px solid rgba(157, 186, 255, 0.26);
+  border-bottom: 1px solid var(--header-frame-stroke);
 }
 
 .brand-lockup {
@@ -460,9 +454,27 @@ input[type="search"] {
 
 .brand-mark {
   width: 64px;
-  max-height: 64px;
-  object-fit: contain;
-  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.48));
+  height: 64px;
+}
+
+.default-brand-mark {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+}
+
+.default-brand-mark--loading {
+  width: 160px;
+  height: 160px;
+}
+
+.default-brand-mark--gallery-loading {
+  width: min(calc(100% - clamp(24px, 4vmin, 40px)), 160px);
+  height: min(calc(100% - clamp(24px, 4vmin, 40px)), 160px);
+  opacity: 0.8;
 }
 
 .brand-kicker,
@@ -531,6 +543,10 @@ input[type="search"] {
 
 .header-panels {
   display: block;
+  /* Building-agent override: menu band sits darker than the header and uses darker grey pixel strokes. */
+  background: var(--menu-background);
+  border-top: 1px solid var(--menu-stroke);
+  border-bottom: 1px solid var(--menu-stroke);
   padding: 0 max(12px, env(safe-area-inset-right, 0px)) 0 max(4px, env(safe-area-inset-left, 0px));
 }
 
@@ -1452,7 +1468,7 @@ input[type="search"] {
 .asset-section,
 .group-card,
 .site-footer {
-  background: var(--surface-strong);
+  background: var(--header-frame-background);
 }
 
 .page-content,
@@ -6191,9 +6207,7 @@ body:has(.gigs-calendar-layout) aside.news-events-sidebar-portal .news-events-ca
 .site-footer {
   margin-top: 0;
   padding: clamp(18px, 2vw, 26px);
-  background:
-    linear-gradient(180deg, rgba(18, 22, 36, 0.9), rgba(12, 16, 28, 0.94)),
-    var(--surface-strong);
+  background: var(--header-frame-background);
   border-left: 0;
   border-right: 0;
 }
@@ -6503,8 +6517,9 @@ body:has(.gigs-calendar-layout) aside.news-events-sidebar-portal .news-events-ca
 
   .header-panels {
     display: none;
-    border-top: 1px solid var(--line);
-    background: rgba(16, 20, 34, 0.97);
+    border-top: 1px solid var(--menu-stroke);
+    border-bottom: 1px solid var(--menu-stroke);
+    background: var(--menu-background);
     padding: 8px max(16px, env(safe-area-inset-right, 0px)) 14px max(8px, env(safe-area-inset-left, 0px));
   }
 
@@ -9413,14 +9428,6 @@ body:has(.gigs-calendar-layout) aside.news-events-sidebar-portal .news-events-ca
   place-items: center;
   padding: clamp(24px, 4vmin, 40px);
   pointer-events: none;
-}
-
-.photo-video-gallery-lightbox__media-loading img {
-  width: auto;
-  height: auto;
-  max-width: min(calc(100% - clamp(24px, 4vmin, 40px)), 205px);
-  max-height: min(calc(100% - clamp(24px, 4vmin, 40px)), 161px);
-  opacity: 0.7;
 }
 
 .photo-video-gallery-lightbox__media-stage.is-ready .photo-video-gallery-lightbox__media-loading {

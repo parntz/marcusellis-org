@@ -40,7 +40,10 @@ This site is a Next.js app for Nashville Musicians Association / AFM 257.
 ### Database setup and sync scripts
 
 - `npm run db:init`  
-  Creates required Turso tables (including gigs, mirror pages, news/event tables, sidebar tables, etc.).
+  Creates required local SQLite tables (including gigs, mirror pages, news/event tables, sidebar tables, etc.).
+
+- `npm run db:copy:remote -- --overwrite`  
+  Copies the current remote source database into the local SQLite file used by this repo.
 
 - `npm run db:prepare`  
   Runs the standard bootstrap chain:
@@ -76,7 +79,7 @@ This site is a Next.js app for Nashville Musicians Association / AFM 257.
 ### Gig import command
 
 - `npm run gigs:import:nso`  
-  Imports Nashville Symphony events as gigs, downloads listing images into `public/uploads/gigs`, and upserts gigs in Turso.
+  Imports Nashville Symphony events as gigs, downloads listing images into `public/uploads/gigs`, and upserts gigs in the local database.
 
   The importer:
   - fetches current listings from `tickets.nashvillesymphony.org`
@@ -107,8 +110,10 @@ This site is a Next.js app for Nashville Musicians Association / AFM 257.
 ## Notes
 
 - Scripts rely on environment variables from `.env` / `.env.local` (loaded by `scripts/load-env.mjs`).
-- The only database is Turso, via `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`.
-- This repo does not use or keep a local SQLite database.
+- The default app database is local SQLite at `data/site.db`.
+- Set `SQLITE_DATABASE_PATH` to change the local DB file location.
+- `npm run db:copy:remote -- --overwrite` snapshots the current remote source DB into local SQLite.
+- Remote snapshotting still reads `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` from `.env.local` today; those are migration-time inputs, not the default runtime DB.
 
 ## Netlify member media discovery
 
@@ -120,8 +125,7 @@ This repo now includes Netlify functions for nightly YouTube discovery:
 Required env:
 
 - `YOUTUBE_API_KEY`
-- `TURSO_DATABASE_URL`
-- `TURSO_AUTH_TOKEN`
+- local SQLite access via the repo DB file
 - `MEMBER_MEDIA_DISCOVERY_MANUAL_TOKEN` for the manual HTTP trigger
 
 Optional env:

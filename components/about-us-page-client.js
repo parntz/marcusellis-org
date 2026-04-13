@@ -215,7 +215,7 @@ export function AboutUsPageClient({ initialIntro, initialStaff, isAdmin }) {
   /* ── Render ─────────────────────────────────────────────────── */
   const introBlock = (
     <div className="about-us-page__intro">
-      <p className="about-us-page__eyebrow">Nashville Musicians Association · AFM Local 257</p>
+      <p className="about-us-page__eyebrow">Northstar Atelier · Fictional Studio Profile</p>
       <p className="about-us-page__lead">{intro}</p>
     </div>
   );
@@ -233,7 +233,7 @@ export function AboutUsPageClient({ initialIntro, initialStaff, isAdmin }) {
 
         <aside className="about-us-page__staff">
           <div className="about-us-page__staff-header">
-            <h2 className="about-us-page__staff-heading">Local 257 Officers and Staff</h2>
+            <h2 className="about-us-page__staff-heading">Studio Directory</h2>
             {isAdmin ? (
               <button type="button" className="about-us-staff-add-btn eyebrow" onClick={openCreate}>
                 ADD +

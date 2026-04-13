@@ -1,10 +1,10 @@
-import Image from "next/image";
+import { DefaultBrandMark } from "../components/default-brand-mark";
 
 export default function AppLoading() {
   return (
     <article className="page-frame page-frame--route-loading" aria-label="Loading page">
       <div className="route-loading-mark" aria-hidden="true">
-        <Image src="/images/nma-logo.png" alt="" width={205} height={161} priority />
+        <DefaultBrandMark className="default-brand-mark--loading" title="Loading page" />
       </div>
     </article>
   );

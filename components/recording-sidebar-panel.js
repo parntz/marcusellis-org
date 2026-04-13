@@ -49,13 +49,9 @@ const SIDEBAR_STYLE_OPTIONS = [
     label: "Bare Panel",
     description: "Minimal shell that lets the content sit more directly in the sidebar.",
   },
-  {
-    value: "union-banner",
-    label: "Union Banner",
-    description: "Header-inspired sidebar with the site banner blues, white copy, and the AFM eyebrow tone.",
-  },
 ];
 const SIDEBAR_ACCENT_OPTIONS = [
+  { value: "gray", label: "Gray", hex: "#8a8a8a", rgb: "138, 138, 138" },
   { value: "cyan", label: "Cyan", hex: "#24d6ff", rgb: "36, 214, 255" },
   { value: "electric-blue", label: "Electric Blue", hex: "#00a8ff", rgb: "0, 168, 255" },
   { value: "deep-blue", label: "Deep Blue", hex: "#3b82ff", rgb: "59, 130, 255" },
@@ -125,7 +121,7 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function getAccentOption(value = "cyan") {
+function getAccentOption(value = "gray") {
   return SIDEBAR_ACCENT_OPTIONS.find((option) => option.value === value) || SIDEBAR_ACCENT_OPTIONS[0];
 }
 
@@ -133,10 +129,10 @@ function getLayoutOption(value = "standard") {
   return SIDEBAR_LAYOUT_OPTIONS.find((option) => option.value === value) || SIDEBAR_LAYOUT_OPTIONS[0];
 }
 
-function getStyleOption(value = "union-banner") {
+function getStyleOption(value = "glass-panel") {
   return (
     SIDEBAR_STYLE_OPTIONS.find((option) => option.value === value) ||
-    SIDEBAR_STYLE_OPTIONS.find((option) => option.value === "union-banner") ||
+    SIDEBAR_STYLE_OPTIONS.find((option) => option.value === "glass-panel") ||
     SIDEBAR_STYLE_OPTIONS[0]
   );
 }
@@ -149,7 +145,9 @@ function normalizeAppearance(input = {}) {
   const layoutName = SIDEBAR_LAYOUT_OPTIONS.some((option) => option.value === input?.layoutName)
     ? input.layoutName
     : "standard";
-  const styleName = "union-banner";
+  const styleName = SIDEBAR_STYLE_OPTIONS.some((option) => option.value === input?.styleName)
+    ? input.styleName
+    : "glass-panel";
   const accent = getAccentOption(input?.accentColor);
   return {
     layoutName,
@@ -377,8 +375,8 @@ function createEmptySidebarBox() {
       heading: "New Sidebar Panel",
       appearance: {
         layoutName: "standard",
-        styleName: "union-banner",
-        accentColor: "cyan",
+        styleName: "glass-panel",
+        accentColor: "gray",
         showAccentStrip: true,
       },
       contentBlocks: [
@@ -466,7 +464,7 @@ function renderLinkedElement({ href, external = false, className, children, key 
 function SidebarAppearanceFields({ appearance, onChange }) {
   const layoutOption = getLayoutOption(appearance.layoutName);
   const styleOption = getStyleOption(appearance.styleName);
-  const accentLocked = appearance.styleName === "union-banner";
+  const accentLocked = false;
 
   return (
     <section className="recording-sidebar-modal__section recording-sidebar-modal__section--appearance">

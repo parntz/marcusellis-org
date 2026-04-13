@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { DefaultBrandMark } from "./default-brand-mark";
 import { ModalLightbox } from "./modal-lightbox";
 import { PhotoGalleryItemAdmin } from "./photo-gallery-item-admin";
 
@@ -205,7 +206,7 @@ export function PhotoVideoGallery({
             >
               {!mediaReady ? (
                 <div className="photo-video-gallery-lightbox__media-loading" aria-hidden="true">
-                  <img src="/images/nma-logo.png" alt="" />
+                  <DefaultBrandMark className="default-brand-mark--gallery-loading" title="Loading media" />
                 </div>
               ) : null}
               {activeItem.mediaType === "video" ? (

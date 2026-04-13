@@ -12,6 +12,7 @@
     "gigs:migrate-images:blobs": "node scripts/migrate-gig-images-to-blobs.mjs",
     "assets:sync:netlify-blobs": "node scripts/sync-local-uploads-to-netlify-blobs.mjs",
     "db:init": "node scripts/db-init.mjs",
+    "db:copy:remote": "node scripts/db-copy-remote-to-sqlite.mjs",
     "db:seed": "node scripts/db-seed.mjs",
     "db:sync:site-pages": "node scripts/db-sync-site-pages.mjs",
     "db:sync:directory-page": "node scripts/db-sync-directory-page.mjs",

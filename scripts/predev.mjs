@@ -39,12 +39,12 @@ if (runFullPrep) {
   console.log("predev: generating site content...");
   runNpmScript("generate:content");
 } else {
-  console.log("predev: using Turso-backed site content (skipping generated export).");
+  console.log("predev: using database-backed site content (skipping generated export).");
 }
 
 if (runFullPrep || !(await hasRequiredDbTables())) {
-  console.log(`predev: ensuring Turso schema at ${dbPath}...`);
+  console.log(`predev: ensuring database schema at ${dbPath}...`);
   runNpmScript(runFullPrep ? "db:prepare" : "db:init");
 } else {
-  console.log(`predev: Turso at ${dbPath} already has required tables (skipping).`);
+  console.log(`predev: database at ${dbPath} already has required tables (skipping).`);
 }

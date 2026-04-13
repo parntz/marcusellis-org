@@ -1,17 +1,20 @@
-# Database: Turso only
+# Database: Local SQLite
 
-This app uses **Turso** (LibSQL) for **development and production**. There is no local SQLite database, no `file:` database URL, no `better-sqlite3`, and no other database driver.
+This app now defaults to **local SQLite** for repo-backed development and migration work. The current runtime database file is `data/site.db` unless `SQLITE_DATABASE_PATH` overrides it.
 
 ## Environment
 
-- **`TURSO_DATABASE_URL`** — required. Must be a **`libsql://…`** URL from the Turso dashboard (not `file:`).
-- **`TURSO_AUTH_TOKEN`** — required for remote access (or **`LIBSQL_AUTH_TOKEN`** as an alias for the same Turso token).
+- **`SQLITE_DATABASE_PATH`** — optional. Relative path to the local SQLite file. Defaults to `data/site.db`.
+- **`DATABASE_URL`** — optional. Override URL for advanced cases. If omitted, the app uses the local SQLite file URL derived from `SQLITE_DATABASE_PATH`.
+- **`TURSO_DATABASE_URL`** — migration-only remote source URL used by `npm run db:copy:remote`.
+- **`TURSO_AUTH_TOKEN`** — migration-only remote source token used by `npm run db:copy:remote`.
 
-`lib/sqlite.mjs` rejects non-`libsql:` URLs and refuses a missing auth token so only remote Turso is used (never local `file:` SQLite).
+`lib/sqlite.mjs` now prefers local SQLite and only uses a remote URL if `DATABASE_URL` explicitly points to one.
 
 ## Commands
 
-- `npm run db:init` — create/ensure schema on Turso.
+- `npm run db:init` — create/ensure schema in local SQLite.
+- `npm run db:copy:remote -- --overwrite` — copy the current remote source database into local SQLite.
 - `npm run db:seed` — sample data (e.g. member inquiries).
 - `npm run db:sync:news-events` — ingest news/event links into `news_events_items`.
 - `npm run db:sync:news-pages` — sync news/event page bodies into `news_event_pages`.

@@ -542,7 +542,7 @@ const defaultHomePanelsPayload = JSON.stringify({
   },
 });
 const defaultHomeHeroContentPayload = JSON.stringify({
-  eyebrow: "AFM Local 257 Nashville",
+  eyebrow: "eyebrow",
   titleLine1: "Built for the musicians",
   titleLine2: "who keep Nashville moving.",
   body: "Contracts, advocacy, benefits, and community for session players, gigging artists, educators, and working professionals across Music City.",
@@ -610,5 +610,5 @@ try {
   console.warn("member_services_panels auto-seed skipped:", e instanceof Error ? e.message : e);
 }
 
-console.log(`Turso initialized at ${dbPath}`);
+console.log(`Database initialized at ${dbPath}`);
 await closeDb();
