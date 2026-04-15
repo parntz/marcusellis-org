@@ -161,7 +161,7 @@ function ProfileImage({ title, item }) {
   if (!current) {
     return (
       <div className="find-artist-directory-card__placeholder" aria-hidden="true">
-        {getInitials(title) || "AFM"}
+        {getInitials(title) || "
       </div>
     );
   }

@@ -674,7 +674,7 @@ export function MemberProfileEditor({ profile, canDelete = false }) {
             ) : null}
             {confirmDelete && canDelete ? (
               <p className="recording-sidebar-modal__danger-hint" role="alert">
-                This deletes this member permanently and is unrecoverable. They will no longer appear on any aspect of the AFM 257 site. Click Delete Profile again to confirm.
+                This deletes this member permanently and is unrecoverable. They will no longer appear on any aspect of the e again to confirm.
               </p>
             ) : null}
 

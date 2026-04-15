@@ -28,7 +28,6 @@ import { FeaturedVideoPageAdmin } from "./featured-video-page-admin";
 import { RehearsalHallHeroAdmin } from "./rehearsal-hall-hero-admin";
 import { RehearsalHallSectionAdmin } from "./rehearsal-hall-section-admin";
 import { LiveScalesDownloads } from "./live-scales-downloads";
-import { AfmEntertainmentAdmin } from "./afm-entertainment-admin";
 import { MagazineArchive } from "./magazine-archive";
 import { PhotoVideoGallery } from "./photo-video-gallery";
 import { ScalesMasterDetail } from "./scales-master-detail";
@@ -49,18 +48,11 @@ import { listNewsEventsItems } from "../lib/news-events-items";
 import { getMemberSiteLinksHeroConfig } from "../lib/site-config-member-site-links-hero";
 import { getMemberSiteLinksIntroConfig } from "../lib/site-config-member-site-links-intro";
 import { getRecordingPageConfig } from "../lib/site-config-recording-page";
-import { getFeaturedVideoPageConfig } from "../lib/site-config-featured-video";
-import { getRehearsalHallHeroConfig } from "../lib/site-config-rehearsal-hall";
-import { getRouteSidebarConfig } from "../lib/site-config-route-sidebar";
+import { getFeaturedVideoPageConfig } from "../lib/site-config-featured-video";import { getRouteSidebarConfig } from "../lib/site-config-route-sidebar";
 import { getSidebarWidthConfig } from "../lib/site-config-sidebar-width";
 import { getScalesFormsLinksConfig } from "../lib/site-config-scales-forms-links";
-import { getAfmEntertainmentPageConfig } from "../lib/site-config-afm-entertainment";
 import { cleanDrupalHtml, extractDrupalContentEncodedHtml } from "../lib/drupal-html-clean.js";
 import { getMagazineArchiveContent } from "../lib/magazine-archive.mjs";
-import {
-  getAfmEntertainmentDisplayHtmlFromSource,
-  getAfmEntertainmentSourceFromPageBody,
-} from "../lib/afm-entertainment-html.mjs";
 import {
   getLiveMusicDisplayHtmlFromSource,
   getLiveMusicSourceFromPageBody,
@@ -114,93 +106,7 @@ function AssetIndex({ page }) {
   );
 }
 
-function AfmEntertainmentPromo({ contentHtml, isAdmin, initialSourceHtml, screenshotSrc }) {
-  if (isAdmin) {
-    return (
-      <AfmEntertainmentAdmin
-        initialSourceHtml={initialSourceHtml}
-        initialScreenshotSrc={screenshotSrc}
-        displayHtml={contentHtml}
-      />
-    );
-  }
 
-  const promoContent = (
-    <section className="afm-entertainment-promo-shell">
-      <div
-        className="afm-entertainment-promo"
-      >
-        <div className="afm-entertainment-promo__copy">
-          <p className="afm-entertainment-promo__eyebrow">External booking resource</p>
-          <div
-            className="afm-entertainment-promo__prose"
-            dangerouslySetInnerHTML={{ __html: contentHtml }}
-          />
-        </div>
-
-        <div className="afm-entertainment-promo__visual">
-          <div className="afm-entertainment-promo__frame">
-            <Image
-              src={screenshotSrc}
-              alt="Preview of the AFM Entertainment website"
-              width={1600}
-              height={1600}
-              unoptimized
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-
-  return promoContent;
-}
-
-function DirectoryLanding({ content }) {
-  return (
-    <div className="directory-landing">
-      <section className="directory-column directory-column--intro">
-        <p className="directory-kicker">Two directory options</p>
-        <h2>Private roster for members, public profiles for booking.</h2>
-        {content.note ? <p className="directory-note">{content.note}</p> : null}
-        {content.supportText ? <p className="directory-support-line">{content.supportText}</p> : null}
-      </section>
-
-      <section className="directory-column directory-column--members">
-        <p className="directory-section__label">Members only</p>
-        <h3>{content.privateTitle}</h3>
-        {content.privateCopy ? (
-          <div
-            className="directory-section__copy"
-            dangerouslySetInnerHTML={{ __html: content.privateCopy }}
-          />
-        ) : null}
-        <p className="directory-section__action">
-          <a href={content.privateLink.href}>{content.privateLink.label}</a>
-        </p>
-      </section>
-
-      <section className="directory-column directory-column--public">
-        <p className="directory-section__label">Public showcase</p>
-        <h3>{content.publicTitle}</h3>
-        {content.publicCopy ? (
-          <div
-            className="directory-section__copy"
-            dangerouslySetInnerHTML={{ __html: content.publicCopy }}
-          />
-        ) : null}
-        <p className="directory-section__action">
-          <Link href={content.publicLink.href}>{content.publicLink.label}</Link>
-        </p>
-      </section>
-    </div>
-  );
-}
-
-
-function extractMissionStatementContent(bodyHtml = "") {
-  return parseMissionStatementBody(bodyHtml || "");
-}
 
 function MissionStatementPage({ content }) {
   return (
@@ -603,7 +509,6 @@ export async function MirroredPage({
   const newUseReusePage = page.kind === "mirror-page" && page.route === "/new-use-reuse";
   const signatoryPage = page.kind === "mirror-page" && page.route === "/signatory-information";
   const liveMusicPage = page.kind === "mirror-page" && page.route === "/live-music";
-  const afmEntertainmentPage = page.kind === "mirror-page" && page.route === "/afm-entertainment";
   const liveScalesPage = page.kind === "mirror-page" && page.route === "/live-scales-contracts-pension";
   const rehearsalHallPage = page.kind === "mirror-page" && page.route === "/free-rehearsal-hall";
   const benefitsHubPage = page.kind === "mirror-page" && page.route === "/benefits-union-members";
@@ -640,7 +545,6 @@ export async function MirroredPage({
     if (r === "/find-an-artist-or-band") return "pg-find-artist";
     if (r === "/live-scales-contracts-pension") return "pg-scales-live";
     if (r === "/form-ls1-qa") return "pg-faq";
-    if (r === "/afm-entertainment") return "pg-hub pg-afm-entertainment";
     if (r === "/featured-video") return "pg-video";
     if (r === "/nashville-musician-magazine") return "pg-magazine";
     if (r === "/members-only-directory") return "pg-directory";
@@ -704,18 +608,11 @@ export async function MirroredPage({
   const signatoryContentHtml = signatoryPage ? getSignatoryDisplayHtmlFromSource(signatorySourceHtml) : "";
   const liveMusicSourceHtml = liveMusicPage ? getLiveMusicSourceFromPageBody(page.bodyHtml || "") : "";
   const liveMusicContentHtml = liveMusicPage ? getLiveMusicDisplayHtmlFromSource(liveMusicSourceHtml) : "";
-  const afmEntertainmentSourceHtml = afmEntertainmentPage
-    ? getAfmEntertainmentSourceFromPageBody(page.bodyHtml || "")
-    : "";
-  const afmEntertainmentContentHtml = afmEntertainmentPage
-    ? getAfmEntertainmentDisplayHtmlFromSource(afmEntertainmentSourceHtml)
-    : "";
   const aboutPage = page.kind === "mirror-page" && page.route === "/about-us";
   const membersOnlyDirectoryPage = page.kind === "mirror-page" && page.route === "/members-only-directory";
   /* Match other hubs: if route sidebar is on in site config, always mount the column (same as /gigs, benefits, etc.). */
   const liveMusicRouteSidebarOn = liveMusicPage && routeSidebarEnabled;
   const liveScalesContent = liveScalesPage ? await getLiveScalesConfig() : null;
-  const afmEntertainmentConfig = afmEntertainmentPage ? await getAfmEntertainmentPageConfig() : null;
   const magazineArchiveConfig = magazinePage ? await getMagazineArchiveConfig() : null;
   const rehearsalHallContent = rehearsalHallPage ? extractRehearsalHallContent(page.bodyHtml || "") : null;
   const rehearsalHallHeroConfig = rehearsalHallPage ? await getRehearsalHallHeroConfig() : null;
@@ -1599,13 +1496,6 @@ export async function MirroredPage({
                         dangerouslySetInnerHTML={{ __html: bodyHtml }}
                       />
                     </>
-                  ) : afmEntertainmentPage ? (
-                    <AfmEntertainmentPromo
-                      contentHtml={afmEntertainmentContentHtml}
-                      isAdmin={isAdmin}
-                      initialSourceHtml={afmEntertainmentSourceHtml}
-                      screenshotSrc={afmEntertainmentConfig?.screenshotSrc || "/images/afm-entertainment-home-raw.png"}
-                    />
                   ) : aboutPage ? (
                     routeSidebarEnabled ? (
                       <div className={`page-columns ${pageTypeClass}`} style={routeSidebarStyle}>
@@ -1758,13 +1648,6 @@ export async function MirroredPage({
                     dangerouslySetInnerHTML={{ __html: bodyHtml }}
                   />
                 </>
-              ) : afmEntertainmentPage ? (
-                <AfmEntertainmentPromo
-                  contentHtml={afmEntertainmentContentHtml}
-                  isAdmin={isAdmin}
-                  initialSourceHtml={afmEntertainmentSourceHtml}
-                  screenshotSrc={afmEntertainmentConfig?.screenshotSrc || "/images/afm-entertainment-home-raw.png"}
-                />
               ) : aboutPage ? (
                 routeSidebarEnabled ? (
                   <div className={`page-columns ${pageTypeClass}`} style={routeSidebarStyle}>

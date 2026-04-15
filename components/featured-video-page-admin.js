@@ -127,7 +127,7 @@ export function FeaturedVideoPageAdmin({ initialConfig }) {
                     onChange={(event) =>
                       setDraft((current) => ({ ...current, pageDescription: event.target.value }))
                     }
-                    placeholder="Watch the latest featured video from Nashville Musicians Association."
+                    placeholder="Watch the latest featured video."
                   />
                 </label>
               </div>

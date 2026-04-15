@@ -230,7 +230,7 @@ export function HomepageExperience({
     })
   );
   const initialHeroText = {
-    titleLine1: String(homeHeroTextConfig?.titleLine1 || "Nashville Musicians"),
+    titleLine1: String(homeHeroTextConfig?.titleLine1 || "Marcus Ellis"),
     titleLine2: String(homeHeroTextConfig?.titleLine2 || "Association"),
     subheading: String(homeHeroTextConfig?.subheading || "AFM Local 257 — Since 1902"),
     linkHref: String(homeHeroTextConfig?.linkHref || ""),

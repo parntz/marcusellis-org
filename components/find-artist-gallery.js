@@ -17,7 +17,7 @@ function ArtistCardImage({ item }) {
   if (!current) {
     return (
       <div className="find-artist-directory-card__placeholder" aria-hidden="true">
-        {getInitials(item.title) || "AFM"}
+        {getInitials(item.title) || ""}
       </div>
     );
   }
