@@ -34,7 +34,7 @@
     "prebuild": "node scripts/prebuild-site.mjs",
     "dev": "next dev",
     "dev:turbo": "next dev --turbo",
-    "build": "next build",
+    "build": "node scripts/db-init.mjs && next build",
     "postbuild": "node scripts/prune-next-build.mjs",
     "start": "next start",
     "lint": "eslint ."
