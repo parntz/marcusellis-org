@@ -1,6 +1,6 @@
-# AFM 257 Site
+# Marcus Ellis
 
-This site is a Next.js app for Nashville Musicians Association / AFM 257.
+Personal website for Marcus Ellis - businessman, medical researcher, national cancer coach, nutritional coach, and health resources advocate.
 
 ## Command-Line Reference
 
