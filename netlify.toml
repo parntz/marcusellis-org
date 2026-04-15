@@ -4,7 +4,8 @@
 # Ref: plugin-context.js DEFAULT_PUBLISH_DIR = ".next"
 
 [build]
-  command = "node scripts/db-init.mjs && npm run build"  publish = ".next"
+  command = "node scripts/db-init.mjs && npm run build"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "22"
