@@ -3,6 +3,18 @@ import path from "node:path";
 
 const rootDir = process.cwd();
 const serverDir = path.join(rootDir, ".next", "server");
+const projectDb = path.join(rootDir, "data", "site.db");
+const serverDbDest = path.join(serverDir, "data", "site.db");
+
+// Copy SQLite DB into .next/server so it travels with the deployed build
+if (fs.existsSync(projectDb)) {
+  const destDir = path.dirname(serverDbDest);
+  if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+  fs.copyFileSync(projectDb, serverDbDest);
+  console.log(`prune-next-build: copied DB to .next/server/data/site.db`);
+} else {
+  console.log(`prune-next-build: ${projectDb} not found, skipping DB copy.`);
+}
 
 function walk(dirPath, visitor) {
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
