@@ -1,19 +1,19 @@
 :root {
-  /* Marcus Ellis - warm, earthy, personal tones */
+  /* Marcus Ellis - natural health, green earth tones */
   --bg: #f8f6f3;
   --surface: rgba(255, 255, 255, 0.95);
   --surface-strong: rgba(255, 255, 255, 0.98);
   --ink: #2c2416;
-  --muted: rgba(90, 80, 69, 0.78);
-  --line: rgba(139, 111, 78, 0.28);
-  /* Warm earth tones: focus rings, accents */
-  --accent: #8b6f4e;
-  --accent-dark: #5c4a35;
-  --accent-soft: #e8dfd4;
+  --muted: rgba(74, 90, 63, 0.78);
+  --line: rgba(107, 143, 94, 0.28);
+  /* Natural green earth tones: focus rings, accents */
+  --accent: #6b8f5e;
+  --accent-dark: #4a6b3f;
+  --accent-soft: #e8f0e5;
   /* Nav hovers, links, primary buttons */
-  --link: #8b6f4e;
-  --link-hover: #6b5340;
-  --primary-deep: #5c4a35;
+  --link: #6b8f5e;
+  --link-hover: #4a6b3f;
+  --primary-deep: #4a6b3f;
   --shadow: 0 20px 48px rgba(0, 0, 0, 0.12);
   --display: Georgia, "Times New Roman", serif;
   --body: Georgia, "Times New Roman", serif;
@@ -22,15 +22,15 @@
   --header-brand-light: #d4c4a8;
   --header-brand-light-rgb: 212, 196, 168;
   /* Light, warm background */
-  --page-background: linear-gradient(180deg, #f8f6f3 0%, #e8dfd4 100%);
+  --page-background: linear-gradient(180deg, #f8f6f3 0%, #e8f0e5 100%);
   /*
-   * Header/menu chrome: warm earth tones
+   * Header/menu chrome: natural green earth tones
    */
-  --brand-background: #8b6f4e;
+  --brand-background: #6b8f5e;
   --header-frame-background: #f8f6f3;
-  --header-frame-stroke: #d4c4a8;
-  --menu-background: #e8dfd4;
-  --menu-stroke: #d4c4a8;
+  --header-frame-stroke: #c8d8c0;
+  --menu-background: #e8f0e5;
+  --menu-stroke: #c8d8c0;
   /* Space below page title so sidebar stacks align (recording, scales, news) */
   --sidebar-stack-page-offset: 35px;
   /* Gap below site nav and gap above main content when a page-header callout is present */
