@@ -12,7 +12,7 @@ export function ImageHero({ title, subtitle, image, eyebrow }: Props) {
   return (
     <section className="relative overflow-hidden border-b border-ivory/10 bg-charcoal">
       <div className="absolute inset-0">
-        <PublicImage asset={image} fill priority className="object-cover opacity-58" sizes="100vw" />
+        <PublicImage asset={image} fill priority className="object-cover object-top opacity-58" sizes="100vw" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest-950 via-forest-950/70 to-forest-950/20" />
       </div>
       <div className="relative mx-auto max-w-7xl px-5 pb-20 pt-40 md:px-8">

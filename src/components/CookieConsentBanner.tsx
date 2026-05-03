@@ -11,7 +11,7 @@ export function CookieConsentBanner() {
       return null;
     }
 
-    return localStorage.getItem("gabriel-cookie-consent") as Consent;
+    return localStorage.getItem("marcus-ellis-cookie-consent") as Consent;
   });
   const [manage, setManage] = useState(false);
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
@@ -19,7 +19,7 @@ export function CookieConsentBanner() {
   const analyticsAllowed = consent === "accepted" || consent === "managed";
 
   function save(value: Exclude<Consent, null>) {
-    localStorage.setItem("gabriel-cookie-consent", value);
+    localStorage.setItem("marcus-ellis-cookie-consent", value);
     setConsent(value);
   }
 

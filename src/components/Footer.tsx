@@ -1,12 +1,17 @@
 import Link from "next/link";
-import { affiliateDisclosure, medicalDisclaimer } from "@/db/content";
+import { getDisclaimerCopy } from "@/db/queries";
 
-export function Footer() {
+export async function Footer() {
+  const [medicalDisclaimer, affiliateDisclosure] = await Promise.all([
+    getDisclaimerCopy("medical"),
+    getDisclaimerCopy("affiliate")
+  ]);
+
   return (
     <footer className="border-t border-ivory/10 bg-charcoal">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.2fr_0.8fr] md:px-8">
         <div>
-          <p className="font-serif text-4xl text-ivory">Gabriel</p>
+          <p className="font-serif text-4xl text-ivory">Marcus Ellis</p>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-ivory/64">{medicalDisclaimer}</p>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-ivory/64">{affiliateDisclosure}</p>
         </div>

@@ -7,7 +7,7 @@ export function Header({ links }: { links: Pick<NavigationLink, "label" | "href"
     <header className="fixed inset-x-0 top-0 z-40 border-b border-ivory/10 bg-forest-950/60 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
         <Link href="/" className="font-serif text-3xl tracking-tight text-ivory">
-          Gabriel
+          Marcus Ellis
         </Link>
         <nav className="hidden items-center gap-6 md:flex">
           {links.map((link) => (

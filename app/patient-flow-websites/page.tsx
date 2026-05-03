@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { assets } from "@/lib/assets";
-import { getSetting } from "@/db/queries";
+import { requireSetting } from "@/db/queries";
 import { CTAButton } from "@/components/CTAButton";
 import { ImageHero } from "@/components/ImageHero";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -11,11 +11,11 @@ export const metadata: Metadata = {
 };
 
 export default async function PatientFlowWebsitesPage() {
-  const url = (await getSetting("patient_flow_url")) ?? "https://patientflowwebsites.com";
+  const url = await requireSetting("patient_flow_url");
 
   return (
     <>
-      <ImageHero title="Patient Flow Websites is a separate service." subtitle="This bridge page points visitors to a dedicated website and service distinct from Gabriel's educational resource library." image={assets.businessPhotoOne} eyebrow="Bridge page" />
+      <ImageHero title="Patient Flow Websites is a separate service." subtitle="This bridge page points visitors to a dedicated website and service distinct from Marcus Ellis's educational resource library." image={assets.businessPhotoOne} eyebrow="Bridge page" />
       <section className="mx-auto max-w-4xl px-5 py-20 md:px-8">
         <SectionHeading eyebrow="Separate destination" title="For clinic and business website support, continue to Patient Flow Websites.">
           <p>The outbound link is configurable through the database in `site_settings` using the `patient_flow_url` key.</p>

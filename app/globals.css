@@ -41,7 +41,10 @@ a {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: url("/placeholders/grain.svg");
+  background:
+    radial-gradient(circle at 18% 22%, rgba(251, 245, 231, 0.12), transparent 0.08rem),
+    radial-gradient(circle at 74% 58%, rgba(251, 245, 231, 0.1), transparent 0.06rem);
+  background-size: 0.42rem 0.42rem;
   mix-blend-mode: soft-light;
   opacity: 0.32;
 }

@@ -8,7 +8,7 @@ import { SectionHeading } from "@/components/SectionHeading";
 
 export const metadata: Metadata = {
   title: "Donations",
-  description: "Support Gabriel's educational resource library and media work."
+  description: "Support Marcus Ellis's educational resource library and media work."
 };
 
 export default async function DonationsPage() {

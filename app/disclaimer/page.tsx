@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { affiliateDisclosure, financialDisclaimer, medicalDisclaimer } from "@/db/content";
+import { getDisclaimerCopy } from "@/db/queries";
 import { assets } from "@/lib/assets";
 import { ImageHero } from "@/components/ImageHero";
 
@@ -8,7 +8,14 @@ export const metadata: Metadata = {
   description: "Important educational, medical, legal, financial, external-link, and affiliate disclosures."
 };
 
-export default function DisclaimerPage() {
+export default async function DisclaimerPage() {
+  const [medicalDisclaimer, financialDisclaimer, affiliateDisclosure, generalDisclaimer] = await Promise.all([
+    getDisclaimerCopy("medical"),
+    getDisclaimerCopy("financial"),
+    getDisclaimerCopy("affiliate"),
+    getDisclaimerCopy("general")
+  ]);
+
   return (
     <>
       <ImageHero title="Disclaimers and disclosures" subtitle="Clear boundaries for educational content, external links, financial topics, and affiliate relationships." image={assets.icelandWater} eyebrow="Important disclosures" />
@@ -22,7 +29,7 @@ export default function DisclaimerPage() {
         <h2>Affiliate disclosure</h2>
         <p>{affiliateDisclosure}</p>
         <h2>External-link disclosure</h2>
-        <p>External links are provided for education and context. This site does not control external content and does not endorse every claim, viewpoint, or product presented elsewhere.</p>
+        <p>{generalDisclaimer}</p>
       </section>
     </>
   );

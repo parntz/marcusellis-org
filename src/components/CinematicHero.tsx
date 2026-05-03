@@ -30,7 +30,7 @@ export function CinematicHero({
         asset={image}
         fill
         priority
-        className="object-cover"
+        className="object-cover object-top"
         sizes="100vw"
       />
       <div className="absolute inset-0 bg-gradient-to-r from-forest-950 via-forest-950/78 to-forest-950/25" />

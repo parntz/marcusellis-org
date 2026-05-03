@@ -4,7 +4,7 @@ import { ImageHero } from "@/components/ImageHero";
 
 export const metadata: Metadata = {
   title: "Cookie Policy",
-  description: "Cookie and analytics consent policy for Gabriel's website."
+  description: "Cookie and analytics consent policy for Marcus Ellis's website."
 };
 
 export default function CookiesPage() {

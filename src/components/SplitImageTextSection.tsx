@@ -19,7 +19,7 @@ export function SplitImageTextSection({
     <section className="mx-auto grid max-w-7xl gap-8 px-5 py-20 md:grid-cols-2 md:px-8">
       <div className={reverse ? "md:order-2" : undefined}>
         <div className="relative min-h-[28rem] overflow-hidden rounded-[2.5rem] border border-ivory/10">
-          <PublicImage asset={image} fill className="object-cover" sizes="(min-width: 768px) 50vw, 100vw" />
+          <PublicImage asset={image} fill className="object-cover object-top" sizes="(min-width: 768px) 50vw, 100vw" />
           <div className="absolute inset-0 bg-gradient-to-t from-charcoal/50 to-transparent" />
         </div>
       </div>

@@ -3,7 +3,7 @@ import { getFeaturedArticles, getFeaturedVideos } from "@/db/queries";
 import { ArticleCard } from "@/components/ArticleCard";
 import { CinematicHero } from "@/components/CinematicHero";
 import { FeaturedResourceGrid } from "@/components/FeaturedResourceGrid";
-import { GabrielGuideCard } from "@/components/GabrielGuideCard";
+import { MarcusGuideCard } from "@/components/MarcusGuideCard";
 import { PathwayNavigation } from "@/components/PathwayNavigation";
 import { SectionHeading } from "@/components/SectionHeading";
 import { SplitImageTextSection } from "@/components/SplitImageTextSection";
@@ -25,13 +25,13 @@ export default async function HomePage() {
 
       <section className="mx-auto grid max-w-7xl gap-8 px-5 py-20 md:grid-cols-[1fr_0.8fr] md:px-8">
         <div>
-          <SectionHeading eyebrow="Gabriel as guide" title="A human guide through questions, story, and next steps.">
+          <SectionHeading eyebrow="Marcus Ellis as guide" title="A human guide through questions, story, and next steps.">
             <p>
-              Gabriel is your guide through this collection, helping you find the story, articles, videos, and resources most relevant to your next step without turning curiosity into medical advice.
+              Marcus Ellis is your guide through this collection, helping you find the story, articles, videos, and resources most relevant to your next step without turning curiosity into medical advice.
             </p>
           </SectionHeading>
         </div>
-        <GabrielGuideCard />
+        <MarcusGuideCard />
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-10 md:px-8">

@@ -1,19 +1,12 @@
-import { affiliateDisclosure, financialDisclaimer, medicalDisclaimer } from "@/db/content";
+import { getDisclaimerCopy } from "@/db/queries";
 
 type Props = {
   type?: string | null;
   compact?: boolean;
 };
 
-export function DisclaimerBox({ type = "medical", compact = false }: Props) {
-  const copy =
-    type === "financial"
-      ? financialDisclaimer
-      : type === "affiliate"
-        ? affiliateDisclosure
-        : type === "general"
-          ? "External resources are provided for education and context. Inclusion does not imply endorsement of every claim or viewpoint."
-          : medicalDisclaimer;
+export async function DisclaimerBox({ type = "medical", compact = false }: Props) {
+  const copy = await getDisclaimerCopy(type);
 
   return (
     <aside className="rounded-3xl border border-gold-200/25 bg-gold-200/10 p-5 text-sm leading-7 text-ivory/78">

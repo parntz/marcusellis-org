@@ -2,7 +2,7 @@
 
 import Image, { type ImageProps } from "next/image";
 import { useState } from "react";
-import type { PublicAsset } from "@/lib/assets";
+import { defaultPublicImage, resolvePublicImageSrc, type PublicAsset } from "@/lib/assets";
 
 type Props = Omit<ImageProps, "src" | "alt"> & {
   asset?: PublicAsset;
@@ -11,17 +11,24 @@ type Props = Omit<ImageProps, "src" | "alt"> & {
   alt?: string;
 };
 
-export function PublicImage({ asset, src, fallback, alt, ...props }: Props) {
-  const initialSrc = src ?? asset?.src ?? fallback ?? "/placeholders/image-placeholder.svg";
-  const fallbackSrc = fallback ?? asset?.fallback ?? "/placeholders/image-placeholder.svg";
+export function PublicImage({ asset, src, fallback, alt, fill, style, ...props }: Props) {
+  const initialSrc = resolvePublicImageSrc(src ?? asset?.src ?? fallback);
+  const fallbackSrc = resolvePublicImageSrc(fallback ?? asset?.fallback ?? defaultPublicImage);
   const [currentSrc, setCurrentSrc] = useState(initialSrc);
+  const imageStyle = fill ? { objectPosition: "top center", ...style } : style;
 
   return (
     <Image
       {...props}
+      fill={fill}
+      style={imageStyle}
       src={currentSrc}
       alt={alt ?? asset?.alt ?? ""}
-      onError={() => setCurrentSrc(fallbackSrc)}
+      onError={() => {
+        if (currentSrc !== fallbackSrc) {
+          setCurrentSrc(fallbackSrc);
+        }
+      }}
     />
   );
 }

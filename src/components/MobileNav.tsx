@@ -22,7 +22,7 @@ export function MobileNav({ links }: { links: Pick<NavigationLink, "label" | "hr
         <div className="fixed inset-0 z-50 bg-forest-950/96 px-6 py-6 backdrop-blur-xl">
           <div className="flex items-center justify-between">
             <Link href="/" className="font-serif text-3xl" onClick={() => setOpen(false)}>
-              Gabriel
+              Marcus Ellis
             </Link>
             <button
               type="button"
@@ -52,7 +52,7 @@ export function MobileNav({ links }: { links: Pick<NavigationLink, "label" | "hr
             className="focus-ring mt-10 inline-flex rounded-full bg-gold-200 px-5 py-3 font-semibold text-forest-950"
             onClick={() => setOpen(false)}
           >
-            Start with Gabriel
+            Start with Marcus Ellis
           </Link>
         </div>
       ) : null}

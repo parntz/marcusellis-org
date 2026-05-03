@@ -8,7 +8,7 @@ export function ArticleCard({ article, featured = false }: { article: Partial<Ar
   return (
     <Link href={`/articles/${article.slug}`} className="group block overflow-hidden rounded-[2rem] border border-ivory/10 bg-ivory/[0.04]">
       <div className={featured ? "relative aspect-[16/9]" : "relative aspect-[4/3]"}>
-        <PublicImage src={article.heroImage} fill className="object-cover transition duration-700 group-hover:scale-105" sizes="(min-width: 768px) 33vw, 100vw" />
+        <PublicImage src={article.heroImage} fill className="object-cover object-top transition duration-700 group-hover:scale-105" sizes="(min-width: 768px) 33vw, 100vw" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest-950/88 to-transparent" />
         <span className="absolute left-5 top-5 rounded-full bg-forest-950/65 px-3 py-1 text-xs font-semibold text-gold-200 backdrop-blur">{article.category}</span>
       </div>
@@ -24,7 +24,7 @@ export function VideoCard({ video }: { video: Partial<Video> }) {
   return (
     <article className="group overflow-hidden rounded-[2rem] border border-ivory/10 bg-ivory/[0.04]">
       <div className="relative aspect-video">
-        <PublicImage src={video.thumbnailImage} fill className="object-cover transition duration-700 group-hover:scale-105" sizes="(min-width: 768px) 33vw, 100vw" />
+        <PublicImage src={video.thumbnailImage} fill className="object-cover object-top transition duration-700 group-hover:scale-105" sizes="(min-width: 768px) 33vw, 100vw" />
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal/90 to-charcoal/10" />
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-gold-200 text-forest-950 shadow-gold">
@@ -51,7 +51,7 @@ export function ProductCard({ product }: { product: Partial<Product> }) {
   return (
     <article className="overflow-hidden rounded-[2rem] border border-ivory/10 bg-ivory/[0.04]">
       <div className="relative aspect-[4/3]">
-        <PublicImage src={product.image} fill className="object-cover" sizes="(min-width: 768px) 33vw, 100vw" />
+        <PublicImage src={product.image} fill className="object-cover object-top" sizes="(min-width: 768px) 33vw, 100vw" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest-950/88 to-transparent" />
         <span className="absolute left-5 top-5 rounded-full bg-forest-950/65 px-3 py-1 text-xs font-semibold text-gold-200 backdrop-blur">{product.category}</span>
       </div>

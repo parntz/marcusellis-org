@@ -4,7 +4,7 @@ import { ImageHero } from "@/components/ImageHero";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "Privacy policy for Gabriel's educational resource website."
+  description: "Privacy policy for Marcus Ellis's educational resource website."
 };
 
 export default function PrivacyPage() {

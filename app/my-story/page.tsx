@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { assets } from "@/lib/assets";
 import { CinematicHero } from "@/components/CinematicHero";
 import { DisclaimerBox } from "@/components/DisclaimerBox";
-import { GabrielGuideCard } from "@/components/GabrielGuideCard";
+import { MarcusGuideCard } from "@/components/MarcusGuideCard";
 import { PullQuote } from "@/components/PullQuote";
 import { SectionHeading } from "@/components/SectionHeading";
 import { SplitImageTextSection } from "@/components/SplitImageTextSection";
@@ -11,7 +11,7 @@ import { getVideos } from "@/db/queries";
 
 export const metadata: Metadata = {
   title: "My Story",
-  description: "Gabriel's personal story, timeline, and carefully framed next steps."
+  description: "Marcus Ellis's personal story, timeline, and carefully framed next steps."
 };
 
 export default async function MyStoryPage() {
@@ -26,13 +26,13 @@ export default async function MyStoryPage() {
         subtitle="This page is personal narrative and reflection. It is not medical advice, diagnosis, treatment, or a substitute for licensed care."
         image={assets.clientSpeaking}
         primaryCta={{ label: "Watch the Story", href: "#story-video" }}
-        secondaryCta={{ label: "Contact Gabriel", href: "/contact" }}
+        secondaryCta={{ label: "Contact Marcus Ellis", href: "/contact" }}
       />
       <section id="story-video" className="mx-auto grid max-w-7xl gap-8 px-5 py-20 md:grid-cols-[1fr_0.7fr] md:px-8">
         <VideoCard video={myStoryVideo} />
         <div className="grid gap-6">
           <DisclaimerBox type="medical" />
-          <GabrielGuideCard />
+          <MarcusGuideCard />
         </div>
       </section>
       <section className="mx-auto max-w-5xl px-5 py-14 md:px-8">

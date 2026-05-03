@@ -67,7 +67,7 @@ export async function submitIntake(_: FormState, formData: FormData): Promise<Fo
 
     return {
       ok: true,
-      message: "Thank you. Your note has been received, and Gabriel will review it with care."
+      message: "Thank you. Your note has been received, and Marcus Ellis will review it with care."
     };
   } catch {
     return {

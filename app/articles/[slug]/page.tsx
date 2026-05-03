@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { assets } from "@/lib/assets";
+import { assets, resolvePublicImageSrc } from "@/lib/assets";
 import { absoluteUrl } from "@/lib/utils";
 import { getArticleBySlug, getArticles } from "@/db/queries";
 import { ArticleCard } from "@/components/ArticleCard";
@@ -20,16 +20,17 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
+  const heroImage = article?.heroImage ? resolvePublicImageSrc(article.heroImage) : undefined;
 
   return {
     title: article?.title ?? "Article",
-    description: article?.subtitle ?? "Educational article from Gabriel.",
+    description: article?.subtitle ?? "Educational article from Marcus Ellis.",
     openGraph: {
       title: article?.title,
       description: article?.subtitle ?? undefined,
       url: absoluteUrl(`/articles/${slug}`),
       type: "article",
-      images: article?.heroImage ? [{ url: article.heroImage }] : undefined
+      images: heroImage ? [{ url: heroImage }] : undefined
     }
   };
 }
@@ -83,7 +84,7 @@ export default async function ArticleDetailPage({ params }: Props) {
             description: article.subtitle,
             author: article.author,
             datePublished: article.publishedAt,
-            image: article.heroImage ? absoluteUrl(article.heroImage) : undefined
+            image: article.heroImage ? absoluteUrl(resolvePublicImageSrc(article.heroImage)) : undefined
           })
         }}
       />

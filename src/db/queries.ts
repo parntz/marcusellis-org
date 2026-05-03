@@ -1,5 +1,5 @@
 import { asc, desc, eq } from "drizzle-orm";
-import { getDb, hasDatabaseEnv } from "./client";
+import { getDb } from "./client";
 import {
   articles,
   contactSubmissions,
@@ -11,44 +11,16 @@ import {
   siteSettings,
   videos
 } from "./schema";
-import {
-  seedArticles,
-  seedDonationLinks,
-  seedNavigation,
-  seedPages,
-  seedProducts,
-  seedSettings,
-  seedVideos
-} from "./content";
-
-async function safeQuery<T>(query: () => Promise<T>, fallback: T): Promise<T> {
-  if (!hasDatabaseEnv) {
-    return fallback;
-  }
-
-  try {
-    return await query();
-  } catch (error) {
-    console.error("Database query failed; using bundled content fallback.", error);
-    return fallback;
-  }
-}
 
 export async function getNavigationLinks() {
-  return safeQuery(
-    () => getDb().query.navigationLinks.findMany({
-      where: eq(navigationLinks.active, true),
-      orderBy: asc(navigationLinks.sortOrder)
-    }),
-    seedNavigation
-  );
+  return getDb().query.navigationLinks.findMany({
+    where: eq(navigationLinks.active, true),
+    orderBy: asc(navigationLinks.sortOrder)
+  });
 }
 
 export async function getArticles() {
-  return safeQuery(
-    () => getDb().query.articles.findMany({ orderBy: [desc(articles.featured), desc(articles.publishedAt)] }),
-    seedArticles
-  );
+  return getDb().query.articles.findMany({ orderBy: [desc(articles.featured), desc(articles.publishedAt)] });
 }
 
 export async function getFeaturedArticles() {
@@ -57,17 +29,11 @@ export async function getFeaturedArticles() {
 }
 
 export async function getArticleBySlug(slug: string) {
-  return safeQuery(
-    () => getDb().query.articles.findFirst({ where: eq(articles.slug, slug) }),
-    seedArticles.find((article) => article.slug === slug)
-  );
+  return getDb().query.articles.findFirst({ where: eq(articles.slug, slug) });
 }
 
 export async function getVideos() {
-  return safeQuery(
-    () => getDb().query.videos.findMany({ orderBy: [desc(videos.featured), asc(videos.sortOrder)] }),
-    seedVideos
-  );
+  return getDb().query.videos.findMany({ orderBy: [desc(videos.featured), asc(videos.sortOrder)] });
 }
 
 export async function getFeaturedVideos() {
@@ -76,42 +42,45 @@ export async function getFeaturedVideos() {
 }
 
 export async function getProducts() {
-  return safeQuery(
-    () => getDb().query.products.findMany({ orderBy: [desc(products.featured), asc(products.sortOrder)] }),
-    seedProducts
-  );
+  return getDb().query.products.findMany({ orderBy: [desc(products.featured), asc(products.sortOrder)] });
 }
 
 export async function getDonationLinks() {
-  return safeQuery(
-    () => getDb().query.donationLinks.findMany({
-      where: eq(donationLinks.active, true),
-      orderBy: asc(donationLinks.sortOrder)
-    }),
-    seedDonationLinks
-  );
+  return getDb().query.donationLinks.findMany({
+    where: eq(donationLinks.active, true),
+    orderBy: asc(donationLinks.sortOrder)
+  });
 }
 
 export async function getPage(slug: string) {
-  return safeQuery(
-    () => getDb().query.pages.findFirst({ where: eq(pages.slug, slug) }),
-    seedPages.find((page) => page.slug === slug)
-  );
+  return getDb().query.pages.findFirst({ where: eq(pages.slug, slug) });
 }
 
 export async function getSetting(key: string) {
-  const fallback = seedSettings.find((setting) => setting.key === key)?.value;
-  if (!hasDatabaseEnv) {
-    return fallback;
+  const row = await getDb().query.siteSettings.findFirst({ where: eq(siteSettings.key, key) });
+  return row?.value;
+}
+
+export async function requireSetting(key: string) {
+  const value = await getSetting(key);
+  if (!value) {
+    throw new Error(`Missing required site setting "${key}" in Turso.`);
   }
 
-  try {
-    const row = await getDb().query.siteSettings.findFirst({ where: eq(siteSettings.key, key) });
-    return row?.value ?? fallback;
-  } catch (error) {
-    console.error("Setting query failed; using bundled content fallback.", error);
-    return fallback;
-  }
+  return value;
+}
+
+export async function getDisclaimerCopy(type?: string | null) {
+  const settingKey =
+    type === "financial"
+      ? "disclaimer_financial"
+      : type === "affiliate"
+        ? "disclaimer_affiliate"
+        : type === "general"
+          ? "disclaimer_general"
+          : "disclaimer_medical";
+
+  return requireSetting(settingKey);
 }
 
 export async function createIntakeSubmission(input: {
@@ -124,10 +93,6 @@ export async function createIntakeSubmission(input: {
   message: string;
   consent: boolean;
 }) {
-  if (!hasDatabaseEnv) {
-    throw new Error("The intake form requires Turso database configuration.");
-  }
-
   await getDb().insert(intakeSubmissions).values({
     ...input,
     phone: input.phone || null
@@ -140,9 +105,5 @@ export async function createContactSubmission(input: {
   message: string;
   consent: boolean;
 }) {
-  if (!hasDatabaseEnv) {
-    throw new Error("The contact form requires Turso database configuration.");
-  }
-
   await getDb().insert(contactSubmissions).values(input);
 }

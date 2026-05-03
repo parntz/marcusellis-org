@@ -67,7 +67,7 @@ async function seed() {
     await db.insert(navigationLinks).values(link);
   }
 
-  console.log("Seeded Gabriel resource site content.");
+  console.log("Seeded Marcus Ellis resource site content.");
 }
 
 seed().catch((error) => {
