@@ -32,7 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const links = await getNavigationLinks();
 
   return (
-    <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
+    <html lang="en" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <Header links={links} />
         <main>{children}</main>

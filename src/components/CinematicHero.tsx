@@ -30,6 +30,7 @@ export function CinematicHero({
         asset={image}
         fill
         priority
+        loading="eager"
         className="object-cover object-top"
         sizes="100vw"
       />
