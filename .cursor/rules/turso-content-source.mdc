@@ -1,0 +1,14 @@
+---
+description: Store content and configurable site data in Turso
+alwaysApply: true
+---
+
+# Turso Content Source
+
+- Treat Turso as the source of truth for content and configurable site data.
+- Store articles, videos, products, donation links, navigation, page records, disclaimers, external URLs, and site settings in Turso whenever they can be persisted there.
+- Read runtime content through `src/db/queries.ts`.
+- Keep `src/db/content.ts` limited to bootstrap seed data for first-time setup or intentional reseeding.
+- Do not import `src/db/content.ts` from app routes or components.
+- Avoid adding hardcoded content arrays, JSON files, Markdown files, filesystem reads, or component-level copy that would require future content edits in code.
+- When new content-driven behavior needs data, add or extend a Turso-backed table or `site_settings` key first.

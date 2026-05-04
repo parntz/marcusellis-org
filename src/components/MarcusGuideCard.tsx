@@ -1,4 +1,5 @@
 import { assets } from "@/lib/assets";
+import { Sparkles } from "lucide-react";
 import { CTAButton } from "./CTAButton";
 import { PublicImage } from "./PublicImage";
 
@@ -14,17 +15,20 @@ export function MarcusGuideCard() {
         />
       </div>
       <div className="mt-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold-200">Your guide</p>
-        <h3 className="mt-2 font-serif text-3xl">Marcus Ellis</h3>
+        <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-gold-200">
+          <Sparkles size={14} />
+          <span>Your guide</span>
+        </div>
+        <h3 className="mt-2 font-serif text-3xl">Start with Marcus Ellis</h3>
         <p className="mt-3 text-sm leading-7 text-ivory/72">
-          Marcus is here as a careful guide, helping visitors navigate stories, articles, videos, and resources without offering medical, legal, or financial advice.
+          Marcus Ellis is your guide through this collection, helping you find the story, articles, videos, and resources most relevant to your next step.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <CTAButton href="/my-story" variant="primary">
-            Read his story
+          <CTAButton href="/intake" variant="primary">
+            Intake
           </CTAButton>
           <CTAButton href="/contact" variant="secondary">
-            Get in touch
+            Contact
           </CTAButton>
         </div>
       </div>
